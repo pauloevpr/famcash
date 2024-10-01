@@ -1,32 +1,44 @@
-# SolidStart
+# TODO
 
-Everything you need to build a Solid project, powered by [`solid-start`](https://start.solidjs.com);
-
-## Creating a project
-
-```bash
-# create a new project in the current directory
-npm init solid@latest
-
-# create a new project in my-app
-npm init solid@latest my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-Solid apps are built with _presets_, which optimise your project for deployment to different environments.
-
-By default, `npm run build` will generate a Node app that you can run with `npm start`. To use a different preset, add it to the `devDependencies` in `package.json` and specify in your `app.config.js`.
-
-## This project was created with the [Solid CLI](https://solid-cli.netlify.app)
+- [] Auth
+    - [] Google
+    - [] Email link
+- [] Collaboration
+    - [] Invite others to join profile
+    - [] Join profile from invitation
+    - [] List members of a profile
+    - [] Remove member from profile
+- [] Transactions
+    - [] View transactions summary for a given month:
+        - [] total expenses
+        - [] total income
+        - [] carry over
+        - [] total
+    - [] List transactions for a given month
+    - [] Add transaction
+    - [] Edit Transaction
+    - [] Delete Transaction
+- [] Recurrent Transactions
+    - [] Add recurrent transaction
+        - [] recurrency length: week, month, year
+        - [] recurrency multiplier: 1-32
+        - [] e.g. every 2 weeks
+    - [] Edit single occurrence 
+    - [] Edit all future occurrences
+    - [] Delete single occurrence 
+    - [] Delete all future occurrences
+- [] Categories
+    - [] List categories
+    - [] Add category
+    - [] Edit category
+    - [] Delete unused category
+    - [] View spent summary for a given category and month
+        - [] total spent
+        - [] total planned
+        - [] remaining amount to spend
+    - [] View all expenses for a given category and month
+- [] Accounts
+    - [] List accounts
+    - [] Add account
+    - [] Edit account
+    - [] Delete unlikend account
