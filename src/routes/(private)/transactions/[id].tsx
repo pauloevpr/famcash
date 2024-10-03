@@ -21,6 +21,12 @@ export default function TransactionEditPage() {
     await idb.set("transactions", transaction)
     navigate(-1)
   }
+  async function onDelete(id: string) {
+    let confirmed = confirm("You are about to delete this transaction. Confirm?")
+    if (!confirmed) return
+    await idb.delete("transactions", id)
+    navigate(-1)
+  }
   return (
     <Show when={data()}>
       {data => (
@@ -28,6 +34,7 @@ export default function TransactionEditPage() {
           categories={data().categories}
           accounts={data().accounts}
           onSubmit={onSubmit}
+          onDelete={onDelete}
         />
       )}
     </Show>

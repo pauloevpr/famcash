@@ -16,7 +16,7 @@
         - [ ] total
     - [x] List transactions for a given month
     - [x] Add transaction
-    - [ ] Delete Transaction
+    - [x] Delete Transaction
     - [x] Edit Transaction
 - [ ] Recurrent Transactions
     - [ ] Add recurrent transaction

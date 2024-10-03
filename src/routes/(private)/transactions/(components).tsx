@@ -1,5 +1,5 @@
 import { A, useNavigate } from "@solidjs/router";
-import { createSignal, For, Show, VoidProps } from "solid-js";
+import { createMemo, createSignal, For, Show, VoidProps } from "solid-js";
 import { Button } from "~/components/buttons";
 import { Account, Category, Transaction, TransactionType, TransactionWithRefs } from "~/lib/models";
 import { DateOnly } from "~/lib/utils";
@@ -38,7 +38,8 @@ export function TransactionForm(props: VoidProps<{
   transaction: TransactionWithRefs,
   categories: Category[],
   accounts: Account[],
-  onSubmit: (transaction: Transaction) => Promise<any>,
+  onSubmit: (transaction: Transaction) => Promise<void>,
+  onDelete?: (id: string) => Promise<void>
 }>) {
   let navigate = useNavigate()
   const [type, setType] = createSignal(props.transaction.type)
@@ -175,7 +176,7 @@ export function TransactionForm(props: VoidProps<{
             max={Number.MAX_VALUE}
           />
         </div>
-        <div class="flex items-center flex-col gap-2">
+        <div class="space-y-2">
           <Show when={type() === "expense"}>
             <Button label="Save Expense"
               style="negative"
@@ -185,6 +186,17 @@ export function TransactionForm(props: VoidProps<{
             <Button label="Save Income"
               style="positive"
             />
+          </Show>
+          <Show when={props.onDelete}>
+            {(onDelete) => (
+              <div class="pb-4">
+                <Button label="Delete"
+                  type="button"
+                  style="neutral"
+                  onclick={() => onDelete()(props.transaction.id)}
+                />
+              </div>
+            )}
           </Show>
           <Button label="Cancel"
             type="button"
