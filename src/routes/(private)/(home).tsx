@@ -1,15 +1,15 @@
 
 import { useSearchParams } from "@solidjs/router";
-import { createMemo, createResource, For, Show, VoidProps } from "solid-js";
+import { createMemo, createResource, For } from "solid-js";
 import { ChevronLeftIcon, ChevronRightIcon } from "~/components/icons";
 import { PageLayout } from "~/components/layouts";
 import { idb } from "~/lib/idb";
-import { TransactionWithRefs } from "~/lib/models";
 import { DateOnly } from "~/lib/utils";
+import { TransactionListItem } from "./transactions/(components)";
 
 
 export default function Home() {
-  let [params, setParams] = useSearchParams()
+  let [params] = useSearchParams()
   let currentMonth = createMemo(() => {
     let now = new Date()
     let year = now.getFullYear()
@@ -74,7 +74,7 @@ export default function Home() {
           <ul class="space-y-1.5" >
             <For each={transactions()}>
               {transaction => (
-                <TransctionItem transaction={transaction} />
+                <TransactionListItem transaction={transaction} />
               )}
             </For>
           </ul>
@@ -83,33 +83,4 @@ export default function Home() {
     </PageLayout>
   );
 }
-
-function TransctionItem(props: VoidProps<{ transaction: TransactionWithRefs }>) {
-  // TODO: introduce intl formatting for amounts
-  return (
-    <li>
-      <a class="flex items-center gap-4 bg-white rounded-lg shadow-lg px-6 py-4">
-        <span class="bg-gray-100 w-10 h-10 p-1 rounded-full flex items-center justify-center"
-          aria-hidden>{props.transaction.category.icon}</span>
-        <div class="flex-grow">
-          <p class="text-lg">{props.transaction.name}</p>
-          <time class="text-light text-sm" datetime="2024-10-28T00:00:00Z" >
-            {new DateOnly(props.transaction.date).date.toLocaleDateString()}
-          </time>
-        </div>
-        <p class="text-left "
-          classList={{
-            "text-positive": props.transaction.type === "income",
-            "text-negative": props.transaction.type === "expense",
-          }}>
-          <Show when={props.transaction.type === "expense"}>
-            <span>-</span>
-          </Show>
-          {props.transaction.amount}
-        </p>
-      </a>
-    </li>
-  )
-}
-
 

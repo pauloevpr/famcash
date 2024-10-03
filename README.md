@@ -17,7 +17,7 @@
     - [x] List transactions for a given month
     - [x] Add transaction
     - [ ] Delete Transaction
-    - [ ] Edit Transaction
+    - [x] Edit Transaction
 - [ ] Recurrent Transactions
     - [ ] Add recurrent transaction
         - [ ] recurrency length: week, month, year

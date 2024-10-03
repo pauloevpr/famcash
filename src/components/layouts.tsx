@@ -6,7 +6,7 @@ import { HomeIcon, PlusIcon, SquaresIcon } from "~/components/icons";
 export function PageLayout(props: ParentProps) {
   let [params] = useSearchParams()
   let newTransactionUrl = createMemo(() => {
-    let url = new URL("new-transaction", window.location.origin)
+    let url = new URL("/transactions/new", window.location.origin)
     if (params.year && params.month) {
       url.searchParams.set("year", params.year as string)
       url.searchParams.set("month", params.month as string)

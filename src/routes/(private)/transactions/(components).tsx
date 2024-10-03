@@ -1,58 +1,40 @@
-import { useNavigate, useSearchParams } from "@solidjs/router";
-import { createResource, createSignal, For, Show, VoidProps } from "solid-js";
+import { A, useNavigate } from "@solidjs/router";
+import { createSignal, For, Show, VoidProps } from "solid-js";
 import { Button } from "~/components/buttons";
-import { idb } from "~/lib/idb";
-import { DateOnly } from "~/lib/utils";
 import { Account, Category, Transaction, TransactionType, TransactionWithRefs } from "~/lib/models";
+import { DateOnly } from "~/lib/utils";
 
-export default function NewTransactionPage() {
-  let navigate = useNavigate()
-  let [params] = useSearchParams()
-  let [data] = createResource(async () => {
-    let dateRaw = new Date()
-    if (params.month && params.year) {
-      dateRaw.setFullYear(parseInt(params.year))
-      dateRaw.setMonth(parseInt(params.month) - 1, 1)
-    }
-    let date = new DateOnly(dateRaw)
-    let accounts = (await idb.getAccounts())
-    let categories = (await idb.getCategories())
-    let transaction: TransactionWithRefs = {
-      name: "",
-      type: "expense",
-      id: new Date().getTime().toString(),
-      accountId: accounts[0]?.id,
-      account: accounts[0],
-      categoryId: categories[0].id,
-      category: categories[0],
-      amount: 0,
-      yearMonthIndex: date.toYearMonthString(),
-      date: date.toString(),
-    }
-    return {
-      transaction,
-      accounts,
-      categories,
-    }
-  })
-  async function onSubmit(transaction: Transaction) {
-    await idb.upsertTransaction(transaction)
-    navigate(-1)
-  }
+export function TransactionListItem(props: VoidProps<{ transaction: TransactionWithRefs }>) {
+  // TODO: introduce intl formatting for amounts
   return (
-    <Show when={data()}>
-      {data => (
-        <TransactionForm transaction={data().transaction}
-          categories={data().categories}
-          accounts={data().accounts}
-          onSubmit={onSubmit}
-        />
-      )}
-    </Show>
+    <li>
+      <A
+        href={`/transactions/${props.transaction.id}`}
+        class="flex items-center gap-4 bg-white rounded-lg shadow-lg px-6 py-4">
+        <span class="bg-gray-100 w-10 h-10 p-1 rounded-full flex items-center justify-center"
+          aria-hidden>{props.transaction.category.icon}</span>
+        <div class="flex-grow">
+          <p class="text-lg">{props.transaction.name}</p>
+          <time class="text-light text-sm" datetime="2024-10-28T00:00:00Z" >
+            {new DateOnly(props.transaction.date).date.toLocaleDateString()}
+          </time>
+        </div>
+        <p class="text-left "
+          classList={{
+            "text-positive": props.transaction.type === "income",
+            "text-negative": props.transaction.type === "expense",
+          }}>
+          <Show when={props.transaction.type === "expense"}>
+            <span>-</span>
+          </Show>
+          {props.transaction.amount}
+        </p>
+      </A>
+    </li>
   )
 }
 
-function TransactionForm(props: VoidProps<{
+export function TransactionForm(props: VoidProps<{
   transaction: TransactionWithRefs,
   categories: Category[],
   accounts: Account[],
@@ -70,7 +52,7 @@ function TransactionForm(props: VoidProps<{
     let data = new FormData(e.currentTarget)
     let date = new DateOnly(data.get("date") as string)
     let transaction: Transaction = {
-      id: `${new Date().getTime()}`,
+      id: props.transaction.id,
       name: data.get("name") as string,
       amount: parseFloat(data.get("amount") as string),
       accountId: data.get("account") as string,
@@ -132,7 +114,6 @@ function TransactionForm(props: VoidProps<{
           <select
             id="category"
             name="category"
-            placeholder="Select Category"
             class="h-12 px-4 border-t border-gray-200 rounded-br-xl bg-transparent w-full"
           >
             <For each={props.categories}>
@@ -167,7 +148,6 @@ function TransactionForm(props: VoidProps<{
           <select
             id="account"
             name="account"
-            placeholder="Select Account"
             class="h-12 px-4 border-t border-gray-200 rounded-br-xl bg-transparent w-full"
           >
             <For each={props.accounts}>
@@ -211,7 +191,6 @@ function TransactionForm(props: VoidProps<{
             style="neutral"
             onclick={() => navigate(-1)}
           />
-
         </div>
       </form>
     </main>

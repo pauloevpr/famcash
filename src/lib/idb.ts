@@ -10,19 +10,19 @@ class IndexedDbWrapper {
 		this.databaseName = databaseName
 	}
 
-	async upsertTransaction(transaction: Transaction) {
-		await this.set("transactions", transaction)
-	}
-
-	async getAccounts(): Promise<Account[]> {
-		return await this.getAll("accounts")
-	}
-
-	async getCategories(): Promise<Category[]> {
-		return await this.getAll("categories")
+	async getTransactionById(id: string): Promise<TransactionWithRefs> {
+		let accounts = await this.getAll<Account>("accounts")
+		let categories = await this.getAll<Category>("categories")
+		let transaction = await this.get<Transaction>("transactions", id)
+		return {
+			...transaction,
+			account: accounts.find(account => account.id == transaction.accountId)!,
+			category: categories.find(category => category.id == transaction.categoryId)!,
+		}
 	}
 
 	async getTransactionsByMonth(year: number, month: number): Promise<TransactionWithRefs[]> {
+		// TODO: order by date from the oldest
 		let accounts = await this.getAll<Account>("accounts")
 		let categories = await this.getAll<Category>("categories")
 		let transactions = await idb.filter<Transaction>(
@@ -73,7 +73,7 @@ class IndexedDbWrapper {
 		})
 	}
 
-	private delete(store: StoreName, id: string) {
+	delete(store: StoreName, id: string) {
 		return new Promise(async (resolve, reject) => {
 			const db = await this.open()
 			const request = db.transaction(store, "readwrite").objectStore(store).delete(id)
@@ -86,12 +86,12 @@ class IndexedDbWrapper {
 		})
 	}
 
-	set(store: StoreName, data: any) {
+	set<T>(store: StoreName, data: T): Promise<void> {
 		return new Promise(async (resolve, reject) => {
 			const db = await this.open()
 			const request = db.transaction(store, "readwrite").objectStore(store).put(data)
 			request.onsuccess = () => {
-				resolve(undefined)
+				resolve()
 			}
 			request.onerror = (e: any) => {
 				reject("error when updating data for store " + store + ": " + e.target.error)
@@ -99,7 +99,7 @@ class IndexedDbWrapper {
 		})
 	}
 
-	private get(store: StoreName, id: string) {
+	get<T>(store: StoreName, id: string): Promise<T> {
 		return new Promise(async (resolve, reject) => {
 			const db = await this.open()
 			const request = db.transaction(store, "readonly").objectStore(store).get(id)
@@ -112,7 +112,7 @@ class IndexedDbWrapper {
 		})
 	}
 
-	private filter<T>(store: StoreName, index: string, value: string): Promise<T[]> {
+	filter<T>(store: StoreName, index: string, value: string): Promise<T[]> {
 		return new Promise(async (resolve, reject) => {
 			const db = await this.open()
 			const request = db.transaction(store, "readonly").objectStore(store).index(index).getAll(value)
@@ -125,7 +125,7 @@ class IndexedDbWrapper {
 		})
 	}
 
-	private getAll<T>(store: StoreName): Promise<T[]> {
+	getAll<T>(store: StoreName): Promise<T[]> {
 		return new Promise(async (resolve, reject) => {
 			const db = await this.open()
 			const request = db.transaction(store, "readonly").objectStore(store).getAll()
