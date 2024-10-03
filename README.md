@@ -15,9 +15,9 @@
         - [ ] carry over
         - [ ] total
     - [x] List transactions for a given month
-    - [ ] Add transaction
-    - [ ] Edit Transaction
+    - [x] Add transaction
     - [ ] Delete Transaction
+    - [ ] Edit Transaction
 - [ ] Recurrent Transactions
     - [ ] Add recurrent transaction
         - [ ] recurrency length: week, month, year

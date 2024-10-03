@@ -1,4 +1,5 @@
 import { Account, Transaction, Category, TransactionWithRefs } from "./models"
+import { DateOnly } from "./utils"
 
 type StoreName = "accounts" | "categories" | "transactions"
 
@@ -9,11 +10,26 @@ class IndexedDbWrapper {
 		this.databaseName = databaseName
 	}
 
+	async upsertTransaction(transaction: Transaction) {
+		await this.set("transactions", transaction)
+	}
+
+	async getAccounts(): Promise<Account[]> {
+		return await this.getAll("accounts")
+	}
+
+	async getCategories(): Promise<Category[]> {
+		return await this.getAll("categories")
+	}
 
 	async getTransactionsByMonth(year: number, month: number): Promise<TransactionWithRefs[]> {
 		let accounts = await this.getAll<Account>("accounts")
 		let categories = await this.getAll<Category>("categories")
-		let transactions = await idb.filter<Transaction>("transactions", "yearMonthIndex", `${year}-${month}`)
+		let transactions = await idb.filter<Transaction>(
+			"transactions",
+			"yearMonthIndex",
+			DateOnly.yearMonthString(year, month)
+		)
 		return transactions.map<TransactionWithRefs>(transaction => {
 			return {
 				...transaction,
@@ -143,7 +159,8 @@ function seed() {
 		{
 			id: 'trans-001',
 			name: 'Grocery Shopping',
-			amount: -75.50,
+			type: "expense",
+			amount: 75.50,
 			date: '2024-10-01',
 			yearMonthIndex: '2024-10',
 			accountId: 'acc-001',
@@ -152,7 +169,8 @@ function seed() {
 		{
 			id: 'trans-002',
 			name: 'Bus Ticket',
-			amount: -3.25,
+			type: "expense",
+			amount: 3.25,
 			date: '2024-10-01',
 			yearMonthIndex: '2024-10',
 			accountId: 'acc-002',
@@ -161,7 +179,8 @@ function seed() {
 		{
 			id: 'trans-003',
 			name: 'Movie Night',
-			amount: -15.00,
+			type: "expense",
+			amount: 15.00,
 			date: '2024-10-02',
 			yearMonthIndex: '2024-10',
 			accountId: 'acc-001',
