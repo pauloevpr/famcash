@@ -6,6 +6,18 @@ import { DateOnly } from "~/lib/utils";
 
 export function TransactionListItem(props: VoidProps<{ transaction: TransactionWithRefs }>) {
   // TODO: introduce intl formatting for amounts
+  let isNegative = createMemo(() => {
+    if (props.transaction.type === "expense") return true
+    if (props.transaction.type === "carryover" && props.transaction.amount < 0) return true
+    return false
+  })
+  let normalizedAmount = createMemo(() => {
+    let a = props.transaction.amount
+    if (a < 0) {
+      a = a * -1
+    }
+    return a
+  })
   return (
     <li>
       <A
@@ -19,15 +31,15 @@ export function TransactionListItem(props: VoidProps<{ transaction: TransactionW
             {new DateOnly(props.transaction.date).date.toLocaleDateString()}
           </time>
         </div>
-        <p class="text-left "
+        <p class="text-left"
           classList={{
-            "text-positive": props.transaction.type === "income",
-            "text-negative": props.transaction.type === "expense",
+            "text-positive": !isNegative(),
+            "text-negative": isNegative(),
           }}>
-          <Show when={props.transaction.type === "expense"}>
+          <Show when={isNegative()}>
             <span>-</span>
           </Show>
-          {props.transaction.amount}
+          {normalizedAmount()}
         </p>
       </A>
     </li>

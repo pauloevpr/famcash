@@ -17,6 +17,14 @@ export const calculator = {
 				summary.totalExpense += t.amount
 				summary.total -= t.amount
 			}
+			if (t.type === "carryover") {
+				if (t.amount < 0) {
+					summary.totalExpense += (t.amount * -1)
+				} else {
+					summary.totalIncome += t.amount
+				}
+				summary.total += t.amount
+			}
 		}
 		return summary
 	}

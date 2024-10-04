@@ -7,6 +7,11 @@ export interface Summary {
 	carryOver: number
 }
 
+export interface CarryOver {
+	id: string // year-month-accoundId - e.g. 2024-10-accc1
+	amount: number
+}
+
 export interface Transaction {
 	id: TransactionId,
 	type: TransactionType
@@ -17,7 +22,7 @@ export interface Transaction {
 	accountId: string,
 	categoryId: string,
 }
-export type TransactionType = "expense" | "income"
+export type TransactionType = "expense" | "income" | "carryover"
 
 export interface TransactionWithRefs extends Transaction {
 	account: Account

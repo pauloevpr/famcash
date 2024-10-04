@@ -1,11 +1,13 @@
-import { Account, Transaction, Category, TransactionWithRefs } from "./models"
+import { calculator } from "./calculator"
+import { Account, Transaction, Category, TransactionWithRefs, CarryOver } from "./models"
 import { DateOnly } from "./utils"
 
-type StoreName = "accounts" | "categories" | "transactions"
+type StoreName = "accounts" | "categories" | "transactions" | "carryovers"
 
 class IndexedDbWrapper {
 	private databaseName: string
 	private db?: IDBDatabase
+	private carryoverCategory: Category = { id: "carryover", name: "Carryover", icon: "" }
 	constructor(databaseName: string) {
 		this.databaseName = databaseName
 	}
@@ -21,15 +23,53 @@ class IndexedDbWrapper {
 		}
 	}
 
+	private async getCarryOver(account: Account, year: number, month: number, cutoff: DateOnly): Promise<Transaction> {
+		let thisMonth = DateOnly.fromYearMonth(year, month)
+		let carryover: Transaction = {
+			id: thisMonth.toYearMonthString(),
+			type: "carryover",
+			name: `Carry Over ${account.name}`,
+			date: `${thisMonth.toYearMonthString()}-01`,
+			yearMonthIndex: thisMonth.toYearMonthString(),
+			accountId: account.id,
+			categoryId: this.carryoverCategory.id,
+			amount: 0,
+		}
+		if (thisMonth.date.getTime() < cutoff.date.getTime()) {
+			return carryover
+		}
+		let manual = await this.get<CarryOver>("carryovers", `${thisMonth.toYearMonthString()}-${account.id}`)
+		if (manual) {
+			carryover.amount = manual.amount
+		} else {
+			let previousMonth = thisMonth.addMonths(-1)
+			let previousTransactions = (await idb.filter<Transaction>(
+				"transactions",
+				"yearMonthIndex",
+				previousMonth.toYearMonthString(),
+			)).filter(t => t.accountId === account.id)
+			let previousCarryOver = await this.getCarryOver(account, previousMonth.year, previousMonth.month, cutoff)
+			previousTransactions.push(previousCarryOver)
+			carryover.amount = calculator.summary(previousTransactions).total
+		}
+		return carryover
+	}
+
 	async getTransactionsByMonth(year: number, month: number): Promise<TransactionWithRefs[]> {
 		// TODO: order by date from the oldest
+		let firstTransaction = await this.filterFirst<Transaction>("transactions", "dateIndex", null)
+		let cutoff = new DateOnly(firstTransaction?.date || new Date())
 		let accounts = await this.getAll<Account>("accounts")
 		let categories = await this.getAll<Category>("categories")
+		categories.push({ ...this.carryoverCategory })
 		let transactions = await idb.filter<Transaction>(
 			"transactions",
 			"yearMonthIndex",
 			DateOnly.yearMonthString(year, month)
 		)
+		for (let account of accounts) {
+			transactions.push(await this.getCarryOver(account, year, month, cutoff))
+		}
 		return transactions.map<TransactionWithRefs>(transaction => {
 			return {
 				...transaction,
@@ -63,8 +103,10 @@ class IndexedDbWrapper {
 				}
 				db.createObjectStore("accounts", { keyPath: "id" })
 				db.createObjectStore("categories", { keyPath: "id" })
+				db.createObjectStore("carryovers", { keyPath: "id" })
 				const transactionsStore = db.createObjectStore("transactions", { keyPath: "id" })
 				transactionsStore.createIndex("yearMonthIndex", "yearMonthIndex", { unique: false })
+				transactionsStore.createIndex("dateIndex", "date", { unique: false })
 			}
 			open.onblocked = () => {
 				reject("error when opening the database: database blocked")
@@ -118,6 +160,24 @@ class IndexedDbWrapper {
 			const request = db.transaction(store, "readonly").objectStore(store).index(index).getAll(value)
 			request.onsuccess = () => {
 				resolve(request.result)
+			}
+			request.onerror = (e: any) => {
+				reject("error when reading data for store " + store + ": " + e.target.error)
+			}
+		})
+	}
+
+	filterFirst<T>(store: StoreName, index: string, value: string | null): Promise<T | undefined> {
+		return new Promise(async (resolve, reject) => {
+			const db = await this.open()
+			const request = db.transaction(store, "readonly").objectStore(store).index(index).openCursor(value, "next")
+			request.onsuccess = (event: any) => {
+				const cursor = event.target.result;
+				if (cursor) {
+					resolve(cursor.value);
+				} else {
+					resolve(undefined);
+				}
 			}
 			request.onerror = (e: any) => {
 				reject("error when reading data for store " + store + ": " + e.target.error)

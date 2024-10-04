@@ -7,6 +7,12 @@ export class DateOnly {
 			this.date = new Date(value)
 		}
 	}
+	get year() {
+		return this.date.getFullYear()
+	}
+	get month() {
+		return this.date.getMonth() + 1
+	}
 	static fromYearMonth(year: number, month: number) {
 		return new DateOnly(new Date(year, month - 1, 1))
 	}
@@ -28,7 +34,7 @@ export class DateOnly {
 	addMonths(months: number) {
 		let result = new Date(this.date);
 		result.setMonth(result.getMonth() + months);
-		return result;
+		return new DateOnly(result);
 	}
 }
 

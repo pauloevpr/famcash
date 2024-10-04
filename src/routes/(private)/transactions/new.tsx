@@ -24,7 +24,7 @@ export default function TransactionCreatePage() {
       id: new Date().getTime().toString(),
       accountId: accounts[0]?.id,
       account: accounts[0],
-      categoryId: categories[0].id,
+      categoryId: categories[0]?.id,
       category: categories[0],
       amount: 0,
       yearMonthIndex: date.toYearMonthString(),
