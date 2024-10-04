@@ -1,4 +1,3 @@
-
 import { useSearchParams } from "@solidjs/router";
 import { createMemo, createResource, For } from "solid-js";
 import { ChevronLeftIcon, ChevronRightIcon } from "~/components/icons";
@@ -6,6 +5,7 @@ import { PageLayout } from "~/components/layouts";
 import { idb } from "~/lib/idb";
 import { DateOnly } from "~/lib/utils";
 import { TransactionListItem } from "./transactions/(components)";
+import { calculator } from "~/lib/calculator";
 
 
 export default function Home() {
@@ -23,7 +23,7 @@ export default function Home() {
   let [transactions, _] = createResource(() => `${currentMonth().year}-${currentMonth().month}`, async () => {
     let current = currentMonth()
     return await idb.getTransactionsByMonth(current.year, current.month)
-  })
+  }, { initialValue: [] })
   let nextMonthLink = createMemo(() => {
     let current = currentMonth()
     let next = DateOnly.fromYearMonth(current.year, current.month).addMonths(1)
@@ -43,6 +43,9 @@ export default function Home() {
   let title = createMemo(() => {
     let current = currentMonth()
     return DateOnly.fromYearMonth(current.year, current.month).date.toLocaleDateString(undefined, { month: "long" })
+  })
+  let summary = createMemo(() => {
+    return calculator.summary(transactions())
   })
 
   return (
@@ -67,6 +70,16 @@ export default function Home() {
             >
               <ChevronRightIcon />
             </a>
+          </div>
+          <p class="block pb-4 font-medium text-3xl"
+            classList={{
+              "text-negative": summary().total < 0,
+              "text-positive": summary().total >= 0,
+            }}
+          >{summary().total}</p>
+          <div class="inline-flex items-center text-center border rounded-full text-light px-2">
+            <p class="px-2 border-r text-positive">{summary().totalIncome}</p>
+            <p class="px-2 text-negative">{summary().totalExpense}</p>
           </div>
         </section>
         <section>

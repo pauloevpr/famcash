@@ -1,5 +1,12 @@
 type TransactionId = string
 
+export interface Summary {
+	total: number
+	totalExpense: number
+	totalIncome: number
+	carryOver: number
+}
+
 export interface Transaction {
 	id: TransactionId,
 	type: TransactionType

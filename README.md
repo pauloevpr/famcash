@@ -10,10 +10,10 @@
     - [ ] Remove member from profile
 - [ ] Transactions
     - [ ] View transactions summary for a given month:
-        - [ ] total expenses
-        - [ ] total income
+        - [x] total expenses
+        - [x] total income
+        - [x] total
         - [ ] carry over
-        - [ ] total
     - [x] List transactions for a given month
     - [x] Add transaction
     - [x] Delete Transaction
@@ -27,6 +27,7 @@
     - [ ] Edit all future occurrences
     - [ ] Delete single occurrence 
     - [ ] Delete all future occurrences
+    - [ ] Include recurrent transactions in the summary for a given month
 - [ ] Categories
     - [ ] List categories
     - [ ] Add category
