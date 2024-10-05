@@ -1,5 +1,5 @@
 import { useSearchParams } from "@solidjs/router";
-import { createMemo, createResource, For } from "solid-js";
+import { createMemo, createResource, For, Show } from "solid-js";
 import { ChevronLeftIcon, ChevronRightIcon } from "~/components/icons";
 import { PageLayout } from "~/components/layouts";
 import { idb } from "~/lib/idb";
@@ -71,15 +71,30 @@ export default function Home() {
               <ChevronRightIcon />
             </a>
           </div>
-          <p class="block pb-4 font-medium text-3xl"
+          <p class="block pb-8 font-medium text-3xl"
             classList={{
               "text-negative": summary().total < 0,
               "text-positive": summary().total >= 0,
             }}
           >{summary().total}</p>
-          <div class="inline-flex items-center text-center border rounded-full text-light px-2">
-            <p class="px-2 border-r text-positive">{summary().totalIncome}</p>
-            <p class="px-2 text-negative">{summary().totalExpense}</p>
+          <div class="inline-flex items-center text-center bg-gray-100 rounded-xl text-light px-4 py-2">
+            <p class="px-4 text-negative"
+              classList={{
+                "text-negative": summary().carryOver < 0,
+                "text-positive": summary().carryOver >= 0,
+              }}
+            >
+              {summary().carryOver}
+              <span class="block text-light text-xs">Carry Over</span>
+            </p>
+            <p class="px-4 text-positive">
+              {summary().totalIncome}
+              <span class="block text-light text-xs">Income</span>
+            </p>
+            <p class="px-4 text-negative">
+              {summary().totalExpense}
+              <span class="block text-light text-xs">Expense</span>
+            </p>
           </div>
         </section>
         <section>
