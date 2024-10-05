@@ -8,8 +8,8 @@
     - [ ] Join profile from invitation
     - [ ] List members of a profile
     - [ ] Remove member from profile
-- [ ] Transactions
-    - [ ] View transactions summary for a given month:
+- [x] Transactions
+    - [x] View transactions summary for a given month:
         - [x] total expenses
         - [x] total income
         - [x] total
@@ -20,7 +20,7 @@
     - [x] Edit Transaction
 - [ ] Carryover
     - [x] View total carryover for a given account and month
-    - [ ] manually set carryover for a given month
+    - [x] Manually set carryover amount for a given month and account
 - [ ] Recurrent Transactions
     - [ ] Add recurrent transaction
         - [ ] recurrency length: week, month, year

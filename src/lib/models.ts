@@ -12,6 +12,14 @@ export interface CarryOver {
 	amount: number
 }
 
+export interface ParsedTransactionId {
+	carryOver?: {
+		year: number
+		month: number
+		accountId: string
+	}
+}
+
 export interface Transaction {
 	id: TransactionId,
 	type: TransactionType

@@ -37,7 +37,7 @@ export default function TransactionCreatePage() {
     }
   })
   async function onSubmit(transaction: Transaction) {
-    await idb.set("transactions", transaction)
+    await idb.saveTransaction(transaction)
     navigate(-1)
   }
   return (

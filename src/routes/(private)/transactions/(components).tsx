@@ -54,11 +54,19 @@ export function TransactionForm(props: VoidProps<{
   onDelete?: (id: string) => Promise<void>
 }>) {
   let navigate = useNavigate()
-  const [type, setType] = createSignal(props.transaction.type)
-  const typeSelection = [
+  let [type, setType] = createSignal(props.transaction.type)
+  let typeSelection = [
     { value: "expense", label: "Expense", style: "peer-checked:bg-negative peer-checked:text-white" },
     { value: "income", label: "Income", style: "peer-checked:bg-positive peer-checked:text-white" },
   ] satisfies { value: TransactionType, label: string, style?: string }[]
+  let isCarryOver = createMemo(() => {
+    return props.transaction.type === "carryover"
+  })
+  let title = createMemo(() => {
+    if (isCarryOver()) return "Carry Over"
+    return "Transaction"
+  })
+  let [amount, setAmount] = createSignal(props.transaction.amount)
 
   function onSubmit(e: SubmitEvent & { currentTarget: HTMLFormElement }) {
     e.preventDefault()
@@ -74,7 +82,7 @@ export function TransactionForm(props: VoidProps<{
       yearMonthIndex: date.toYearMonthString(),
       type: data.get("type") as TransactionType,
     }
-    if (transaction.amount < 0) {
+    if (!isCarryOver() && transaction.amount < 0) {
       transaction.amount = transaction.amount * -1
     }
     props.onSubmit(transaction)
@@ -82,32 +90,34 @@ export function TransactionForm(props: VoidProps<{
 
   return (
     <main>
-      <h1 class="class=block px-6 py-8 font-medium text-2xl text-center">New Transaction</h1>
+      <h1 class="class=block px-6 py-8 font-medium text-2xl text-center">{title()}</h1>
       <form class="block px-1 text-lg space-y-10"
         onSubmit={onSubmit}
       >
-        <fieldset class="flex bg-white rounded-full border border-gray-200 p-1 focus-within:outline focus-within:outline-2">
-          <legend class="sr-only">Transaction Type</legend>
-          <For each={typeSelection}>
-            {(item) => (
-              <div>
-                <input type="radio"
-                  id={`type-${item.value}`}
-                  value={item.value}
-                  name="type"
-                  class="peer sr-only"
-                  checked={item.value === type()}
-                  onChange={_ => setType(item.value)}
-                />
-                < label
-                  for={`type-${item.value}`}
-                  class={item.style + " inline-flex items-center peer-checked:font-medium cursor-pointer rounded-full px-6 h-12"}>
-                  {item.label}
-                </label>
-              </div>
-            )}
-          </For>
-        </fieldset>
+        <Show when={!isCarryOver()}>
+          <fieldset class="flex bg-white rounded-full border border-gray-200 p-1 focus-within:outline focus-within:outline-2">
+            <legend class="sr-only">Transaction Type</legend>
+            <For each={typeSelection}>
+              {(item) => (
+                <div>
+                  <input type="radio"
+                    id={`type-${item.value}`}
+                    value={item.value}
+                    name="type"
+                    class="peer sr-only"
+                    checked={item.value === type()}
+                    onChange={_ => setType(item.value)}
+                  />
+                  < label
+                    for={`type-${item.value}`}
+                    class={item.style + " inline-flex items-center peer-checked:font-medium cursor-pointer rounded-full px-6 h-12"}>
+                    {item.label}
+                  </label>
+                </div>
+              )}
+            </For>
+          </fieldset>
+        </Show>
         <div class="grid grid-cols-[auto,1fr] bg-white rounded-xl border border-gray-200 ">
           <label for="name"
             class="flex items-center h-full px-6"
@@ -120,45 +130,48 @@ export function TransactionForm(props: VoidProps<{
             class="h-12 px-4 rounded-tr-xl w-full"
             value={props.transaction.name}
           />
-          <label
-            for="category"
-            class="flex items-center h-full px-6 border-t border-gray-200"
-          >Category</label>
-          <select
-            id="category"
-            name="category"
-            class="h-12 px-4 border-t border-gray-200 rounded-br-xl bg-transparent w-full"
-          >
-            <For each={props.categories}>
-              {category => (
-                <option value={category.id}
-                  selected={category.id == props.transaction.categoryId}
-                >
-                  {`${category.icon} ${category.name}`}
-                </option>
-              )}
-            </For>
-          </select>
-          <label
-            for="date"
-            class="flex items-center h-full px-6 border-t border-gray-200"
-          >
-            Date
-          </label>
-          <input
-            id="date"
-            type="date"
-            name="date"
-            required
-            placeholder="Pick Date"
-            class="h-12 px-4 border-t border-gray-200 bg-transparent w-full"
-            value={props.transaction.date}
-          />
+          <Show when={!isCarryOver()}>
+            <label
+              for="category"
+              class="flex items-center h-full px-6 border-t border-gray-200"
+            >Category</label>
+            <select
+              id="category"
+              name="category"
+              class="h-12 px-4 border-t border-gray-200 rounded-br-xl bg-transparent w-full"
+            >
+              <For each={props.categories}>
+                {category => (
+                  <option value={category.id}
+                    selected={category.id == props.transaction.categoryId}
+                  >
+                    {`${category.icon} ${category.name}`}
+                  </option>
+                )}
+              </For>
+            </select>
+            <label
+              for="date"
+              class="flex items-center h-full px-6 border-t border-gray-200"
+            >
+              Date
+            </label>
+            <input
+              id="date"
+              type="date"
+              name="date"
+              required
+              placeholder="Pick Date"
+              class="h-12 px-4 border-t border-gray-200 bg-transparent w-full"
+              value={props.transaction.date}
+            />
+          </Show>
           <label
             for="account"
             class="flex items-center h-full px-6 border-t border-gray-200"
           >Account</label>
           <select
+            disabled={isCarryOver()}
             id="account"
             name="account"
             class="h-12 px-4 border-t border-gray-200 rounded-br-xl bg-transparent w-full"
@@ -182,9 +195,14 @@ export function TransactionForm(props: VoidProps<{
             name="amount"
             type="number"
             class="w-full h-16 text-xl text-center rounded-xl"
+            classList={{
+              "text-negative": isCarryOver() && amount() < 0,
+              "text-positive": isCarryOver() && amount() >= 0,
+            }}
             step="0.01"
-            value={props.transaction.amount}
-            min={0}
+            onChange={e => setAmount(parseFloat(e.currentTarget.value))}
+            value={amount()}
+            min={isCarryOver() ? undefined : 0}
             max={Number.MAX_VALUE}
           />
         </div>
@@ -199,13 +217,18 @@ export function TransactionForm(props: VoidProps<{
               style="positive"
             />
           </Show>
-          <Show when={props.onDelete}>
-            {(onDelete) => (
+          <Show when={type() === "carryover"}>
+            <Button label="Save Carry Over"
+              style="primary"
+            />
+          </Show>
+          <Show when={!isCarryOver && props.onDelete}>
+            {(_) => (
               <div class="pb-4">
                 <Button label="Delete"
                   type="button"
                   style="neutral"
-                  onclick={() => onDelete()(props.transaction.id)}
+                  onclick={() => props.onDelete?.(props.transaction.id)}
                 />
               </div>
             )}
