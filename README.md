@@ -30,7 +30,7 @@
     - [ ] Edit all future occurrences
     - [ ] Delete single occurrence 
     - [ ] Delete all future occurrences
-    - [ ] Take into account recurrent transactions when calculating the summary
+    - [x] Take into account recurrent transactions when calculating the summary
 - [ ] Categories
     - [ ] List categories
     - [ ] Add category

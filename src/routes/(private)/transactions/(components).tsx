@@ -267,7 +267,7 @@ export function TransactionForm(props: VoidProps<{
               style="primary"
             />
           </Show>
-          <Show when={!isCarryOver && props.onDelete}>
+          <Show when={!isCarryOver() && props.onDelete}>
             {(_) => (
               <div class="pb-4">
                 <Button label="Delete"

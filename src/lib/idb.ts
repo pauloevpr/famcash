@@ -64,17 +64,8 @@ class IndexedDbWrapper {
 			DateOnly.yearMonthString(year, month)
 		)
 
-		let start = DateOnly.fromYearMonth(year, month)
-		let end = start.addMonths(1).addDays(-1)
-		let recurrencies = await this.getAll<Transaction>("recurrencies")
-		for (let transaction of recurrencies) {
-			if (transaction.yearMonthIndex === DateOnly.yearMonthString(year, month)) {
-				transactions.push(transaction)
-			}
-			transactions.push(
-				...calculator.nextOccurrences(transaction, start, end)
-			)
-		}
+		let recurrent = await this.getRecurrentTransactionsByMonth(year, month)
+		transactions.push(...recurrent)
 
 		for (let account of accounts) {
 			transactions.push(await this.getCarryOver(account, year, month, cutoff))
@@ -87,6 +78,50 @@ class IndexedDbWrapper {
 				category: categories.find(category => category.id == transaction.categoryId)!,
 			}
 		})
+	}
+
+	private async getRecurrentTransactionsByMonth(year: number, month: number): Promise<Transaction[]> {
+		let start = DateOnly.fromYearMonth(year, month)
+		let end = start.addMonths(1).addDays(-1)
+		let transactions: Transaction[] = []
+		let recurrencies = await this.getAll<Transaction>("recurrencies")
+		for (let transaction of recurrencies) {
+			if (transaction.yearMonthIndex === DateOnly.yearMonthString(year, month)) {
+				transactions.push(transaction)
+			}
+			if (!transaction.recurrency) continue
+			let recurrency = transaction.recurrency
+			let current = new DateOnly(transaction.date)
+			let endOfMonth = current.addDays(1).date.getDate() == 1
+			for (let i = 1; true; ++i) {
+				if (recurrency.interval === "month") {
+					if (endOfMonth) {
+						// this assures that the date always falls on the end of the month, whether it is 31, 30 or even 28 (Feb)
+						current = current.addDays(1).addMonths(1).addDays(-1)
+					} else {
+						current = current.addMonths(recurrency.multiplier)
+					}
+				}
+				else if (recurrency.interval === "week") {
+					current = current.addDays(7 * recurrency.multiplier)
+				}
+				else if (recurrency.interval === "year") {
+					current = current.addYears(recurrency.multiplier)
+				}
+				else {
+					throw Error(`unexpected interval type for transaction id '${transaction.id}': ${recurrency.interval}`)
+				}
+				if (current.time > end.time) break
+				if (recurrency.endDate && current.time >= new DateOnly(recurrency.endDate).time) break
+				if (current.time >= start.time && current.time <= end.time) {
+					let occurrence = JSON.parse(JSON.stringify(transaction)) as Transaction
+					occurrence.date = current.toString()
+					occurrence.id = `${occurrence.id}:${i}`
+					transactions.push(occurrence)
+				}
+			}
+		}
+		return transactions
 	}
 
 	private async getCarryOver(account: Account, year: number, month: number, cutoff: DateOnly): Promise<Transaction> {
@@ -114,18 +149,28 @@ class IndexedDbWrapper {
 				"transactions",
 				"yearMonthIndex",
 				previousMonth.toYearMonthString(),
-			)).filter(t => t.accountId === account.id)
+			)).filter(transaction => transaction.accountId === account.id)
+
+			let previousRecurrencies = (await this.getRecurrentTransactionsByMonth(
+				previousMonth.year,
+				previousMonth.month
+			)).filter(transaction => transaction.accountId === account.id)
+			previousTransactions.push(...previousRecurrencies)
+
 			let previousCarryOver = await this.getCarryOver(account, previousMonth.year, previousMonth.month, cutoff)
 			previousTransactions.push(previousCarryOver)
+
 			carryover.amount = calculator.summary(previousTransactions).total
 		}
 		return carryover
 	}
 
-
 	private async getCutoffDate() {
+		let firstRecurrency = await this.filterFirst<Transaction>("recurrencies", "dateIndex", null)
+		let firstRecurrencyDate = new DateOnly(firstRecurrency?.date || new Date())
 		let firstTransaction = await this.filterFirst<Transaction>("transactions", "dateIndex", null)
-		return new DateOnly(firstTransaction?.date || new Date())
+		let firstTransactionDate = new DateOnly(firstTransaction?.date || new Date())
+		return [firstRecurrencyDate, firstTransactionDate].sort((a, b) => a.time - b.time)[0]
 	}
 
 	private open() {
@@ -153,7 +198,8 @@ class IndexedDbWrapper {
 				db.createObjectStore("accounts", { keyPath: "id" })
 				db.createObjectStore("categories", { keyPath: "id" })
 				db.createObjectStore("carryovers", { keyPath: "id" })
-				db.createObjectStore("recurrencies", { keyPath: "id" })
+				let recurrenciesStore = db.createObjectStore("recurrencies", { keyPath: "id" })
+				recurrenciesStore.createIndex("dateIndex", "date", { unique: false })
 				const transactionsStore = db.createObjectStore("transactions", { keyPath: "id" })
 				transactionsStore.createIndex("yearMonthIndex", "yearMonthIndex", { unique: false })
 				transactionsStore.createIndex("dateIndex", "date", { unique: false })
@@ -300,7 +346,6 @@ function seed() {
 		idb.set("accounts", account)
 	}
 }
-
 
 
 
