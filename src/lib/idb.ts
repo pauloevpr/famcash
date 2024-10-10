@@ -1,8 +1,8 @@
 import { calculator } from "./calculator"
-import { Account, Transaction, Category, TransactionWithRefs, CarryOver, ParsedTransactionId as ParsedTransactionId } from "./models"
+import { Account, Transaction, Category, TransactionWithRefs, CarryOver, ParsedTransactionId as ParsedTransactionId, RecurrentTransaction } from "./models"
 import { DateOnly } from "./utils"
 
-type StoreName = "accounts" | "categories" | "transactions" | "carryovers"
+type StoreName = "accounts" | "categories" | "transactions" | "carryovers" | "recurrencies"
 
 class IndexedDbWrapper {
 	private databaseName: string
@@ -21,6 +21,8 @@ class IndexedDbWrapper {
 				amount: transaction.amount
 			}
 			await this.set("carryovers", carryOver)
+		} else if (transaction.recurrency) {
+			await this.set("recurrencies", transaction)
 		} else {
 			await this.set("transactions", transaction)
 		}
@@ -42,12 +44,49 @@ class IndexedDbWrapper {
 		let accounts = await this.getAll<Account>("accounts")
 		let categories = await this.getAll<Category>("categories")
 		let transaction = await this.get<Transaction>("transactions", id)
-		debugger
 		return {
 			...transaction,
 			account: accounts.find(account => account.id == transaction.accountId)!,
 			category: categories.find(category => category.id == transaction.categoryId)!,
 		}
+	}
+
+	async getTransactionsByMonth(year: number, month: number): Promise<TransactionWithRefs[]> {
+		// TODO: order by date from the oldest
+		let cutoff = await this.getCutoffDate()
+		let accounts = await this.getAll<Account>("accounts")
+		let categories = await this.getAll<Category>("categories")
+		categories.push({ ...this.carryOverCategory })
+
+		let transactions = await idb.filter<Transaction>(
+			"transactions",
+			"yearMonthIndex",
+			DateOnly.yearMonthString(year, month)
+		)
+
+		let start = DateOnly.fromYearMonth(year, month)
+		let end = start.addMonths(1).addDays(-1)
+		let recurrencies = await this.getAll<Transaction>("recurrencies")
+		for (let transaction of recurrencies) {
+			if (transaction.yearMonthIndex === DateOnly.yearMonthString(year, month)) {
+				transactions.push(transaction)
+			}
+			transactions.push(
+				...calculator.nextOccurrences(transaction, start, end)
+			)
+		}
+
+		for (let account of accounts) {
+			transactions.push(await this.getCarryOver(account, year, month, cutoff))
+		}
+
+		return transactions.map<TransactionWithRefs>(transaction => {
+			return {
+				...transaction,
+				account: accounts.find(account => account.id == transaction.accountId)!,
+				category: categories.find(category => category.id == transaction.categoryId)!,
+			}
+		})
 	}
 
 	private async getCarryOver(account: Account, year: number, month: number, cutoff: DateOnly): Promise<Transaction> {
@@ -83,32 +122,10 @@ class IndexedDbWrapper {
 		return carryover
 	}
 
+
 	private async getCutoffDate() {
 		let firstTransaction = await this.filterFirst<Transaction>("transactions", "dateIndex", null)
 		return new DateOnly(firstTransaction?.date || new Date())
-	}
-
-	async getTransactionsByMonth(year: number, month: number): Promise<TransactionWithRefs[]> {
-		// TODO: order by date from the oldest
-		let cutoff = await this.getCutoffDate()
-		let accounts = await this.getAll<Account>("accounts")
-		let categories = await this.getAll<Category>("categories")
-		categories.push({ ...this.carryOverCategory })
-		let transactions = await idb.filter<Transaction>(
-			"transactions",
-			"yearMonthIndex",
-			DateOnly.yearMonthString(year, month)
-		)
-		for (let account of accounts) {
-			transactions.push(await this.getCarryOver(account, year, month, cutoff))
-		}
-		return transactions.map<TransactionWithRefs>(transaction => {
-			return {
-				...transaction,
-				account: accounts.find(account => account.id == transaction.accountId)!,
-				category: categories.find(category => category.id == transaction.categoryId)!,
-			}
-		})
 	}
 
 	private open() {
@@ -136,6 +153,7 @@ class IndexedDbWrapper {
 				db.createObjectStore("accounts", { keyPath: "id" })
 				db.createObjectStore("categories", { keyPath: "id" })
 				db.createObjectStore("carryovers", { keyPath: "id" })
+				db.createObjectStore("recurrencies", { keyPath: "id" })
 				const transactionsStore = db.createObjectStore("transactions", { keyPath: "id" })
 				transactionsStore.createIndex("yearMonthIndex", "yearMonthIndex", { unique: false })
 				transactionsStore.createIndex("dateIndex", "date", { unique: false })
@@ -254,6 +272,35 @@ function buildCarryOverId(date: DateOnly, accountId: string) {
 }
 
 export const idb = new IndexedDbWrapper("solid-money")
+
+
+function seed() {
+	const categories: Category[] = [
+		{ id: "1", name: "Groceries", icon: "🛒" },
+		{ id: "2", name: "Rent", icon: "🏠" },
+		{ id: "3", name: "Utilities", icon: "💡" },
+		{ id: "4", name: "Transportation", icon: "🚗" },
+		{ id: "5", name: "Dining Out", icon: "🍽️" },
+		{ id: "6", name: "Entertainment", icon: "🎮" },
+		{ id: "7", name: "Health & Fitness", icon: "💪" },
+		{ id: "8", name: "Subscriptions", icon: "📦" },
+		{ id: "9", name: "Travel", icon: "✈️" },
+		{ id: "10", name: "Savings", icon: "💰" }
+	];
+	for (let category of categories) {
+		idb.set("categories", category)
+	}
+
+
+	// Sample seed data for Accounts
+	const accounts: Account[] = [
+		{ id: "1", name: "Cash", icon: "💵" },
+	];
+	for (let account of accounts) {
+		idb.set("accounts", account)
+	}
+}
+
 
 
 

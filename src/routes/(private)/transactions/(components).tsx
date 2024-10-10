@@ -1,7 +1,7 @@
 import { A, useNavigate } from "@solidjs/router";
 import { createMemo, createSignal, For, Show, VoidProps } from "solid-js";
 import { Button } from "~/components/buttons";
-import { Account, Category, Transaction, TransactionType, TransactionWithRefs } from "~/lib/models";
+import { Account, Category, RecurrencyInterval, Transaction, TransactionType, TransactionWithRefs } from "~/lib/models";
 import { DateOnly } from "~/lib/utils";
 
 export function TransactionListItem(props: VoidProps<{ transaction: TransactionWithRefs }>) {
@@ -67,10 +67,16 @@ export function TransactionForm(props: VoidProps<{
     return "Transaction"
   })
   let [amount, setAmount] = createSignal(props.transaction.amount)
+  let intervals = [
+    { value: "week", label: "Week" },
+    { value: "month", label: "Month" },
+    { value: "year", label: "Year" },
+  ] satisfies { value: RecurrencyInterval, label: string }[]
 
   function onSubmit(e: SubmitEvent & { currentTarget: HTMLFormElement }) {
     e.preventDefault()
     let data = new FormData(e.currentTarget)
+    console.log("data: ", [...data.entries()])
     let date = new DateOnly(data.get("date") as string)
     let transaction: Transaction = {
       id: props.transaction.id,
@@ -82,11 +88,20 @@ export function TransactionForm(props: VoidProps<{
       yearMonthIndex: date.toYearMonthString(),
       type: data.get("type") as TransactionType,
     }
+    if (data.get("recurrency") === "on") {
+      let endDate = data.get("recurrencyEndDate") as string
+      transaction.recurrency = {
+        interval: data.get("recurrencyInterval") as RecurrencyInterval,
+        multiplier: parseInt(data.get("recurrencyMultiplier") as string),
+        endDate: endDate ? new DateOnly(endDate).toString() : undefined,
+      }
+    }
     if (!isCarryOver() && transaction.amount < 0) {
       transaction.amount = transaction.amount * -1
     }
     props.onSubmit(transaction)
   }
+
 
   return (
     <main>
@@ -206,6 +221,36 @@ export function TransactionForm(props: VoidProps<{
             max={Number.MAX_VALUE}
           />
         </div>
+        <div class="group grid grid-cols-[auto,1fr] bg-white rounded-xl border border-gray-200">
+          <label class="group/repeat focus-within:outline-2 focus-within:outline flex items-center justify-between px-6 gap-6 col-span-2 h-12 rounded-xl group-has-[input:checked]:rounded-b-none">
+            Repeat
+            <input name="recurrency" type="checkbox" class="sr-only peer" />
+            <span class="block h-6 rounded-full w-10 bg-gray-200">
+              <span class="block group-has-[:checked]/repeat:bg-primary group-has-[:checked]/repeat:translate-x-4 transition-transform duration-300 bg-white shadow rounded-full h-6 w-6"></span>
+            </span>
+          </label>
+          <label for="repeatInterval" class="hidden group-has-[input:checked]:flex items-center h-full px-6 border-t border-gray-200 ">Every
+          </label>
+          <div class="hidden group-has-[input:checked]:flex items-center flex-grow gap-4 border-t border-gray-200">
+            <input id="repeatCount"
+              name="recurrencyMultiplier"
+              class="h-12 px-4 bg-transparent w-full"
+              type="number"
+              required
+              min={1}
+              max={365}
+              value="1" />
+            <select id="repeatInterval" name="recurrencyInterval" class="h-12 px-4 bg-transparent w-full">
+              <For each={intervals}>{
+                interval => (
+                  <option value={interval.value}>{interval.label}</option>
+                )
+              }</For>
+            </select>
+          </div>
+          <label for="repeatEndDate" class="hidden group-has-[input:checked]:flex items-center h-full px-6 border-t border-gray-200">End Date</label>
+          <input type="date" name="recurrencyEndDate" placeholder="Pick End Date" class="hidden group-has-[input:checked]:block h-12 px-4 border-t border-gray-200 rounded-br-xl bg-transparent w-full" value="" id="repeatEndDate" />
+        </div>
         <div class="space-y-2">
           <Show when={type() === "expense"}>
             <Button label="Save Expense"
@@ -240,6 +285,6 @@ export function TransactionForm(props: VoidProps<{
           />
         </div>
       </form>
-    </main>
+    </main >
   )
 }

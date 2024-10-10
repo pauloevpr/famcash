@@ -7,6 +7,9 @@ export class DateOnly {
 			this.date = new Date(value)
 		}
 	}
+	get time() {
+		return this.date.getTime()
+	}
 	get year() {
 		return this.date.getFullYear()
 	}
@@ -30,6 +33,16 @@ export class DateOnly {
 		const month = String(this.date.getMonth() + 1).padStart(2, '0'); // getMonth() is zero-based
 		const day = String(this.date.getDate()).padStart(2, '0');
 		return `${year}-${month}-${day}`;
+	}
+	addYears(years: number) {
+		let result = new Date(this.date);
+		result.setFullYear(result.getFullYear() + years)
+		return new DateOnly(result);
+	}
+	addDays(days: number) {
+		let result = new Date(this.date);
+		result.setDate(result.getDate() + days)
+		return new DateOnly(result);
 	}
 	addMonths(months: number) {
 		let result = new Date(this.date);

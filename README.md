@@ -18,19 +18,19 @@
     - [x] Add transaction
     - [x] Delete Transaction
     - [x] Edit Transaction
-- [ ] Carryover
+- [x] Carryover
     - [x] View total carryover for a given account and month
     - [x] Manually set carryover amount for a given month and account
 - [ ] Recurrent Transactions
-    - [ ] Add recurrent transaction
-        - [ ] recurrency length: week, month, year
-        - [ ] recurrency multiplier: 1-32
-        - [ ] e.g. every 2 weeks
+    - [x] Add recurrent transaction
+        - [x] recurrency length: week, month, year
+        - [x] recurrency multiplier: 1-32
+        - [x] e.g. every 2 weeks
     - [ ] Edit single occurrence 
     - [ ] Edit all future occurrences
     - [ ] Delete single occurrence 
     - [ ] Delete all future occurrences
-    - [ ] Include recurrent transactions in the summary for a given month
+    - [ ] Take into account recurrent transactions when calculating the summary
 - [ ] Categories
     - [ ] List categories
     - [ ] Add category

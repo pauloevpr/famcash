@@ -20,6 +20,8 @@ export interface ParsedTransactionId {
 	}
 }
 
+export type RecurrencyInterval = "month" | "week" | "year"
+
 export interface Transaction {
 	id: TransactionId,
 	type: TransactionType
@@ -29,6 +31,11 @@ export interface Transaction {
 	yearMonthIndex: string,
 	accountId: string,
 	categoryId: string,
+	recurrency?: {
+		multiplier: number
+		interval: RecurrencyInterval
+		endDate?: string
+	}
 }
 export type TransactionType = "expense" | "income" | "carryover"
 
