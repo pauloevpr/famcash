@@ -29,7 +29,7 @@
     - [ ] Edit single occurrence 
     - [x] Edit all future occurrences
     - [ ] Delete single occurrence 
-    - [ ] Delete all future occurrences
+    - [x] Delete all future occurrences
     - [x] Take into account recurrent transactions when calculating the summary
 - [ ] Categories
     - [ ] List categories

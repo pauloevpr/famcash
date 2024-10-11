@@ -27,9 +27,14 @@ export default function TransactionEditPage() {
     navigate(-1)
   }
   async function onDelete(id: string) {
-    let confirmed = confirm("You are about to delete this transaction. Confirm?")
+    let msg = "You are about to delete this transaction. Confirm?"
+    let parsedId = parseTransactionId(id)
+    if (parsedId.recurrency) {
+      msg = "You are about to delete this and all future occurrences. Confirm?"
+    }
+    let confirmed = confirm(msg)
     if (!confirmed) return
-    await idb.delete("transactions", id)
+    await idb.deleteTransaction(id)
     navigate(-1)
   }
   return (

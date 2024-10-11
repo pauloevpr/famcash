@@ -13,6 +13,21 @@ class IndexedDbWrapper {
 		this.databaseName = databaseName
 	}
 
+	async deleteTransaction(id: string) {
+		let parsedId = parseTransactionId(id)
+		if (parsedId.recurrency) {
+			if (parsedId.recurrency.index === 0) {
+				await this.delete("recurrencies", parsedId.recurrency.id)
+			} else {
+				let base = await this.getRequiredRecurrency(parsedId.recurrency.id)
+				let occurrence = await this.getOccurrenceByIndex(base, parsedId.recurrency.index)
+				base.recurrency!.endDate = occurrence.date
+				await this.set("recurrencies", { ...base, id: parsedId.recurrency.id })
+			}
+		}
+		await this.delete("transactions", id)
+	}
+
 	async saveTransaction(transaction: Transaction) {
 		let parsedId = parseTransactionId(transaction.id)
 		if (parsedId.carryOver) {
@@ -34,11 +49,9 @@ class IndexedDbWrapper {
 			if (parsedId.recurrency.index === 0) {
 				await this.set("recurrencies", { ...transaction, id: parsedId.recurrency.id })
 			} else {
-				let base = await this.get<Transaction>("recurrencies", parsedId.recurrency.id)
-				if (!base) throw Error(`Recurrency with id '${parsedId.recurrency.id}' not found`)
-				if (!base.recurrency) throw Error(`Recurrency with id '${parsedId.recurrency.id}' is corrupted`)
+				let base = await this.getRequiredRecurrency(parsedId.recurrency.id)
 				let occurrence = await this.getOccurrenceByIndex(base, parsedId.recurrency.index)
-				base.recurrency.endDate = occurrence.date
+				base.recurrency!.endDate = occurrence.date
 				await this.set("recurrencies", base)
 				transaction.id = new Date().getTime().toString()
 				await this.set("recurrencies", transaction)
@@ -106,6 +119,13 @@ class IndexedDbWrapper {
 				category: categories.find(category => category.id == transaction.categoryId)!,
 			}
 		})
+	}
+
+	private async getRequiredRecurrency(id: string) {
+		let recurrent = await this.get<Transaction>("recurrencies", id)
+		if (!recurrent) throw Error(`Recurrency with id '${id}' not found`)
+		if (!recurrent.recurrency) throw Error(`Recurrency with id '${id}' is corrupted`)
+		return recurrent
 	}
 
 	private async getOccurrenceByIndex(transaction: Transaction, index: number): Promise<Transaction> {
