@@ -1,5 +1,5 @@
 import { calculator } from "./calculator"
-import { Account, Transaction, Category, TransactionWithRefs, CarryOver, ParsedTransactionId as ParsedTransactionId, RecurrentTransaction } from "./models"
+import { Account, Transaction, Category, TransactionWithRefs, CarryOver, ParsedTransactionId as ParsedTransactionId } from "./models"
 import { DateOnly } from "./utils"
 
 type StoreName = "accounts" | "categories" | "transactions" | "carryovers" | "recurrencies"
@@ -21,10 +21,30 @@ class IndexedDbWrapper {
 				amount: transaction.amount
 			}
 			await this.set("carryovers", carryOver)
-		} else if (transaction.recurrency) {
-			await this.set("recurrencies", transaction)
+		} else if (parsedId.recurrency || transaction.recurrency) {
+			this.saveRecurrentTransaction(transaction, parsedId)
 		} else {
 			await this.set("transactions", transaction)
+		}
+	}
+
+	private async saveRecurrentTransaction(transaction: Transaction, parsedId: ParsedTransactionId) {
+		if (parsedId.recurrency) {
+			// TODO: CONTINUE: Split and save when targetting next occurrences
+			if (parsedId.recurrency.index === 0) {
+				await this.set("recurrencies", { ...transaction, id: parsedId.recurrency.id })
+			} else {
+				let base = await this.get<Transaction>("recurrencies", parsedId.recurrency.id)
+				if (!base) throw Error(`Recurrency with id '${parsedId.recurrency.id}' not found`)
+				if (!base.recurrency) throw Error(`Recurrency with id '${parsedId.recurrency.id}' is corrupted`)
+				let occurrence = await this.getOccurrenceByIndex(base, parsedId.recurrency.index)
+				base.recurrency.endDate = occurrence.date
+				await this.set("recurrencies", base)
+				transaction.id = new Date().getTime().toString()
+				await this.set("recurrencies", transaction)
+			}
+		} else {
+			await this.set("recurrencies", transaction)
 		}
 	}
 
@@ -32,7 +52,7 @@ class IndexedDbWrapper {
 		let parsedId = parseTransactionId(id)
 		if (parsedId.carryOver) {
 			let account = await this.get<Account>("accounts", parsedId.carryOver.accountId)
-			if (!account) throw Error("invalid carryover id: account not found")
+			if (!account) throw Error(`invalid carryover id '${id}': account not found`)
 			let cutoff = await this.getCutoffDate()
 			let carryOver = await this.getCarryOver(account, parsedId.carryOver.year, parsedId.carryOver.month, cutoff)
 			return {
@@ -43,7 +63,15 @@ class IndexedDbWrapper {
 		}
 		let accounts = await this.getAll<Account>("accounts")
 		let categories = await this.getAll<Category>("categories")
-		let transaction = await this.get<Transaction>("transactions", id)
+		let transaction: Transaction
+		if (parsedId.recurrency) {
+			let recurrent = await this.get<Transaction>("recurrencies", parsedId.recurrency.id)
+			if (!recurrent) throw Error(`invalid recurrency id '${id}': recurrency not found`)
+			transaction = await this.getOccurrenceByIndex(recurrent, parsedId.recurrency.index)
+		} else {
+			transaction = await this.get<Transaction>("transactions", id)
+		}
+
 		return {
 			...transaction,
 			account: accounts.find(account => account.id == transaction.accountId)!,
@@ -80,6 +108,45 @@ class IndexedDbWrapper {
 		})
 	}
 
+	private async getOccurrenceByIndex(transaction: Transaction, index: number): Promise<Transaction> {
+		if (!transaction.recurrency) throw Error(`transaction '${transaction.id}' does not have recurrency settings`)
+		if (index === 0) return {
+			...JSON.parse(JSON.stringify(transaction)),
+			id: `${transaction.id}:0`
+		}
+		let recurrency = transaction.recurrency
+		let current = new DateOnly(transaction.date)
+		let endOfMonth = current.addDays(1).date.getDate() == 1
+		for (let i = 1; true; ++i) {
+			if (recurrency.interval === "month") {
+				if (endOfMonth) {
+					// this assures that the date always falls on the end of the month, whether it is 31, 30 or even 28 (Feb)
+					current = current.addDays(1).addMonths(1).addDays(-1)
+				} else {
+					current = current.addMonths(recurrency.multiplier)
+				}
+			}
+			else if (recurrency.interval === "week") {
+				current = current.addDays(7 * recurrency.multiplier)
+			}
+			else if (recurrency.interval === "year") {
+				current = current.addYears(recurrency.multiplier)
+			}
+			else {
+				throw Error(`unexpected interval type for transaction id '${transaction.id}': ${recurrency.interval}`)
+			}
+			if (recurrency.endDate && current.time >= new DateOnly(recurrency.endDate).time) break
+			if (index === i) {
+				return {
+					...JSON.parse(JSON.stringify(transaction)),
+					id: `${transaction.id}:${index}`,
+					date: current.toString(),
+				}
+			}
+		}
+		throw Error(`transaction '${transaction.id}' does not have occurrence at index ${index}`)
+	}
+
 	private async getRecurrentTransactionsByMonth(year: number, month: number): Promise<Transaction[]> {
 		let start = DateOnly.fromYearMonth(year, month)
 		let end = start.addMonths(1).addDays(-1)
@@ -87,7 +154,10 @@ class IndexedDbWrapper {
 		let recurrencies = await this.getAll<Transaction>("recurrencies")
 		for (let transaction of recurrencies) {
 			if (transaction.yearMonthIndex === DateOnly.yearMonthString(year, month)) {
-				transactions.push(transaction)
+				transactions.push({
+					...transaction,
+					id: `${transaction.id}:0`
+				})
 			}
 			if (!transaction.recurrency) continue
 			let recurrency = transaction.recurrency
@@ -295,22 +365,35 @@ class IndexedDbWrapper {
 	}
 }
 
-function parseTransactionId(id: string): ParsedTransactionId {
-	if (!id.startsWith("carryover")) return {}
-	let result = /^carryover-(\d{4})-(\d{2})-(.+)$/.exec(id)
-	if (result?.length != 4) throw Error("invalid carryover id")
-	let year = parseInt(result[1])
-	if (isNaN(year)) throw Error("invalid carryover id")
-	let month = parseInt(result[2])
-	if (isNaN(month)) throw Error("invalid carryover id")
-	let accountId = result[3]
-	return {
-		carryOver: {
-			year: year,
-			month: month,
-			accountId: accountId,
-		},
+export function parseTransactionId(id: string): ParsedTransactionId {
+	if (id.startsWith("carryover")) {
+		let result = /^carryover-(\d{4})-(\d{2})-(.+)$/.exec(id)
+		if (result?.length != 4) throw Error("invalid carryover id")
+		let year = parseInt(result[1])
+		if (isNaN(year)) throw Error("invalid carryover id")
+		let month = parseInt(result[2])
+		if (isNaN(month)) throw Error("invalid carryover id")
+		let accountId = result[3]
+		return {
+			carryOver: {
+				year: year,
+				month: month,
+				accountId: accountId,
+			},
+		}
 	}
+	let parts = id.split(":")
+	if (parts.length == 2) {
+		let id = parts[0]
+		let occurrence = parseInt(parts[1])
+		return {
+			recurrency: {
+				id,
+				index: occurrence,
+			}
+		}
+	}
+	return {}
 }
 
 function buildCarryOverId(date: DateOnly, accountId: string) {

@@ -18,6 +18,10 @@ export interface ParsedTransactionId {
 		month: number
 		accountId: string
 	}
+	recurrency?: {
+		id: string
+		index: number
+	}
 }
 
 export type RecurrencyInterval = "month" | "week" | "year"

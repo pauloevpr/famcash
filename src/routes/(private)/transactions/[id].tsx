@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "@solidjs/router";
 import { createResource, Show } from "solid-js";
-import { idb } from "~/lib/idb";
+import { idb, parseTransactionId } from "~/lib/idb";
 import { Account, Category, Transaction } from "~/lib/models";
 import { TransactionForm } from "./(components)";
 
@@ -18,6 +18,11 @@ export default function TransactionEditPage() {
     }
   })
   async function onSubmit(transaction: Transaction) {
+    let parsedId = parseTransactionId(transaction.id)
+    if (parsedId.recurrency) {
+      let confirmed = confirm("You are about to edit this and all future occurrences. Confirm?")
+      if (!confirmed) return
+    }
     await idb.saveTransaction(transaction)
     navigate(-1)
   }

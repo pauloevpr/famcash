@@ -27,7 +27,7 @@
         - [x] recurrency multiplier: 1-32
         - [x] e.g. every 2 weeks
     - [ ] Edit single occurrence 
-    - [ ] Edit all future occurrences
+    - [x] Edit all future occurrences
     - [ ] Delete single occurrence 
     - [ ] Delete all future occurrences
     - [x] Take into account recurrent transactions when calculating the summary
