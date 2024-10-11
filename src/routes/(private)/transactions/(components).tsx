@@ -103,7 +103,7 @@ export function TransactionForm(props: VoidProps<{
 
 
   return (
-    <main>
+    <main class="max-w-3xl mx-auto">
       <h1 class="class=block px-6 py-8 font-medium text-2xl text-center">{title()}</h1>
       <form class="block px-1 text-lg space-y-10"
         onSubmit={onSubmit}

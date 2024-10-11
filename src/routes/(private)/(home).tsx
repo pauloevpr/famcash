@@ -50,7 +50,7 @@ export default function Home() {
 
   return (
     <PageLayout>
-      <main class="relative">
+      <main class="relative px-4 pt-8 pb-24">
         <section class="bg-white shadow-lg rounded-2xl text-center border border-gray-100 mb-4 py-8">
           <div class="grid grid-cols-[auto,1fr,auto] px-4">
             <a href={previousMonthLink()}
