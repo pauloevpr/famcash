@@ -1,9 +1,14 @@
 import { useNavigate } from "@solidjs/router"
-import { For, VoidProps } from "solid-js"
+import { For, Show, VoidProps } from "solid-js"
 import { Button } from "~/components/buttons"
 import { Category } from "~/lib/models"
 
-export function CategoryForm(props: VoidProps<{ category: Category, onSubmit: (category: Category) => void }>) {
+export function CategoryForm(props: VoidProps<{
+  category: Category,
+  onSubmit: (category: Category) => void,
+  onDelete?: (id: string) => void
+}>
+) {
   let navigate = useNavigate()
   let icons = [
     "💰",
@@ -69,6 +74,17 @@ export function CategoryForm(props: VoidProps<{ category: Category, onSubmit: (c
           <Button label="Save Category"
             style="primary"
           />
+          <Show when={props.onDelete}>
+            {(onDelete) => (
+              <div class="w-full pb-4">
+                <Button label="Delete"
+                  type="button"
+                  style="neutral"
+                  onclick={() => onDelete()(props.category.id)}
+                />
+              </div>
+            )}
+          </Show>
           <Button label="Cancel"
             style="neutral"
             type="button"

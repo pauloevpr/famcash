@@ -34,8 +34,8 @@
 - [ ] Categories
     - [x] List categories
     - [x] Add category
-    - [ ] Edit category
-    - [ ] Delete unused category
+    - [x] Edit category
+    - [x] Delete unused category
     - [ ] View spent summary for a given category and month
         - [ ] total spent
         - [ ] total planned

@@ -1,4 +1,4 @@
-import { Category } from "~/lib/models";
+import { Category, Transaction } from "~/lib/models";
 import { CategoryForm } from "./(components)";
 import { idb } from "~/lib/idb";
 import { useNavigate, useParams } from "@solidjs/router";
@@ -18,11 +18,39 @@ export default function CategoryEditPage() {
     navigate(-1)
   }
 
+  async function onDelete(id: string) {
+    let used = 0
+    let transactions = await idb.getAll<Transaction>("transactions")
+    let recurrencies = await idb.getAll<Transaction>("recurrencies")
+    for (let transaction of transactions) {
+      if (transaction.categoryId === id) {
+        used++
+      }
+    }
+    for (let recurrency of recurrencies) {
+      if (recurrency.categoryId === id) {
+        used++
+      }
+    }
+    if (used > 0) {
+      alert(`This category cannot be deleted becaused it is used in ${used} transactions.`)
+      return
+    }
+
+    let confirmed = confirm("You are about to delete this category. Confirm?")
+    if (!confirmed) return
+
+    idb.delete("categories", id)
+    navigate(-1)
+  }
+
   return (
     <Show when={category()}>
       {category => (
         <CategoryForm category={category()}
-          onSubmit={onSubmit} />
+          onSubmit={onSubmit}
+          onDelete={onDelete}
+        />
       )}
     </Show>
   )
