@@ -32,8 +32,8 @@
     - [x] Delete all future occurrences
     - [x] Take into account recurrent transactions when calculating the summary
 - [ ] Categories
-    - [ ] List categories
-    - [ ] Add category
+    - [x] List categories
+    - [x] Add category
     - [ ] Edit category
     - [ ] Delete unused category
     - [ ] View spent summary for a given category and month
