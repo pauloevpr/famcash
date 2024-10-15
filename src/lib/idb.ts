@@ -13,6 +13,16 @@ class IndexedDbWrapper {
 		this.databaseName = databaseName
 	}
 
+	async getCategories() {
+		let categories = (await idb.getAll<Category>("categories")).toSorted()
+		categories.sort((a, b) => {
+			if (a.name < b.name) return -1;
+			if (a.name > b.name) return 1;
+			return 0;
+		});
+		return categories
+	}
+
 	async deleteTransaction(id: string) {
 		let parsedId = parseTransactionId(id)
 		if (parsedId.recurrency) {
