@@ -17,6 +17,8 @@ export function CategoryForm(props: VoidProps<{ category: Category, onSubmit: (c
     "📚",
     "🛍️",
     "💰",
+    "🎮",
+    "💪",
   ]
 
   function onSubmit(e: SubmitEvent & { currentTarget: HTMLFormElement }) {
@@ -57,7 +59,7 @@ export function CategoryForm(props: VoidProps<{ category: Category, onSubmit: (c
             <For each={icons}>
               {icon => (
                 <option value={icon}
-                  selected={props.category.icon === props.category.icon}
+                  selected={props.category.icon === icon}
                 >{icon}</option>
               )}
             </For>
