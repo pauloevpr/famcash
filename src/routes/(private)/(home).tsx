@@ -7,7 +7,6 @@ import { DateOnly } from "~/lib/utils";
 import { TransactionListItem } from "./transactions/(components)";
 import { calculator } from "~/lib/calculator";
 import { useTabs } from "~/components/tabs";
-import { Category, Transaction, TransactionWithRefs } from "~/lib/models";
 
 
 export default function Home() {
@@ -26,18 +25,8 @@ export default function Home() {
     let current = currentMonth()
     return await idb.getTransactionsByMonth(current.year, current.month)
   }, { initialValue: [] })
-  let categories = createMemo(() => {
-    let summary: { [id: string]: { total: number, category: Category, transactions: TransactionWithRefs[] } } = {}
-    for (let transaction of transactions()) {
-      if (transaction.type === "carryover") continue
-      if (transaction.type === "income") continue
-      if (!summary[transaction.categoryId]) {
-        summary[transaction.categoryId] = { category: transaction.category, total: 0, transactions: [] }
-      }
-      summary[transaction.categoryId].total += transaction.amount
-      summary[transaction.categoryId].transactions.push(transaction)
-    }
-    return Object.values(summary).map(x => ({ ...x.category, ...x }))
+  let spending = createMemo(() => {
+    return calculator.spendingByCategory(transactions())
   })
   let nextMonthLink = createMemo(() => {
     let current = currentMonth()
@@ -133,25 +122,25 @@ export default function Home() {
             </TabPanel>
             <TabPanel key="summary">
               <ul class="space-y-1.5" >
-                <For each={categories()}>
-                  {category => (
+                <For each={spending()}>
+                  {item => (
                     <li class="border-l-8 rounded-lg border-positive/30">
                       <details class="group bg-white rounded-lg shadow-lg">
                         <summary class="flex items-center gap-4 cursor-pointer py-6 px-6">
                           <span class="bg-gray-100 w-10 h-10 p-1 rounded-full flex items-center justify-center"
                             aria-hidden>
-                            {category.icon}
+                            {item.category.icon}
                           </span>
                           <span class="block flex-grow text-lg group-open:font-semibold">
-                            {category.name}
+                            {item.category.name}
                           </span>
                           <span class="text-lg group-open:font-medium transition-all">
-                            {category.total}
+                            {item.total}
                           </span>
                           <ChevronRightIcon class="w-5 h-5 text-gray-400 group-open:rotate-90 transition-transform duration-200" />
                         </summary>
                         <ul class="space-y-1.5" >
-                          <For each={category.transactions}>
+                          <For each={item.transactions}>
                             {(transaction) => (
                               <li>
                                 <A
@@ -159,7 +148,7 @@ export default function Home() {
                                   class="flex items-center gap-4 px-6 py-2 border-t border-gray-200">
                                   <div class="flex-grow">
                                     <p class="text-lg">{transaction.name}</p>
-                                    <time class="text-light text-sm" datetime="2024-10-28T00:00:00Z" >
+                                    <time class="block text-light text-sm" datetime="2024-10-28T00:00:00Z" >
                                       {new DateOnly(transaction.date).date.toLocaleDateString()}
                                     </time>
                                   </div>

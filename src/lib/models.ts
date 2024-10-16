@@ -1,5 +1,12 @@
 type TransactionId = string
 
+
+export interface SpendingByCategory {
+	category: Category
+	total: number
+	transactions: Transaction[]
+}
+
 export interface Summary {
 	total: number
 	totalExpense: number

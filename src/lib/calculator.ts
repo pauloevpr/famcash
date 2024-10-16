@@ -1,6 +1,19 @@
-import { Summary, Transaction } from "./models";
+import { SpendingByCategory, Summary, Transaction, TransactionWithRefs } from "./models";
 
 export const calculator = {
+	spendingByCategory(transactions: TransactionWithRefs[]): SpendingByCategory[] {
+		let spending: { [id: string]: SpendingByCategory } = {}
+		for (let transaction of transactions) {
+			if (transaction.type === "carryover") continue
+			if (transaction.type === "income") continue
+			if (!spending[transaction.categoryId]) {
+				spending[transaction.categoryId] = { category: transaction.category, total: 0, transactions: [] }
+			}
+			spending[transaction.categoryId].total += transaction.amount
+			spending[transaction.categoryId].transactions.push(transaction)
+		}
+		return Object.values(spending)
+	},
 	summary(transactions: Transaction[]): Summary {
 		let summary: Summary = {
 			total: 0,
