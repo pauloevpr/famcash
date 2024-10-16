@@ -1,5 +1,5 @@
 import { A, useSearchParams } from "@solidjs/router";
-import { createMemo, createResource, For } from "solid-js";
+import { createMemo, createResource, For, VoidProps } from "solid-js";
 import { ChevronLeftIcon, ChevronRightIcon } from "~/components/icons";
 import { PageLayout } from "~/components/layouts";
 import { idb } from "~/lib/idb";
@@ -7,6 +7,7 @@ import { DateOnly } from "~/lib/utils";
 import { TransactionListItem } from "./transactions/(components)";
 import { calculator } from "~/lib/calculator";
 import { useTabs } from "~/components/tabs";
+import { SpendingByCategory, SpendingByCategory as SpendingGroup } from "~/lib/models";
 
 
 export default function Home() {
@@ -124,45 +125,7 @@ export default function Home() {
               <ul class="space-y-1.5" >
                 <For each={spending()}>
                   {item => (
-                    <li class="border-l-8 rounded-lg border-positive/30">
-                      <details class="group bg-white rounded-lg shadow-lg">
-                        <summary class="flex items-center gap-4 cursor-pointer py-6 px-6">
-                          <span class="bg-gray-100 w-10 h-10 p-1 rounded-full flex items-center justify-center"
-                            aria-hidden>
-                            {item.category.icon}
-                          </span>
-                          <span class="block flex-grow text-lg group-open:font-semibold">
-                            {item.category.name}
-                          </span>
-                          <span class="text-lg group-open:font-medium transition-all">
-                            {item.total}
-                          </span>
-                          <ChevronRightIcon class="w-5 h-5 text-gray-400 group-open:rotate-90 transition-transform duration-200" />
-                        </summary>
-                        <ul class="space-y-1.5" >
-                          <For each={item.transactions}>
-                            {(transaction) => (
-                              <li>
-                                <A
-                                  href={`/transactions/${transaction.id}`}
-                                  class="flex items-center gap-4 px-6 py-2 border-t border-gray-200">
-                                  <div class="flex-grow">
-                                    <p class="text-lg">{transaction.name}</p>
-                                    <time class="block text-light text-sm" datetime="2024-10-28T00:00:00Z" >
-                                      {new DateOnly(transaction.date).date.toLocaleDateString()}
-                                    </time>
-                                  </div>
-                                  <p class="text-left"
-                                  >
-                                    {transaction.amount}
-                                  </p>
-                                </A>
-                              </li>
-                            )}
-                          </For>
-                        </ul>
-                      </details>
-                    </li>
+                    <SpendingGroup spending={item} />
                   )}
                 </For>
               </ul>
@@ -172,4 +135,48 @@ export default function Home() {
       </main >
     </PageLayout >
   );
+}
+
+function SpendingGroup(props: VoidProps<{ spending: SpendingByCategory }>) {
+  return (
+    <li class="border-l-8 rounded-lg border-positive/30">
+      <details class="group bg-white rounded-lg shadow-lg">
+        <summary class="flex items-center gap-4 cursor-pointer py-6 px-6">
+          <span class="bg-gray-100 w-10 h-10 p-1 rounded-full flex props.spending.-center justify-center"
+            aria-hidden>
+            {props.spending.category.icon}
+          </span>
+          <span class="block flex-grow text-lg group-open:font-semibold">
+            {props.spending.category.name}
+          </span>
+          <span class="text-lg group-open:font-medium transition-all">
+            {props.spending.total}
+          </span>
+          <ChevronRightIcon class="w-5 h-5 text-gray-400 group-open:rotate-90 transition-transform duration-200" />
+        </summary>
+        <ul class="space-y-1.5" >
+          <For each={props.spending.transactions}>
+            {(transaction) => (
+              <li>
+                <A
+                  href={`/transactions/${transaction.id}`}
+                  class="flex props.spending.-center gap-4 px-6 py-2 border-t border-gray-200">
+                  <div class="flex-grow">
+                    <p class="text-lg">{transaction.name}</p>
+                    <time class="block text-light text-sm" datetime="2024-10-28T00:00:00Z" >
+                      {new DateOnly(transaction.date).date.toLocaleDateString()}
+                    </time>
+                  </div>
+                  <p class="text-left"
+                  >
+                    {transaction.amount}
+                  </p>
+                </A>
+              </li>
+            )}
+          </For>
+        </ul>
+      </details>
+    </li>
+  )
 }
