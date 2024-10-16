@@ -4,7 +4,9 @@ import { Button } from "~/components/buttons";
 import { Account, Category, RecurrencyInterval, Transaction, TransactionType, TransactionWithRefs } from "~/lib/models";
 import { DateOnly } from "~/lib/utils";
 
-export function TransactionListItem(props: VoidProps<{ transaction: TransactionWithRefs }>) {
+export function TransactionListItem(props: VoidProps<{
+  transaction: TransactionWithRefs,
+}>) {
   // TODO: introduce intl formatting for amounts
   let isNegative = createMemo(() => {
     if (props.transaction.type === "expense") return true
@@ -19,30 +21,30 @@ export function TransactionListItem(props: VoidProps<{ transaction: TransactionW
     return a
   })
   return (
-    <li>
-      <A
-        href={`/transactions/${props.transaction.id}`}
-        class="flex items-center gap-4 bg-white rounded-lg shadow-lg px-6 py-4">
-        <span class="bg-gray-100 w-10 h-10 p-1 rounded-full flex items-center justify-center"
-          aria-hidden>{props.transaction.category.icon}</span>
-        <div class="flex-grow">
-          <p class="text-lg">{props.transaction.name}</p>
-          <time class="text-light text-sm" datetime="2024-10-28T00:00:00Z" >
-            {new DateOnly(props.transaction.date).date.toLocaleDateString()}
-          </time>
-        </div>
-        <p class="text-left"
-          classList={{
-            "text-positive": !isNegative(),
-            "text-negative": isNegative(),
-          }}>
-          <Show when={isNegative()}>
-            <span>-</span>
-          </Show>
-          {normalizedAmount()}
-        </p>
-      </A>
-    </li>
+    <A
+      href={`/transactions/${props.transaction.id}`}
+      class="flex items-center gap-4 bg-white rounded-lg shadow-lg px-6 py-4">
+      <span class="bg-gray-100 w-10 h-10 p-1 rounded-full flex items-center justify-center"
+        aria-hidden>
+        {props.transaction.category.icon}
+      </span>
+      <div class="flex-grow">
+        <p class="text-lg">{props.transaction.name}</p>
+        <time class="text-light text-sm" datetime="2024-10-28T00:00:00Z" >
+          {new DateOnly(props.transaction.date).date.toLocaleDateString()}
+        </time>
+      </div>
+      <p class="text-left"
+        classList={{
+          "text-positive": !isNegative(),
+          "text-negative": isNegative(),
+        }}>
+        <Show when={isNegative()}>
+          <span>-</span>
+        </Show>
+        {normalizedAmount()}
+      </p>
+    </A>
   )
 }
 

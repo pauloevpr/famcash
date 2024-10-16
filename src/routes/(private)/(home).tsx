@@ -1,11 +1,13 @@
-import { useSearchParams } from "@solidjs/router";
-import { createMemo, createResource, For, Show } from "solid-js";
+import { A, useSearchParams } from "@solidjs/router";
+import { createMemo, createResource, For } from "solid-js";
 import { ChevronLeftIcon, ChevronRightIcon } from "~/components/icons";
 import { PageLayout } from "~/components/layouts";
 import { idb } from "~/lib/idb";
 import { DateOnly } from "~/lib/utils";
 import { TransactionListItem } from "./transactions/(components)";
 import { calculator } from "~/lib/calculator";
+import { useTabs } from "~/components/tabs";
+import { Category, Transaction, TransactionWithRefs } from "~/lib/models";
 
 
 export default function Home() {
@@ -24,6 +26,19 @@ export default function Home() {
     let current = currentMonth()
     return await idb.getTransactionsByMonth(current.year, current.month)
   }, { initialValue: [] })
+  let categories = createMemo(() => {
+    let summary: { [id: string]: { total: number, category: Category, transactions: TransactionWithRefs[] } } = {}
+    for (let transaction of transactions()) {
+      if (transaction.type === "carryover") continue
+      if (transaction.type === "income") continue
+      if (!summary[transaction.categoryId]) {
+        summary[transaction.categoryId] = { category: transaction.category, total: 0, transactions: [] }
+      }
+      summary[transaction.categoryId].total += transaction.amount
+      summary[transaction.categoryId].transactions.push(transaction)
+    }
+    return Object.values(summary).map(x => ({ ...x.category, ...x }))
+  })
   let nextMonthLink = createMemo(() => {
     let current = currentMonth()
     let next = DateOnly.fromYearMonth(current.year, current.month).addMonths(1)
@@ -47,6 +62,10 @@ export default function Home() {
   let summary = createMemo(() => {
     return calculator.summary(transactions())
   })
+  let { Tab, TabPanel } = useTabs("Transactions Views", () => [
+    { label: "Transactions", key: "transactions" },
+    { label: "Spending", key: "summary" },
+  ], { initialSelection: "summary" })
 
   return (
     <PageLayout>
@@ -55,7 +74,7 @@ export default function Home() {
           <div class="grid grid-cols-[auto,1fr,auto] px-4">
             <a href={previousMonthLink()}
               aria-label="Previous month"
-              class="flex items-center justify-center bg-gray-100 rounded-full border border-gray-300 h-14 w-14"
+              class="flex items-center justify-center bg-gray-100 rounded-full h-14 w-14"
             >
               <ChevronLeftIcon />
             </a>
@@ -66,7 +85,7 @@ export default function Home() {
             </header>
             <a href={nextMonthLink()}
               aria-label="Next month"
-              class="flex items-center justify-center bg-gray-100 rounded-full border border-gray-300 h-14 w-14"
+              class="flex items-center justify-center bg-gray-100 rounded-full h-14 w-14"
             >
               <ChevronRightIcon />
             </a>
@@ -97,18 +116,71 @@ export default function Home() {
             </p>
           </div>
         </section>
-        <section>
+        <section class="pt-10">
           <header class="sr-only">Expenses</header>
-          <ul class="space-y-1.5" >
-            <For each={transactions()}>
-              {transaction => (
-                <TransactionListItem transaction={transaction} />
-              )}
-            </For>
-          </ul>
+          <Tab>
+            <TabPanel key="transactions">
+              <ul class="space-y-1.5" >
+                <For each={transactions()}>
+                  {transaction => (
+                    <li>
+                      <TransactionListItem transaction={transaction}
+                      />
+                    </li>
+                  )}
+                </For>
+              </ul>
+            </TabPanel>
+            <TabPanel key="summary">
+              <ul class="space-y-1.5" >
+                <For each={categories()}>
+                  {category => (
+                    <li class="border-l-8 rounded-lg border-positive/30">
+                      <details class="group bg-white rounded-lg shadow-lg">
+                        <summary class="flex items-center gap-4 cursor-pointer py-6 px-6">
+                          <span class="bg-gray-100 w-10 h-10 p-1 rounded-full flex items-center justify-center"
+                            aria-hidden>
+                            {category.icon}
+                          </span>
+                          <span class="block flex-grow text-lg group-open:font-semibold">
+                            {category.name}
+                          </span>
+                          <span class="text-lg group-open:font-medium transition-all">
+                            {category.total}
+                          </span>
+                          <ChevronRightIcon class="w-5 h-5 text-gray-400 group-open:rotate-90 transition-transform duration-200" />
+                        </summary>
+                        <ul class="space-y-1.5" >
+                          <For each={category.transactions}>
+                            {(transaction) => (
+                              <li>
+                                <A
+                                  href={`/transactions/${transaction.id}`}
+                                  class="flex items-center gap-4 px-6 py-2 border-t border-gray-200">
+                                  <div class="flex-grow">
+                                    <p class="text-lg">{transaction.name}</p>
+                                    <time class="text-light text-sm" datetime="2024-10-28T00:00:00Z" >
+                                      {new DateOnly(transaction.date).date.toLocaleDateString()}
+                                    </time>
+                                  </div>
+                                  <p class="text-left"
+                                  >
+                                    {transaction.amount}
+                                  </p>
+                                </A>
+                              </li>
+                            )}
+                          </For>
+                        </ul>
+                      </details>
+                    </li>
+                  )}
+                </For>
+              </ul>
+            </TabPanel>
+          </Tab>
         </section>
       </main >
-    </PageLayout>
+    </PageLayout >
   );
 }
-

@@ -31,13 +31,14 @@
     - [ ] Delete single occurrence 
     - [x] Delete all future occurrences
     - [x] Take into account recurrent transactions when calculating the summary
+    - [ ] Add spend planned spending to category
 - [ ] Categories
     - [x] List categories
     - [x] Add category
     - [x] Edit category
     - [x] Delete unused category
     - [ ] View spent summary for a given category and month
-        - [ ] total spent
+        - [x] total spent
         - [ ] total planned
         - [ ] remaining amount to spend
     - [ ] View all expenses for a given category and month
