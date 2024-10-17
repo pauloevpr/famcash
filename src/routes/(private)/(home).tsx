@@ -1,5 +1,5 @@
 import { A, useSearchParams } from "@solidjs/router";
-import { createMemo, createResource, For, VoidProps } from "solid-js";
+import { createMemo, createResource, For, Show, VoidProps } from "solid-js";
 import { ChevronLeftIcon, ChevronRightIcon } from "~/components/icons";
 import { PageLayout } from "~/components/layouts";
 import { idb } from "~/lib/idb";
@@ -7,8 +7,8 @@ import { DateOnly } from "~/lib/utils";
 import { TransactionListItem } from "./transactions/(components)";
 import { calculator } from "~/lib/calculator";
 import { useTabs } from "~/components/tabs";
-import { SpendingByCategory } from "~/lib/models";
-import { Button, LinkButton } from "~/components/buttons";
+import { CategoryWithSpending } from "~/lib/models";
+import { Button } from "~/components/buttons";
 
 
 export default function Home() {
@@ -126,7 +126,7 @@ export default function Home() {
               <ul class="space-y-2" >
                 <For each={spending()}>
                   {item => (
-                    <SpendingGroup spending={item} />
+                    <CategorySpending category={item} />
                   )}
                 </For>
               </ul>
@@ -138,39 +138,98 @@ export default function Home() {
   );
 }
 
-function SpendingGroup(props: VoidProps<{ spending: SpendingByCategory }>) {
+function CategorySpending(props: VoidProps<{ category: CategoryWithSpending }>) {
+  let isNegative = createMemo(() => props.category.remaining < 0 && !!props.category.plan)
+  let barWidth = createMemo(() => {
+    let totalPlanned = props.category.plan?.limit ?? 0
+    if (totalPlanned === 0) return 0
+    let percentage = (props.category.total / totalPlanned) * 100
+    if (percentage > 100) percentage = 100
+    return `${percentage}%`
+  })
+
   return (
-    <li class="border-l-8 rounded-lg border-positive/30">
+    <li class="border-l-8 rounded-lg "
+      classList={{
+        "border-positive/30": !isNegative(),
+        "border-negative/30": isNegative(),
+      }}
+    >
       <details open class="group bg-white rounded-r-lg shadow-lg [&[open]]:mb-10">
         <summary class="flex items-center gap-4 cursor-pointer py-6 px-6">
           <span class="bg-gray-100 w-10 h-10 p-1 rounded-full flex props.spending.-center justify-center"
             aria-hidden>
-            {props.spending.category.icon}
+            {props.category.icon}
           </span>
           <span class="block flex-grow text-lg group-open:font-semibold">
-            {props.spending.category.name}
+            {props.category.name}
           </span>
           <span class="text-lg group-open:font-medium transition-all">
-            {props.spending.total}
+            <span class="sr-only" >Total Spent:</span>
+            {props.category.total}
           </span>
           <ChevronRightIcon class="w-5 h-5 text-gray-400 group-open:rotate-90 transition-transform duration-200" />
         </summary>
         <div>
           <div class="border-t border-gray-200">
-            <A class="block items-center gap-2 px-6 py-6"
-              href={`/categories/${props.spending.category.id}/plan`}
-            >
-              <span class="block flex-grow">
-                <span>Planned Spending</span>
-                <span class="block text-light text-sm pb-4">This category has no planned spending yet</span>
-              </span>
-              <Button style="neutral"
-                label="Add Plan"
-              />
-            </A>
+            <Show when={!props.category.plan}>
+              <A class="block items-center gap-2 px-6 py-6 active:bg-gray-100 transition-colors"
+                href={`/categories/${props.category.id}/plan`}
+              >
+                <span class="block flex-grow">
+                  <span class="block text-light text-sm pb-4">This category has no spending plan yet</span>
+                </span>
+                <Button style="neutral"
+                  label="Add Plan"
+                />
+              </A>
+            </Show>
+            <Show when={props.category.plan}>
+              {plan => (
+                <A class="flex items-center gap-6 px-6 py-6 active:bg-gray-100 transition-colors"
+                  href={`/categories/${props.category.id}/plan`}
+                >
+                  <span class="block flex-grow">
+                    <Show when={isNegative()}>
+                      <p class="block pb-2 text-light">
+                        <span class="font-medium text-negative"
+                        >
+                          {props.category.remaining * -1}
+                        </span>
+                        {' '}overspent from {plan().limit} planned
+                      </p>
+                    </Show>
+                    <Show when={!isNegative()}>
+                      <p class="block pb-2 text-light">
+                        <span class="font-medium text-positive"
+                        >
+                          {props.category.remaining}
+                        </span>
+                        {' '}left from {plan().limit} planned
+                      </p>
+                    </Show>
+                    <div aria-hidden class=" h-4"
+                      classList={{
+                        "bg-positive/10": !isNegative(),
+                        "bg-negative/10": isNegative(),
+                      }}
+                    >
+                      <div class="h-full w-[60%]"
+                        classList={{
+                          "bg-positive/40": !isNegative(),
+                          "bg-negative/40": isNegative(),
+                        }}
+                        style={`width: ${barWidth()};`}
+                      ></div>
+                    </div>
+                  </span>
+                  <ChevronRightIcon class="w-5 h-5 text-positive" />
+                </A>
+              )}
+            </Show>
           </div>
           <ul class="space-y-1.5" >
-            <For each={props.spending.transactions}>
+            <For each={props.category.transactions}>
               {(transaction) => (
                 <li>
                   <A

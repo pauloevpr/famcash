@@ -37,10 +37,10 @@
     - [x] Edit category
     - [x] Delete unused category
     - [x] Add planned spending to category
-    - [ ] View spent summary for a given category and month
+    - [x] View spent summary for a given category and month
         - [x] total spent
-        - [ ] total planned
-        - [ ] remaining amount to spend
+        - [x] total planned
+        - [x] remaining amount to spend
     - [ ] View all expenses for a given category and month
 - [ ] Accounts
     - [ ] List accounts

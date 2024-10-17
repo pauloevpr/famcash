@@ -1,9 +1,9 @@
 type TransactionId = string
 
 
-export interface SpendingByCategory {
-	category: Category
+export interface CategoryWithSpending extends Category {
 	total: number
+	remaining: number
 	transactions: Transaction[]
 }
 

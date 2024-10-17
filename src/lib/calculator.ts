@@ -1,18 +1,25 @@
-import { SpendingByCategory, Summary, Transaction, TransactionWithRefs } from "./models";
+import { CategoryWithSpending, Summary, Transaction, TransactionWithRefs } from "./models";
 
 export const calculator = {
-	spendingByCategory(transactions: TransactionWithRefs[]): SpendingByCategory[] {
-		let spending: { [id: string]: SpendingByCategory } = {}
+	spendingByCategory(transactions: TransactionWithRefs[]): CategoryWithSpending[] {
+		let category: { [id: string]: CategoryWithSpending } = {}
 		for (let transaction of transactions) {
 			if (transaction.type === "carryover") continue
 			if (transaction.type === "income") continue
-			if (!spending[transaction.categoryId]) {
-				spending[transaction.categoryId] = { category: transaction.category, total: 0, transactions: [] }
+			if (!category[transaction.categoryId]) {
+				category[transaction.categoryId] = {
+					...transaction.category,
+					total: 0,
+					remaining: 0,
+					transactions: []
+				}
 			}
-			spending[transaction.categoryId].total += transaction.amount
-			spending[transaction.categoryId].transactions.push(transaction)
+			let planned = transaction.category.plan?.limit ?? 0
+			category[transaction.categoryId].total += transaction.amount
+			category[transaction.categoryId].transactions.push(transaction)
+			category[transaction.categoryId].remaining = planned - category[transaction.categoryId].total
 		}
-		return Object.values(spending)
+		return Object.values(category)
 	},
 	summary(transactions: Transaction[]): Summary {
 		let summary: Summary = {
