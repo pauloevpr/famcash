@@ -22,7 +22,7 @@ export default createHandler(() => (
           </style>
           {assets}
         </head>
-        <body class="text-base group/body bg-gradient-to-br from-stone-100 via-slate-100 to-gray-100">
+        <body class="text-base group/body bg-gradient-to-br from-stone-100 via-slate-100 to-gray-100 pb-16">
           <div id="app">{children}</div>
           {scripts}
         </body>

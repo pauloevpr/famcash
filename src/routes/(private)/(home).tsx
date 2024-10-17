@@ -7,7 +7,8 @@ import { DateOnly } from "~/lib/utils";
 import { TransactionListItem } from "./transactions/(components)";
 import { calculator } from "~/lib/calculator";
 import { useTabs } from "~/components/tabs";
-import { SpendingByCategory, SpendingByCategory as SpendingGroup } from "~/lib/models";
+import { SpendingByCategory } from "~/lib/models";
+import { Button, LinkButton } from "~/components/buttons";
 
 
 export default function Home() {
@@ -106,7 +107,7 @@ export default function Home() {
             </p>
           </div>
         </section>
-        <section class="pt-10">
+        <section class="pt-8">
           <header class="sr-only">Expenses</header>
           <Tab>
             <TabPanel key="transactions">
@@ -122,7 +123,7 @@ export default function Home() {
               </ul>
             </TabPanel>
             <TabPanel key="summary">
-              <ul class="space-y-1.5" >
+              <ul class="space-y-2" >
                 <For each={spending()}>
                   {item => (
                     <SpendingGroup spending={item} />
@@ -140,7 +141,7 @@ export default function Home() {
 function SpendingGroup(props: VoidProps<{ spending: SpendingByCategory }>) {
   return (
     <li class="border-l-8 rounded-lg border-positive/30">
-      <details class="group bg-white rounded-lg shadow-lg">
+      <details open class="group bg-white rounded-r-lg shadow-lg [&[open]]:mb-10">
         <summary class="flex items-center gap-4 cursor-pointer py-6 px-6">
           <span class="bg-gray-100 w-10 h-10 p-1 rounded-full flex props.spending.-center justify-center"
             aria-hidden>
@@ -154,29 +155,44 @@ function SpendingGroup(props: VoidProps<{ spending: SpendingByCategory }>) {
           </span>
           <ChevronRightIcon class="w-5 h-5 text-gray-400 group-open:rotate-90 transition-transform duration-200" />
         </summary>
-        <ul class="space-y-1.5" >
-          <For each={props.spending.transactions}>
-            {(transaction) => (
-              <li>
-                <A
-                  href={`/transactions/${transaction.id}`}
-                  class="flex props.spending.-center gap-4 px-6 py-2 border-t border-gray-200">
-                  <div class="flex-grow">
-                    <p class="text-lg">{transaction.name}</p>
-                    <time class="block text-light text-sm" datetime="2024-10-28T00:00:00Z" >
-                      {new DateOnly(transaction.date).date.toLocaleDateString()}
-                    </time>
-                  </div>
-                  <p class="text-left"
-                  >
-                    {transaction.amount}
-                  </p>
-                </A>
-              </li>
-            )}
-          </For>
-        </ul>
+        <div>
+          <div class="border-t border-gray-200">
+            <A class="block items-center gap-2 px-6 py-6"
+              href={`/categories/${props.spending.category.id}/plan`}
+            >
+              <span class="block flex-grow">
+                <span>Planned Spending</span>
+                <span class="block text-light text-sm pb-4">This category has no planned spending yet</span>
+              </span>
+              <Button style="neutral"
+                label="Add Plan"
+              />
+            </A>
+          </div>
+          <ul class="space-y-1.5" >
+            <For each={props.spending.transactions}>
+              {(transaction) => (
+                <li>
+                  <A
+                    href={`/transactions/${transaction.id}`}
+                    class="flex items-center gap-4 px-6 py-2 border-t border-gray-200">
+                    <div class="flex-grow">
+                      <p class="text-lg">{transaction.name}</p>
+                      <time class="block text-light text-sm" datetime="2024-10-28T00:00:00Z" >
+                        {new DateOnly(transaction.date).date.toLocaleDateString()}
+                      </time>
+                    </div>
+                    <p class="text-left"
+                    >
+                      {transaction.amount}
+                    </p>
+                  </A>
+                </li>
+              )}
+            </For>
+          </ul>
+        </div>
       </details>
-    </li>
+    </li >
   )
 }

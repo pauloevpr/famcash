@@ -20,7 +20,7 @@ export function useTabs(
       <div
         role="tablist" aria-label={label}>
         <div
-          class="flex gap-2 pb-8"
+          class="flex gap-2 pb-6"
         >
           <For each={tabs()}>{(item) => (
             <button type="button"

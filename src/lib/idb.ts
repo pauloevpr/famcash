@@ -4,13 +4,13 @@ import { DateOnly } from "./utils"
 
 type StoreName = "accounts" | "categories" | "transactions" | "carryovers" | "recurrencies"
 
-class IndexedDbWrapper {
-	private databaseName: string
+class Database {
+	private name: string
 	private db?: IDBDatabase
 	private carryOverCategory: Category = { id: "carryover", name: "Carry Over", icon: "" }
 
-	constructor(databaseName: string) {
-		this.databaseName = databaseName
+	constructor(name: string) {
+		this.name = name
 	}
 
 	async getCategories() {
@@ -273,43 +273,6 @@ class IndexedDbWrapper {
 		return [firstRecurrencyDate, firstTransactionDate].sort((a, b) => a.time - b.time)[0]
 	}
 
-	private open() {
-		return new Promise<IDBDatabase>((resolve, reject) => {
-			if (this.db) {
-				resolve(this.db)
-				return
-			}
-			const open = indexedDB.open(this.databaseName, 1)
-			open.onsuccess = () => {
-				this.db = open.result
-				resolve(open.result)
-			}
-			open.onerror = (e: any) => {
-				reject("error when opening the database: " + e.target.error)
-				this.db = undefined
-			}
-			open.onupgradeneeded = (e: IDBVersionChangeEvent) => {
-				const target = e.target as any
-				const db = (target as any).result as IDBDatabase
-				db.onerror = () => {
-					reject("error when setting up the database: " + target.error)
-					this.db = undefined
-				}
-				db.createObjectStore("accounts", { keyPath: "id" })
-				db.createObjectStore("categories", { keyPath: "id" })
-				db.createObjectStore("carryovers", { keyPath: "id" })
-				let recurrenciesStore = db.createObjectStore("recurrencies", { keyPath: "id" })
-				recurrenciesStore.createIndex("dateIndex", "date", { unique: false })
-				const transactionsStore = db.createObjectStore("transactions", { keyPath: "id" })
-				transactionsStore.createIndex("yearMonthIndex", "yearMonthIndex", { unique: false })
-				transactionsStore.createIndex("dateIndex", "date", { unique: false })
-			}
-			open.onblocked = () => {
-				reject("error when opening the database: database blocked")
-				this.db = undefined
-			}
-		})
-	}
 
 	delete(store: StoreName, id: string) {
 		return new Promise(async (resolve, reject) => {
@@ -393,6 +356,46 @@ class IndexedDbWrapper {
 			}
 		})
 	}
+
+	private open() {
+		return new Promise<IDBDatabase>((resolve, reject) => {
+			if (this.db) {
+				resolve(this.db)
+				return
+			}
+			const open = indexedDB.open(this.name, 1)
+			open.onsuccess = () => {
+				this.db = open.result
+				resolve(open.result)
+			}
+			open.onerror = (e: any) => {
+				reject("error when opening the database: " + e.target.error)
+				this.db = undefined
+			}
+			open.onupgradeneeded = (e: IDBVersionChangeEvent) => {
+				const target = e.target as any
+				const db = (target as any).result as IDBDatabase
+				db.onerror = () => {
+					reject("error when setting up the database: " + target.error)
+					this.db = undefined
+				}
+				if (db.version < 1) {
+					db.createObjectStore("accounts", { keyPath: "id" })
+					db.createObjectStore("categories", { keyPath: "id" })
+					db.createObjectStore("carryovers", { keyPath: "id" })
+					let recurrenciesStore = db.createObjectStore("recurrencies", { keyPath: "id" })
+					recurrenciesStore.createIndex("dateIndex", "date", { unique: false })
+					const transactionsStore = db.createObjectStore("transactions", { keyPath: "id" })
+					transactionsStore.createIndex("yearMonthIndex", "yearMonthIndex", { unique: false })
+					transactionsStore.createIndex("dateIndex", "date", { unique: false })
+				}
+			}
+			open.onblocked = () => {
+				reject("error when opening the database: database blocked")
+				this.db = undefined
+			}
+		})
+	}
 }
 
 export function parseTransactionId(id: string): ParsedTransactionId {
@@ -430,7 +433,7 @@ function buildCarryOverId(date: DateOnly, accountId: string) {
 	return `carryover-${date.toYearMonthString()}-${accountId}`
 }
 
-export const idb = new IndexedDbWrapper("solid-money")
+export const idb = new Database("solid-money")
 
 
 function seed() {

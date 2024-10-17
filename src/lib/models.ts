@@ -59,6 +59,9 @@ export interface Category {
 	id: string,
 	name: string,
 	icon: string,
+	plan?: {
+		limit: number
+	}
 }
 
 export interface Account {
