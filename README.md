@@ -31,7 +31,7 @@
     - [ ] Delete single occurrence 
     - [x] Delete all future occurrences
     - [x] Take into account recurrent transactions when calculating the summary
-- [ ] Categories
+- [x] Categories
     - [x] List categories
     - [x] Add category
     - [x] Edit category
@@ -41,7 +41,7 @@
         - [x] total spent
         - [x] total planned
         - [x] remaining amount to spend
-    - [ ] View all expenses for a given category and month
+    - [x] View all expenses for a given category and month
 - [ ] Accounts
     - [ ] List accounts
     - [ ] Add account
