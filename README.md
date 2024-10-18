@@ -49,8 +49,8 @@
         - [x] total planned
         - [x] remaining amount to spend
     - [x] View all expenses for a given category and month
-- [ ] Accounts
+- [x] Accounts
     - [x] List accounts
     - [x] Add account
     - [x] Edit account
-    - [ ] Delete unlikend account
+    - [x] Delete unlikend account
