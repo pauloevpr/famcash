@@ -51,6 +51,6 @@
     - [x] View all expenses for a given category and month
 - [ ] Accounts
     - [x] List accounts
-    - [ ] Add account
+    - [x] Add account
     - [ ] Edit account
     - [ ] Delete unlikend account
