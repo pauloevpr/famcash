@@ -1,5 +1,10 @@
 # TODO
 
+## Bugs
+
+- The "Spending" tab does not show categories that don't have expenses in the selected month
+
+## Features
 - [ ] Auth
     - [ ] Google
     - [ ] Email link
@@ -31,10 +36,12 @@
     - [ ] Delete single occurrence 
     - [x] Delete all future occurrences
     - [x] Take into account recurrent transactions when calculating the summary
-- [x] Categories
+- [ ] Categories
     - [x] List categories
     - [x] Add category
-    - [x] Edit category
+    - [ ] Edit category
+        - [x] Basic category fields
+        - [ ] Edit spending plan from edit form
     - [x] Delete unused category
     - [x] Add planned spending to category
     - [x] View spent summary for a given category and month
@@ -43,7 +50,7 @@
         - [x] remaining amount to spend
     - [x] View all expenses for a given category and month
 - [ ] Accounts
-    - [ ] List accounts
+    - [x] List accounts
     - [ ] Add account
     - [ ] Edit account
     - [ ] Delete unlikend account

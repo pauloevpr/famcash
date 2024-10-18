@@ -23,6 +23,16 @@ class Database {
 		return categories
 	}
 
+	async getAccounts() {
+		let accounts = (await idb.getAll<Account>("accounts")).toSorted()
+		accounts.sort((a, b) => {
+			if (a.name < b.name) return -1;
+			if (a.name > b.name) return 1;
+			return 0;
+		});
+		return accounts
+	}
+
 	async deleteTransaction(id: string) {
 		let parsedId = parseTransactionId(id)
 		if (parsedId.recurrency) {

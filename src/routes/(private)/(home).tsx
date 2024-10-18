@@ -55,8 +55,8 @@ export default function Home() {
   })
   let { Tab, TabPanel } = useTabs("Transactions Views", () => [
     { label: "Transactions", key: "transactions" },
-    { label: "Spending", key: "summary" },
-  ], { initialSelection: "summary" })
+    { label: "Spending", key: "spending" },
+  ], { initialSelection: "transactions" })
 
   return (
     <PageLayout>
@@ -122,7 +122,7 @@ export default function Home() {
                 </For>
               </ul>
             </TabPanel>
-            <TabPanel key="summary">
+            <TabPanel key="spending">
               <ul class="space-y-2" >
                 <For each={spending()}>
                   {item => (
@@ -155,7 +155,7 @@ function CategorySpending(props: VoidProps<{ category: CategoryWithSpending }>) 
         "border-negative/30": isNegative(),
       }}
     >
-      <details open class="group bg-white rounded-r-lg shadow-lg [&[open]]:mb-10">
+      <details class="group bg-white rounded-r-lg shadow-lg [&[open]]:mb-10">
         <summary class="flex items-center gap-4 cursor-pointer py-6 px-6">
           <span class="bg-gray-100 w-10 h-10 p-1 rounded-full flex props.spending.-center justify-center"
             aria-hidden>
