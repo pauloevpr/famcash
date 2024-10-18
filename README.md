@@ -52,5 +52,5 @@
 - [ ] Accounts
     - [x] List accounts
     - [x] Add account
-    - [ ] Edit account
+    - [x] Edit account
     - [ ] Delete unlikend account
