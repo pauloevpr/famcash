@@ -1,18 +1,29 @@
 # TODO
 
-## Bugs
+## Issues
 
 - The "Spending" tab does not show categories that don't have expenses in the selected month
 
 ## Features
 - [ ] Auth
     - [ ] Google
-    - [ ] Email link
+    - [ ] Login with email 
+        - [x] Basic login workflow
+        - [ ] Send login link email
+        - [ ] Require Captcha to avoid spammers
+    - [ ] Logoff
 - [ ] Collaboration
     - [ ] Invite others to join profile
     - [ ] Join profile from invitation
     - [ ] List members of a profile
     - [ ] Remove member from profile
+- [ ] Data Sync
+    - [ ] Basic syncing service
+    - [ ] Sync transactions
+    - [ ] Sync recurrencies
+    - [ ] Sync carryovers
+    - [ ] Sync accounts
+    - [ ] Sync categories
 - [x] Transactions
     - [x] View transactions summary for a given month:
         - [x] total expenses

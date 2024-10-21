@@ -1,3 +1,5 @@
+import { DbUser } from "./models"
+
 export class DateOnly {
 	date: Date
 	constructor(value: string | Date) {
@@ -49,5 +51,44 @@ export class DateOnly {
 		result.setMonth(result.getMonth() + months);
 		return new DateOnly(result);
 	}
+}
+
+export class ValidationError extends Error {
+	constructor(field: any, error: string) {
+		super(`field '${field}' has error: ${error}`)
+		if (Error.captureStackTrace) {
+			Error.captureStackTrace(this, this.constructor);
+		}
+	}
+}
+
+
+export const validate = {
+	user(user: DbUser) {
+		this.email(user, "id")
+		this.string(user, "nickname", 0, 32)
+	},
+
+	string<T extends object>(values: T, key: keyof T, min?: number, max?: number) {
+		let input = values[key]
+		if (input === undefined || input === null || typeof input !== 'string') {
+			throw new ValidationError(key, "required")
+		}
+		if (min !== undefined && input.length < min) {
+			throw new ValidationError(key, `minimum length is ${min}`)
+		}
+		if (max !== undefined && input.length > max) {
+			throw new ValidationError(key, `maximum length is ${max}`)
+		}
+	},
+
+	email<T extends object>(values: T, key: keyof T) {
+		let input = values[key]
+		if (!input || typeof input !== 'string') {
+			throw new ValidationError(key, "required")
+		}
+		let valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input)
+		if (!valid) throw new ValidationError(key, `invalid email address`)
+	},
 }
 

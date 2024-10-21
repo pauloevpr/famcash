@@ -65,7 +65,6 @@ class Database {
 
 	private async saveRecurrentTransaction(transaction: Transaction, parsedId: ParsedTransactionId) {
 		if (parsedId.recurrency) {
-			// TODO: CONTINUE: Split and save when targetting next occurrences
 			if (parsedId.recurrency.index === 0) {
 				await this.set("recurrencies", { ...transaction, id: parsedId.recurrency.id })
 			} else {

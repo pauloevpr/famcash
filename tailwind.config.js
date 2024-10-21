@@ -9,8 +9,8 @@ export default {
     extend: {
       colors: {
         primary: {
-          ...colors.purple,
-          DEFAULT: colors.purple['600'],
+          ...colors.sky,
+          DEFAULT: colors.sky['600'],
         },
         negative: {
           ...colors.pink,

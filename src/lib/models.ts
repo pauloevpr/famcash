@@ -1,6 +1,18 @@
 type TransactionId = string
 
 
+export interface DbUser {
+	id: string // email
+	nickname: string
+}
+
+export interface DbUserToken {
+	token: string
+	user_id: string
+	expiration: Date
+	created_at: Date
+}
+
 export interface CategoryWithSpending extends Category {
 	total: number
 	remaining: number
