@@ -1,4 +1,5 @@
 import { createAsync, RouteDefinition, RouteSectionProps } from "@solidjs/router";
+import { Show } from "solid-js";
 import { getUser } from "~/lib/client";
 
 
@@ -7,13 +8,11 @@ export const route = {
 } satisfies RouteDefinition;
 
 export default function PrivateSection(props: RouteSectionProps) {
-  createAsync(() => getUser())
+  let user = createAsync(() => getUser())
   return (
-    <>{props.children}</>
+    <Show when={user()} >
+      {props.children}
+    </Show>
   )
 }
-
-
-
-
 

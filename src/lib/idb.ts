@@ -5,12 +5,13 @@ import { DateOnly } from "./utils"
 type StoreName = "accounts" | "categories" | "transactions" | "carryovers" | "recurrencies"
 
 class Database {
-	private name: string
+	private name: string = ""
 	private db?: IDBDatabase
 	private carryOverCategory: Category = { id: "carryover", name: "Carry Over", icon: "" }
 
-	constructor(name: string) {
-		this.name = name
+	initialize(databaseName: string) {
+		if (this.name) throw Error("idb already initialized")
+		this.name = databaseName
 	}
 
 	async getCategories() {
@@ -388,16 +389,14 @@ class Database {
 					reject("error when setting up the database: " + target.error)
 					this.db = undefined
 				}
-				if (db.version < 1) {
-					db.createObjectStore("accounts", { keyPath: "id" })
-					db.createObjectStore("categories", { keyPath: "id" })
-					db.createObjectStore("carryovers", { keyPath: "id" })
-					let recurrenciesStore = db.createObjectStore("recurrencies", { keyPath: "id" })
-					recurrenciesStore.createIndex("dateIndex", "date", { unique: false })
-					const transactionsStore = db.createObjectStore("transactions", { keyPath: "id" })
-					transactionsStore.createIndex("yearMonthIndex", "yearMonthIndex", { unique: false })
-					transactionsStore.createIndex("dateIndex", "date", { unique: false })
-				}
+				db.createObjectStore("accounts", { keyPath: "id" })
+				db.createObjectStore("categories", { keyPath: "id" })
+				db.createObjectStore("carryovers", { keyPath: "id" })
+				let recurrenciesStore = db.createObjectStore("recurrencies", { keyPath: "id" })
+				recurrenciesStore.createIndex("dateIndex", "date", { unique: false })
+				const transactionsStore = db.createObjectStore("transactions", { keyPath: "id" })
+				transactionsStore.createIndex("yearMonthIndex", "yearMonthIndex", { unique: false })
+				transactionsStore.createIndex("dateIndex", "date", { unique: false })
 			}
 			open.onblocked = () => {
 				reject("error when opening the database: database blocked")
@@ -442,7 +441,7 @@ function buildCarryOverId(date: DateOnly, accountId: string) {
 	return `carryover-${date.toYearMonthString()}-${accountId}`
 }
 
-export const idb = new Database("solid-money")
+export const idb = new Database()
 
 
 function seed() {

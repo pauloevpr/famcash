@@ -5,7 +5,6 @@ import { mailer } from "./mailer";
 import { db } from "./db";
 import { useSession } from "vinxi/http";
 import { redirect } from "@solidjs/router";
-import { DbUser } from "./models";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:3000"
 const SESSION_SECRET = process.env.SESSION_SECRET || "dev-devdevdevdevdevdevdevdevdevdevdevdevdevdev"
@@ -25,6 +24,12 @@ export async function getCurrentUser() {
 		}
 		return user
 	}
+	throw redirect("/login")
+}
+
+export async function logout() {
+	let session = await getSession()
+	session.clear()
 	throw redirect("/login")
 }
 

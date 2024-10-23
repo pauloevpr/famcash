@@ -1,5 +1,6 @@
 import { cache, useNavigate, useSearchParams } from "@solidjs/router";
 import { getCurrentUser, loginWithToken } from "~/lib/server";
+import { idb } from "./idb";
 
 export const getUser = cache(async () => {
 	let navigate = useNavigate()
@@ -9,7 +10,9 @@ export const getUser = cache(async () => {
 		setParams({ ...params, auth_token: undefined }, { replace: true })
 	}
 	let user = await getCurrentUser()
-	if (!user.name) {
+	if (user.name) {
+		idb.initialize(user.id)
+	} else {
 		navigate("/welcome")
 	}
 	return user
