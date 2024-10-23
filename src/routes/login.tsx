@@ -32,8 +32,8 @@ function LoginForm() {
     e.preventDefault()
     let data = new FormData(e.currentTarget)
     let email = data.get("email") as string
-    setState({ sent: true, email })
     await loginWithEmail(email)
+    setState({ sent: true, email })
   }
 
   function clear() {

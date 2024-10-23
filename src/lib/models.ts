@@ -3,7 +3,7 @@ type TransactionId = string
 
 export interface DbUser {
 	id: string // email
-	nickname: string
+	name: string
 }
 
 export interface DbUserToken {

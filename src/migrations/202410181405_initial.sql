@@ -1,6 +1,6 @@
 create table users (
 		id varchar(255) primary key,
-		nickname varchar(64) not null
+		name varchar(64) not null
 );
 
 create table user_token (

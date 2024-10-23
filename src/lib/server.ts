@@ -5,6 +5,7 @@ import { mailer } from "./mailer";
 import { db } from "./db";
 import { useSession } from "vinxi/http";
 import { redirect } from "@solidjs/router";
+import { DbUser } from "./models";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:3000"
 const SESSION_SECRET = process.env.SESSION_SECRET || "dev-devdevdevdevdevdevdevdevdevdevdevdevdevdev"
@@ -17,7 +18,12 @@ export async function getCurrentUser() {
 	let session = await getSession()
 	if (session.data.id) {
 		session.id
-		return await db.user.get(session.data.id)
+		let user = await db.user.get(session.data.id)
+		if (!user) {
+			session.clear()
+			throw redirect("/login")
+		}
+		return user
 	}
 	throw redirect("/login")
 }
@@ -43,14 +49,21 @@ export async function loginWithToken(token: string) {
 export async function loginWithEmail(email: string) {
 	let user = await db.user.get(email)
 	if (!user) {
-		user = { id: email, nickname: "" }
-		validate.user(user)
-		await db.user.create(user.id, user.nickname)
+		user = { id: email, name: "" }
+		validate.email(user, "id")
+		await db.user.create(user.id, user.name)
 	}
 	let token = await db.token.create(email)
 	let link = new URL(BASE_URL)
 	link.searchParams.set("auth_token", token)
 	mailer.loginLink(user, link)
+}
+
+export async function updateUser(name: string) {
+	let user = await getCurrentUser()
+	user.name = name
+	validate.user(user)
+	db.user.update(user)
 }
 
 

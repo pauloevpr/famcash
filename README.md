@@ -3,12 +3,16 @@
 ## Issues
 
 - The "Spending" tab does not show categories that don't have expenses in the selected month
+- The buttons that make API calls are missing:
+    - loading indicators
+    - error handling
 
 ## Features
 - [ ] Auth
     - [ ] Google
     - [ ] Login with email 
         - [x] Basic login workflow
+        - [x] Basic signup workflow
         - [ ] Send login link email
         - [ ] Require Captcha to avoid spammers
     - [ ] Logoff

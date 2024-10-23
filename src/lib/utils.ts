@@ -66,7 +66,7 @@ export class ValidationError extends Error {
 export const validate = {
 	user(user: DbUser) {
 		this.email(user, "id")
-		this.string(user, "nickname", 0, 32)
+		this.string(user, "name", 2, 32)
 	},
 
 	string<T extends object>(values: T, key: keyof T, min?: number, max?: number) {
