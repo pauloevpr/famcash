@@ -220,54 +220,56 @@ export function TransactionForm(props: VoidProps<{
             max={Number.MAX_VALUE}
           />
         </div>
-        <div class="group grid grid-cols-[auto,1fr] bg-white rounded-xl border border-gray-200">
-          <label class="group/repeat focus-within:outline-2 focus-within:outline flex items-center justify-between px-6 gap-6 col-span-2 h-12 rounded-xl group-has-[input:checked]:rounded-b-none">
-            Repeat
-            <input
-              name="recurrency"
-              type="checkbox"
-              class="sr-only peer"
-              checked={!!props.transaction.recurrency}
-            />
-            <span class="block h-6 rounded-full w-10 bg-gray-200">
-              <span class="block group-has-[:checked]/repeat:bg-primary group-has-[:checked]/repeat:translate-x-4 transition-transform duration-300 bg-white shadow rounded-full h-6 w-6"></span>
-            </span>
-          </label>
-          <label for="repeatInterval" class="hidden group-has-[input:checked]:flex items-center h-full px-6 border-t border-gray-200 ">Every
-          </label>
-          <div class="hidden group-has-[input:checked]:flex items-center flex-grow gap-4 border-t border-gray-200">
-            <input id="recurrencyMultiplier"
-              name="recurrencyMultiplier"
-              class="h-12 px-4 bg-transparent w-full"
-              type="number"
-              required
-              min={1}
-              max={365}
-              value={props.transaction.recurrency?.multiplier || 1} />
-            <select id="recurrencyInterval"
-              name="recurrencyInterval"
-              class="h-12 px-4 bg-transparent w-full"
-            >
-              <For each={intervals}>{
-                interval => (
-                  <option value={interval.value}
-                    selected={interval.value === props.transaction.recurrency?.interval}
-                  >{interval.label}</option>
-                )
-              }</For>
-            </select>
+        <Show when={!isCarryOver()}>
+          <div class="group grid grid-cols-[auto,1fr] bg-white rounded-xl border border-gray-200">
+            <label class="group/repeat focus-within:outline-2 focus-within:outline flex items-center justify-between px-6 gap-6 col-span-2 h-12 rounded-xl group-has-[input:checked]:rounded-b-none">
+              Repeat
+              <input
+                name="recurrency"
+                type="checkbox"
+                class="sr-only peer"
+                checked={!!props.transaction.recurrency}
+              />
+              <span class="block h-6 rounded-full w-10 bg-gray-200">
+                <span class="block group-has-[:checked]/repeat:bg-primary group-has-[:checked]/repeat:translate-x-4 transition-transform duration-300 bg-white shadow rounded-full h-6 w-6"></span>
+              </span>
+            </label>
+            <label for="repeatInterval" class="hidden group-has-[input:checked]:flex items-center h-full px-6 border-t border-gray-200 ">Every
+            </label>
+            <div class="hidden group-has-[input:checked]:flex items-center flex-grow gap-4 border-t border-gray-200">
+              <input id="recurrencyMultiplier"
+                name="recurrencyMultiplier"
+                class="h-12 px-4 bg-transparent w-full"
+                type="number"
+                required
+                min={1}
+                max={365}
+                value={props.transaction.recurrency?.multiplier || 1} />
+              <select id="recurrencyInterval"
+                name="recurrencyInterval"
+                class="h-12 px-4 bg-transparent w-full"
+              >
+                <For each={intervals}>{
+                  interval => (
+                    <option value={interval.value}
+                      selected={interval.value === props.transaction.recurrency?.interval}
+                    >{interval.label}</option>
+                  )
+                }</For>
+              </select>
+            </div>
+            <label for="repeatEndDate"
+              class="hidden group-has-[input:checked]:flex items-center h-full px-6 border-t border-gray-200">
+              End Date
+            </label>
+            <input type="date"
+              name="recurrencyEndDate"
+              placeholder="Pick End Date"
+              class="hidden group-has-[input:checked]:block h-12 px-4 border-t border-gray-200 rounded-br-xl bg-transparent w-full"
+              value={props.transaction.recurrency?.endDate}
+              id="recurrencyEndDate" />
           </div>
-          <label for="repeatEndDate"
-            class="hidden group-has-[input:checked]:flex items-center h-full px-6 border-t border-gray-200">
-            End Date
-          </label>
-          <input type="date"
-            name="recurrencyEndDate"
-            placeholder="Pick End Date"
-            class="hidden group-has-[input:checked]:block h-12 px-4 border-t border-gray-200 rounded-br-xl bg-transparent w-full"
-            value={props.transaction.recurrency?.endDate}
-            id="recurrencyEndDate" />
-        </div>
+        </Show>
         <div class="space-y-2">
           <Show when={type() === "expense"}>
             <Button label="Save Expense"

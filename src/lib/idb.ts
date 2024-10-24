@@ -1,6 +1,6 @@
 import { calculator } from "./calculator"
 import { Account, Transaction, Category, TransactionWithRefs, CarryOver, ParsedTransactionId as ParsedTransactionId, DbRecordType } from "./models"
-import { DateOnly } from "./utils"
+import { DateOnly, generateDbRecordId } from "./utils"
 
 type StoreName = DbRecordType
 
@@ -74,8 +74,18 @@ class Idb {
 	async saveTransaction(transaction: Transaction) {
 		let parsedId = parseTransactionId(transaction.id)
 		if (parsedId.carryOver) {
+			let existing = await this.getCarryOver(
+				parsedId.carryOver.accountId,
+				parsedId.carryOver.year,
+				parsedId.carryOver.month
+			)
 			let carryOver: CarryOver = {
-				id: transaction.id,
+				id: existing?.id || generateDbRecordId(),
+				accountId: parsedId.carryOver.accountId,
+				yearMonthIndex: DateOnly.fromYearMonth(
+					parsedId.carryOver.year,
+					parsedId.carryOver.month
+				).toYearMonthString(),
 				amount: transaction.amount
 			}
 			await this.set("carryovers", carryOver)
@@ -95,7 +105,7 @@ class Idb {
 				let occurrence = await this.getOccurrenceByIndex(base, parsedId.recurrency.index)
 				base.recurrency!.endDate = occurrence.date
 				await this.set("recurrencies", base)
-				transaction.id = new Date().getTime().toString()
+				transaction.id = generateDbRecordId()
 				await this.set("recurrencies", transaction)
 			}
 		} else {
@@ -109,7 +119,7 @@ class Idb {
 			let account = await this.get<Account>("accounts", parsedId.carryOver.accountId)
 			if (!account) throw Error(`invalid carryover id '${id}': account not found`)
 			let cutoff = await this.getCutoffDate()
-			let carryOver = await this.getCarryOver(account, parsedId.carryOver.year, parsedId.carryOver.month, cutoff)
+			let carryOver = await this.calculateCarryOverRecursively(account, parsedId.carryOver.year, parsedId.carryOver.month, cutoff)
 			return {
 				...carryOver,
 				account: account,
@@ -151,7 +161,7 @@ class Idb {
 		transactions.push(...recurrent)
 
 		for (let account of accounts) {
-			transactions.push(await this.getCarryOver(account, year, month, cutoff))
+			transactions.push(await this.calculateCarryOverRecursively(account, year, month, cutoff))
 		}
 
 		return transactions.map<TransactionWithRefs>(transaction => {
@@ -256,7 +266,17 @@ class Idb {
 		return transactions
 	}
 
-	private async getCarryOver(account: Account, year: number, month: number, cutoff: DateOnly): Promise<Transaction> {
+	private async getCarryOver(accountId: string, year: number, month: number) {
+		return (
+			await this.filter<CarryOver>(
+				"carryovers",
+				"yearMonthIndex",
+				DateOnly.fromYearMonth(year, month).toYearMonthString()
+			)
+		).filter(item => item.accountId === accountId)[0]
+	}
+
+	private async calculateCarryOverRecursively(account: Account, year: number, month: number, cutoff: DateOnly): Promise<Transaction> {
 		let thisMonth = DateOnly.fromYearMonth(year, month)
 		let id = buildCarryOverId(thisMonth, account.id)
 		let carryover: Transaction = {
@@ -272,7 +292,8 @@ class Idb {
 		if (thisMonth.date.getTime() < cutoff.date.getTime()) {
 			return carryover
 		}
-		let manual = await this.get<CarryOver>("carryovers", id)
+
+		let manual = await this.getCarryOver(account.id, thisMonth.year, thisMonth.month)
 		if (manual) {
 			carryover.amount = manual.amount
 		} else {
@@ -289,7 +310,7 @@ class Idb {
 			)).filter(transaction => transaction.accountId === account.id)
 			previousTransactions.push(...previousRecurrencies)
 
-			let previousCarryOver = await this.getCarryOver(account, previousMonth.year, previousMonth.month, cutoff)
+			let previousCarryOver = await this.calculateCarryOverRecursively(account, previousMonth.year, previousMonth.month, cutoff)
 			previousTransactions.push(previousCarryOver)
 
 			carryover.amount = calculator.summary(previousTransactions).total
@@ -302,7 +323,13 @@ class Idb {
 		let firstRecurrencyDate = new DateOnly(firstRecurrency?.date || new Date())
 		let firstTransaction = await this.filterFirst<Transaction>("transactions", "dateIndex", null)
 		let firstTransactionDate = new DateOnly(firstTransaction?.date || new Date())
-		return [firstRecurrencyDate, firstTransactionDate].sort((a, b) => a.time - b.time)[0]
+		let firstCarryOver = await this.filterFirst<CarryOver>("carryovers", "yearMonthIndex", null)
+		let firstCarryOverDate = firstCarryOver ? new DateOnly(`${firstCarryOver.yearMonthIndex}-01`) : new DateOnly(new Date)
+		return [
+			firstRecurrencyDate,
+			firstTransactionDate,
+			firstCarryOverDate
+		].sort((a, b) => a.time - b.time)[0]
 	}
 
 	private notify() {
@@ -480,6 +507,7 @@ class Idb {
 				let transactions = db.createObjectStore("transactions", { keyPath: "id" })
 				let recurrencies = db.createObjectStore("recurrencies", { keyPath: "id" })
 
+				carryovers.createIndex("yearMonthIndex", "yearMonthIndex", { unique: false })
 				transactions.createIndex("yearMonthIndex", "yearMonthIndex", { unique: false })
 				transactions.createIndex("dateIndex", "date", { unique: false })
 				recurrencies.createIndex("dateIndex", "date", { unique: false })
@@ -493,6 +521,19 @@ class Idb {
 				]) {
 					store.createIndex("unsynced", "unsynced", { unique: false })
 				}
+
+				categories.put({
+					id: generateDbRecordId(),
+					name: "General",
+					icon: "🏠",
+				} satisfies Category)
+
+
+				accounts.put({
+					id: generateDbRecordId(),
+					name: "Cash",
+					icon: "💰",
+				} satisfies Account)
 			}
 			open.onblocked = () => {
 				reject("error when opening the database: database blocked")

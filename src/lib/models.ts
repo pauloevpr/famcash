@@ -62,7 +62,9 @@ export interface ParsedTransactionId {
 export type RecurrencyInterval = "month" | "week" | "year"
 
 export interface CarryOver {
-	id: string // year-month-accoundId - e.g. 2024-10-accc1
+	id: string
+	accountId: string
+	yearMonthIndex: string,
 	amount: number
 }
 

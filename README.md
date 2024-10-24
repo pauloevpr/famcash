@@ -2,7 +2,8 @@
 
 ## Issues
 
-- The "Spending" tab does not show categories that don't have expenses in the selected month
+- Fix: turning a normal expense into recurrent produces two records
+- Fix: The "Spending" tab does not show categories that don't have expenses in the selected month
 - The buttons that make API calls are missing:
     - loading indicators
     - error handling
@@ -29,7 +30,7 @@
     - [ ] Display user-selected currency for money values
     - [ ] Use language-specific currency formatting
 - [ ] Data Sync
-    - [x] Basic syncing service
+    - [x] Basic syncing 
     - [ ] Real-time syncing
 - [ ] Transactions
     - [x] View transactions summary for a given month:
