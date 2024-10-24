@@ -4,8 +4,6 @@ import { Button } from "~/components/buttons"
 import { loginWithEmail } from "~/lib/server"
 
 
-// TODO: finish implementation
-
 export default function LoginPage() {
   return (
     <main class="px-6 py-24">

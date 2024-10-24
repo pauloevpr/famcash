@@ -7,7 +7,6 @@ import { DateOnly } from "~/lib/utils";
 export function TransactionListItem(props: VoidProps<{
   transaction: TransactionWithRefs,
 }>) {
-  // TODO: introduce intl formatting for amounts
   let isNegative = createMemo(() => {
     if (props.transaction.type === "expense") return true
     if (props.transaction.type === "carryover" && props.transaction.amount < 0) return true

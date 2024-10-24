@@ -2,7 +2,7 @@
 import { useNavigate, useSearchParams } from "@solidjs/router";
 import { createResource, Show } from "solid-js";
 import { idb } from "~/lib/idb";
-import { DateOnly } from "~/lib/utils";
+import { DateOnly, generateDbRecordId } from "~/lib/utils";
 import { Account, Category, Transaction, TransactionWithRefs } from "~/lib/models";
 import { TransactionForm } from "./(components)";
 
@@ -21,7 +21,7 @@ export default function TransactionCreatePage() {
     let transaction: TransactionWithRefs = {
       name: "",
       type: "expense",
-      id: new Date().getTime().toString(),
+      id: generateDbRecordId(),
       accountId: accounts[0]?.id,
       account: accounts[0],
       categoryId: categories[0]?.id,

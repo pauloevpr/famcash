@@ -5,6 +5,7 @@ import { mailer } from "./mailer";
 import { db } from "./db";
 import { useSession } from "vinxi/http";
 import { redirect } from "@solidjs/router";
+import { DbRecord, UncheckedRecord } from "./models";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:3000"
 const SESSION_SECRET = process.env.SESSION_SECRET || "dev-devdevdevdevdevdevdevdevdevdevdevdevdevdev"
@@ -69,6 +70,31 @@ export async function updateUser(name: string) {
 	user.name = name
 	validate.user(user)
 	db.user.update(user)
+}
+
+
+export async function sync(records: UncheckedRecord[], syncTimestampRaw: string | null): Promise<{ records: DbRecord[], syncTimestamp: string }> {
+	let user = await getCurrentUser()
+	let syncTimestamp: Date
+	try {
+		syncTimestamp = new Date(syncTimestampRaw || '2000-01-01')
+	} catch (e) {
+		console.error(`parsing timestamp with value '${syncTimestampRaw}' failed: ${e}`)
+		syncTimestamp = new Date('2000-01-01')
+	}
+	for (let record of records) {
+		validate.record(record)
+		await db.record.upsert(
+			user.id,
+			record.id,
+			record.type,
+			record.deleted,
+			record.data,
+		)
+	}
+	let updated = await db.record.upatedSince(user.id, syncTimestamp)
+	let timestamp = updated[0]?.updated_at.toISOString() || syncTimestamp.toISOString()
+	return { records: updated, syncTimestamp: timestamp }
 }
 
 

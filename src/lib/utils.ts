@@ -1,4 +1,4 @@
-import { DbUser } from "./models"
+import { DbRecordTypes, DbUser, UncheckedRecord } from "./models"
 
 export class DateOnly {
 	date: Date
@@ -53,9 +53,17 @@ export class DateOnly {
 	}
 }
 
+export function generateDbRecordId() {
+	const timestamp = new Date().getTime().toString(); // current timestamp
+	const randomPart = Math.random().toString(36).substring(2, 10); // 4-char random part
+	return (timestamp + randomPart).substring(0, 20); // ensure total length is 20
+}
+
 export class ValidationError extends Error {
 	constructor(field: any, error: string) {
-		super(`field '${field}' has error: ${error}`)
+		super(
+			field ? `field '${field}' has error: ${error}` : error
+		)
 		if (Error.captureStackTrace) {
 			Error.captureStackTrace(this, this.constructor);
 		}
@@ -65,8 +73,67 @@ export class ValidationError extends Error {
 
 export const validate = {
 	user(user: DbUser) {
+		this.plainObject(user)
 		this.email(user, "id")
 		this.string(user, "name", 2, 32)
+	},
+
+	record(record: UncheckedRecord) {
+		this.plainObject(record)
+		this.string(record, "id", 20, 20)
+		this.string(record, "type", 1, 32)
+		this.enum(record, "type", DbRecordTypes())
+		this.boolean(record, "deleted")
+		this.dictionary(record, "data")
+		this.serializable(record, "data", 2048)
+	},
+
+	serializable<T extends object>(values: T, key: keyof T, limit: number) {
+		let input = values[key]
+		try {
+			let json = JSON.stringify(input)
+			if (json.length > limit) {
+				throw new ValidationError(key, `resulting json blob would be over the limit of ${limit} chars`)
+			}
+		} catch {
+			throw new ValidationError(key, "not json serializable")
+		}
+	},
+
+	enum<T extends object>(values: T, key: keyof T, accepted: string[]) {
+		let input = `${values[key]}`
+		if (!accepted.includes(input)) {
+			throw new ValidationError("", "enum mismatch")
+		}
+	},
+
+	boolean<T extends object>(values: T, key: keyof T) {
+		let input = values[key]
+		if (typeof input !== "boolean") {
+			throw new ValidationError("", "expecting boolean")
+		}
+	},
+
+	plainObject(input: any) {
+		let valid = (
+			typeof input === 'object' &&
+			input !== null &&
+			!Array.isArray(input) &&
+			!(input instanceof Date) &&
+			!(input instanceof Function)
+		);
+		if (!valid) {
+			throw new ValidationError("", "expecting plain object")
+		}
+	},
+
+	dictionary<T extends object>(values: T, key: keyof T) {
+		let input = values[key]
+		this.plainObject(input)
+		let stringKeys = Object.keys(input as any).every(key => typeof key === "string")
+		if (!stringKeys) {
+			throw new ValidationError(key, "all keys must be string")
+		}
 	},
 
 	string<T extends object>(values: T, key: keyof T, min?: number, max?: number) {

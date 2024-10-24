@@ -2,11 +2,12 @@ import { idb } from "~/lib/idb"
 import { Category } from "~/lib/models"
 import { CategoryForm } from "./(components)"
 import { useNavigate } from "@solidjs/router"
+import { generateDbRecordId } from "~/lib/utils"
 
 export default function CategoryCreatePage() {
   let navigate = useNavigate()
   let newCategory: Category = {
-    id: new Date().getTime().toString(),
+    id: generateDbRecordId(),
     name: "",
     icon: ""
   }

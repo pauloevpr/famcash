@@ -1,17 +1,39 @@
 import { calculator } from "./calculator"
-import { Account, Transaction, Category, TransactionWithRefs, CarryOver, ParsedTransactionId as ParsedTransactionId } from "./models"
+import { Account, Transaction, Category, TransactionWithRefs, CarryOver, ParsedTransactionId as ParsedTransactionId, DbRecordType } from "./models"
 import { DateOnly } from "./utils"
 
-type StoreName = "accounts" | "categories" | "transactions" | "carryovers" | "recurrencies"
+type StoreName = DbRecordType
 
-class Database {
+export type IdbRecord = {
+	id: string,
+	unsynced?: "true"
+	deleted?: "true"
+	store: StoreName
+	[key: string]: any
+}
+
+
+class Idb {
 	private name: string = ""
 	private db?: IDBDatabase
 	private carryOverCategory: Category = { id: "carryover", name: "Carry Over", icon: "" }
+	private subscribers: { [id: string]: Function } = {}
 
 	initialize(databaseName: string) {
 		if (this.name) throw Error("idb already initialized")
 		this.name = databaseName
+	}
+
+	get stores(): StoreName[] {
+		return ["accounts", "categories", "transactions", "carryovers", "recurrencies"]
+	}
+
+	subscribe(callback: Function) {
+		let id = new Date().getTime().toString()
+		this.subscribers[id] = callback
+		return () => {
+			delete this.subscribers[id]
+		}
 	}
 
 	async getCategories() {
@@ -283,8 +305,25 @@ class Database {
 		return [firstRecurrencyDate, firstTransactionDate].sort((a, b) => a.time - b.time)[0]
 	}
 
+	private notify() {
+		setTimeout(() => {
+			for (let sub of Object.values(this.subscribers)) {
+				try {
+					sub()
+				} catch (e) {
+					console.error("idb: subscriber threw an exception: ", e)
+				}
+			}
+		}, 1)
+	}
 
-	delete(store: StoreName, id: string) {
+	private filterDeleted(...records: any): any[] {
+		return records.filter(
+			(record: any) => !(typeof record === "object" && "deleted" in record)
+		)
+	}
+
+	deleteForever(store: StoreName, id: string) {
 		return new Promise(async (resolve, reject) => {
 			const db = await this.open()
 			const request = db.transaction(store, "readwrite").objectStore(store).delete(id)
@@ -297,12 +336,27 @@ class Database {
 		})
 	}
 
-	set<T>(store: StoreName, data: T): Promise<void> {
+
+	async delete(store: StoreName, id: string) {
+		let d = await this.get(store, id)
+		if (!d) return
+		let record = {
+			id,
+			deleted: "true",
+		}
+		this.set(store, record, false)
+	}
+
+	set<T extends Object>(store: StoreName, data: T, synced?: boolean): Promise<void> {
 		return new Promise(async (resolve, reject) => {
 			const db = await this.open()
+			if (!synced) {
+				((data as any) as IdbRecord).unsynced = "true"
+			}
 			const request = db.transaction(store, "readwrite").objectStore(store).put(data)
 			request.onsuccess = () => {
 				resolve()
+				this.notify()
 			}
 			request.onerror = (e: any) => {
 				reject("error when updating data for store " + store + ": " + e.target.error)
@@ -315,7 +369,9 @@ class Database {
 			const db = await this.open()
 			const request = db.transaction(store, "readonly").objectStore(store).get(id)
 			request.onsuccess = () => {
-				resolve(request.result)
+				resolve(
+					this.filterDeleted(request.result)[0]
+				)
 			}
 			request.onerror = (e: any) => {
 				reject("error when reading data for store " + store + " with id " + id + ": " + e.target.error)
@@ -328,7 +384,9 @@ class Database {
 			const db = await this.open()
 			const request = db.transaction(store, "readonly").objectStore(store).index(index).getAll(value)
 			request.onsuccess = () => {
-				resolve(request.result)
+				resolve(
+					this.filterDeleted(...request.result)
+				)
 			}
 			request.onerror = (e: any) => {
 				reject("error when reading data for store " + store + ": " + e.target.error)
@@ -343,7 +401,9 @@ class Database {
 			request.onsuccess = (event: any) => {
 				const cursor = event.target.result;
 				if (cursor) {
-					resolve(cursor.value);
+					resolve(
+						this.filterDeleted(cursor.value)[0]
+					);
 				} else {
 					resolve(undefined);
 				}
@@ -359,12 +419,37 @@ class Database {
 			const db = await this.open()
 			const request = db.transaction(store, "readonly").objectStore(store).getAll()
 			request.onsuccess = () => {
-				resolve(request.result)
+				resolve(
+					this.filterDeleted(...request.result)
+				)
 			}
 			request.onerror = (e: any) => {
 				reject("error when reading data for store " + store + ": " + e.target.error)
 			}
 		})
+	}
+
+	async getUnsynced(): Promise<IdbRecord[]> {
+		const db = await this.open()
+		let get = async (store: string) => new Promise<IdbRecord[]>(async (resolve, reject) => {
+			const request = db.transaction(store, "readonly").objectStore(store).index("unsynced").getAll("true")
+			request.onsuccess = () => {
+				let records = request.result as any[]
+				for (let record of records) {
+					record.store = store
+				}
+				resolve(records)
+			}
+			request.onerror = (e: any) => {
+				reject("error when reading data for store " + store + ": " + e.target.error)
+			}
+		})
+		let all = await Promise.all(
+			this.stores.map(store => get(store))
+		)
+		return all.reduce((mainList, list) => {
+			return mainList.concat(list)
+		}, [])
 	}
 
 	private open() {
@@ -389,14 +474,25 @@ class Database {
 					reject("error when setting up the database: " + target.error)
 					this.db = undefined
 				}
-				db.createObjectStore("accounts", { keyPath: "id" })
-				db.createObjectStore("categories", { keyPath: "id" })
-				db.createObjectStore("carryovers", { keyPath: "id" })
-				let recurrenciesStore = db.createObjectStore("recurrencies", { keyPath: "id" })
-				recurrenciesStore.createIndex("dateIndex", "date", { unique: false })
-				const transactionsStore = db.createObjectStore("transactions", { keyPath: "id" })
-				transactionsStore.createIndex("yearMonthIndex", "yearMonthIndex", { unique: false })
-				transactionsStore.createIndex("dateIndex", "date", { unique: false })
+				let accounts = db.createObjectStore("accounts", { keyPath: "id" })
+				let categories = db.createObjectStore("categories", { keyPath: "id" })
+				let carryovers = db.createObjectStore("carryovers", { keyPath: "id" })
+				let transactions = db.createObjectStore("transactions", { keyPath: "id" })
+				let recurrencies = db.createObjectStore("recurrencies", { keyPath: "id" })
+
+				transactions.createIndex("yearMonthIndex", "yearMonthIndex", { unique: false })
+				transactions.createIndex("dateIndex", "date", { unique: false })
+				recurrencies.createIndex("dateIndex", "date", { unique: false })
+
+				for (let store of [
+					accounts,
+					categories,
+					carryovers,
+					recurrencies,
+					transactions,
+				]) {
+					store.createIndex("unsynced", "unsynced", { unique: false })
+				}
 			}
 			open.onblocked = () => {
 				reject("error when opening the database: database blocked")
@@ -441,7 +537,7 @@ function buildCarryOverId(date: DateOnly, accountId: string) {
 	return `carryover-${date.toYearMonthString()}-${accountId}`
 }
 
-export const idb = new Database()
+export const idb = new Idb()
 
 
 function seed() {

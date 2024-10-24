@@ -6,6 +6,10 @@
 - The buttons that make API calls are missing:
     - loading indicators
     - error handling
+- TBD: should we delete the idb database on logout?
+- Syncing data during startup should display a loading indicator (if it takes longer than 100ms in which case it should be visible for at least 300ms)
+- TDB: should we validate all the data types (transactions, accounts, etc)?
+- TDB: should we only accept alpha chars for IDs?
 
 ## Features
 - [ ] Auth
@@ -15,20 +19,19 @@
         - [x] Basic signup workflow
         - [ ] Send login link email
         - [ ] Require Captcha to avoid spammers
-    - [ ] Logoff
+    - [x] Logoff
 - [ ] Collaboration
     - [ ] Invite others to join profile
     - [ ] Join profile from invitation
     - [ ] List members of a profile
     - [ ] Remove member from profile
+- [ ] Internationalization
+    - [ ] Display user-selected currency for money values
+    - [ ] Use language-specific currency formatting
 - [ ] Data Sync
-    - [ ] Basic syncing service
-    - [ ] Sync transactions
-    - [ ] Sync recurrencies
-    - [ ] Sync carryovers
-    - [ ] Sync accounts
-    - [ ] Sync categories
-- [x] Transactions
+    - [x] Basic syncing service
+    - [ ] Real-time syncing
+- [ ] Transactions
     - [x] View transactions summary for a given month:
         - [x] total expenses
         - [x] total income

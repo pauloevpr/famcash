@@ -2,11 +2,12 @@ import { idb } from "~/lib/idb"
 import { Account } from "~/lib/models"
 import { useNavigate } from "@solidjs/router"
 import { AccountForm } from "./(components)"
+import { generateDbRecordId } from "~/lib/utils"
 
 export default function AccountCreatePage() {
   let navigate = useNavigate()
   let newAccount: Account = {
-    id: new Date().getTime().toString(),
+    id: generateDbRecordId(),
     name: "",
     icon: ""
   }
