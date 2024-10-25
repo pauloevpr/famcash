@@ -110,11 +110,12 @@ export async function loginWithEmail(email: string) {
 	}
 }
 
-export async function updateUser(name: string) {
+export async function finishSignup(name: string) {
 	let user = await getCurrentUser()
 	user.name = name
 	validate.user(user)
 	db.user.update(user)
+	throw redirect("/", { revalidate: "user" })
 }
 
 export async function sync(

@@ -1,18 +1,12 @@
-import { revalidate, useNavigate } from "@solidjs/router";
+import { action } from "@solidjs/router";
 import { Button } from "~/components/buttons";
-import { updateUser } from "~/lib/server";
+import { finishSignup } from "~/lib/server";
 
 export default function WelcomePage() {
-  let navigate = useNavigate()
-
-  async function onSubmit(e: SubmitEvent & { currentTarget: HTMLFormElement }) {
-    e.preventDefault()
-    let data = new FormData(e.currentTarget)
+  let finishSignupAction = action(async (data: FormData) => {
     let name = data.get("name") as string
-    await updateUser(name)
-    revalidate("user")
-    navigate("/")
-  }
+    return await finishSignup(name)
+  })
 
   return (
     <main class="px-6 py-24">
@@ -23,7 +17,8 @@ export default function WelcomePage() {
             src="/logo.svg" />
         </div>
         <h1 class="text-2xl font-semibold pb-8">Welcome</h1>
-        <form onSubmit={onSubmit}>
+        <form action={finishSignupAction}
+          method="post">
           <label for="name"
             class="block pb-2 text-light">What is your name?</label>
           <input name="name"

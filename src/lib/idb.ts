@@ -20,7 +20,6 @@ class Idb {
 	private subscribers: { [id: string]: Function } = {}
 
 	initialize(databaseName: string) {
-		if (this.name) throw Error("idb already initialized")
 		this.name = databaseName
 	}
 
