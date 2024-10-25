@@ -1,4 +1,4 @@
-import { useSearchParams } from "@solidjs/router"
+import { action, useSearchParams } from "@solidjs/router"
 import { createSignal, Show } from "solid-js"
 import { Button } from "~/components/buttons"
 import { loginWithEmail } from "~/lib/server"
@@ -26,13 +26,12 @@ function LoginForm() {
     email: ""
   })
 
-  async function onSubmit(e: SubmitEvent & { currentTarget: HTMLFormElement }) {
-    e.preventDefault()
-    let data = new FormData(e.currentTarget)
+  let loginAction = action(async (data: FormData) => {
     let email = data.get("email") as string
     await loginWithEmail(email)
     setState({ sent: true, email })
-  }
+  })
+
 
   function clear() {
     setState({ sent: false, email: "" })
@@ -42,7 +41,7 @@ function LoginForm() {
     <>
       <Show when={!state().sent}>
         <h1 class="text-2xl font-semibold pb-8">Login</h1>
-        <form onSubmit={onSubmit}>
+        <form action={loginAction} method="post">
           <label for="email"
             class="block pb-2 text-light">Email</label>
           <input name="email"
