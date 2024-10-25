@@ -45,7 +45,6 @@ export async function getCurrentUser() {
 export async function logout() {
 	let session = await getSession()
 	session.clear()
-	throw redirect("/login")
 }
 
 export async function signupWithToken(token: string) {

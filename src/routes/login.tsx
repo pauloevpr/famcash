@@ -1,4 +1,4 @@
-import { A, useSearchParams } from "@solidjs/router"
+import { useSearchParams } from "@solidjs/router"
 import { createSignal, Show } from "solid-js"
 import { Button } from "~/components/buttons"
 import { loginWithEmail } from "~/lib/server"

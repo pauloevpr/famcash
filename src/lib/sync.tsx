@@ -1,4 +1,4 @@
-import { DbUser, SignedInUser, UncheckedRecord } from "./models";
+import { SignedInUser, UncheckedRecord } from "./models";
 import { onCleanup } from "solid-js";
 import { VoidProps } from "solid-js";
 import { idb } from "./idb";
