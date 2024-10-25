@@ -74,7 +74,7 @@ export class ValidationError extends Error {
 export const validate = {
 	user(user: DbUser) {
 		this.plainObject(user)
-		this.email(user, "id")
+		this.email(user, "email")
 		this.string(user, "name", 2, 32)
 	},
 
@@ -150,6 +150,7 @@ export const validate = {
 	},
 
 	email<T extends object>(values: T, key: keyof T) {
+		this.string(values, key, 1, 255)
 		let input = values[key]
 		if (!input || typeof input !== 'string') {
 			throw new ValidationError(key, "required")

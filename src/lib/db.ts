@@ -1,5 +1,5 @@
 import pg from "pg"
-import { DbUserToken, DbUser, DbRecordType, DbRecord } from "./models";
+import { DbLoginToken, DbUser, DbRecordType, DbRecord, DbMembership, DbProfile, DbSignupToken } from "./models";
 import { randomBytes } from "crypto";
 
 const { Pool } = pg
@@ -10,10 +10,25 @@ const conn = new Pool({
 export const db = {
 	user: {
 		async create(email: string, name: string) {
-			await conn.query("INSERT INTO users(id, name) VALUES($1, $2)", [email, name])
+			let result = await conn.query(
+				"INSERT INTO users(email, name) VALUES($1, $2) RETURNING id",
+				[email, name]
+			)
+			let id = result.rows[0]["id"] as number
+			return (await this.get(id))!
 		},
-		async get(id: string): Promise<DbUser | undefined> {
-			let result = await conn.query<DbUser>("SELECT * FROM users WHERE id = $1", [id])
+		async getByEmail(email: string): Promise<DbUser | undefined> {
+			let result = await conn.query<DbUser>(
+				"SELECT * FROM users WHERE email = $1",
+				[email]
+			)
+			return result.rows[0]
+		},
+		async get(id: number): Promise<DbUser | undefined> {
+			let result = await conn.query<DbUser>(
+				"SELECT * FROM users WHERE id = $1",
+				[id]
+			)
 			return result.rows[0]
 		},
 		async update(user: DbUser) {
@@ -24,40 +39,110 @@ export const db = {
 		}
 	},
 	token: {
-		async get(token: string) {
-			let result = await conn.query<DbUserToken>("SELECT * FROM user_token WHERE token = $1", [token])
-			return result.rows[0]
+		signup: {
+			async create(email: string) {
+				let token = randomBytes(64).toString("base64url")
+				let expiration = new Date()
+				expiration.setDate(expiration.getDate() + 7)
+				await conn.query(
+					`INSERT INTO signup_token (token, email, expiration)
+					 VALUES ($1,$2,$3)
+					 ON CONFLICT (email)
+					 DO UPDATE SET
+							token = EXCLUDED.token,
+							expiration = EXCLUDED.expiration,
+							created_at = NOW()
+					`,
+					[token, email, expiration]
+				)
+				return token
+			},
+			async get(token: string) {
+				let result = await conn.query<DbSignupToken>(
+					"SELECT * FROM signup_token WHERE token = $1",
+					[token]
+				)
+				return result.rows[0]
+			},
+			async delete(token: string) {
+				await conn.query(
+					"DELETE FROM signup_token WHERE token = $1",
+					[token]
+				)
+			},
 		},
-		async create(userId: string) {
-			let token = randomBytes(64).toString("base64url")
-			let expiration = new Date()
-			expiration.setDate(expiration.getDate() + 1)
-			await conn.query(
-				"INSERT INTO user_token(token, user_id, expiration) VALUES ($1, $2, $3)",
-				[token, userId, expiration]
+		login: {
+			async get(token: string) {
+				let result = await conn.query<DbLoginToken>(
+					"SELECT * FROM login_token WHERE token = $1",
+					[token]
+				)
+				return result.rows[0]
+			},
+			async create(userId: number) {
+				let token = randomBytes(64).toString("base64url")
+				let expiration = new Date()
+				expiration.setDate(expiration.getDate() + 1)
+				await conn.query(
+					"INSERT INTO login_token(token, user_id, expiration) VALUES ($1, $2, $3)",
+					[token, userId, expiration]
+				)
+				return token
+			},
+			async delete(token: string) {
+				await conn.query(
+					"DELETE FROM login_token WHERE token = $1",
+					[token]
+				)
+			},
+		},
+	},
+	profile: {
+		async create(user_id: number) {
+			let result = await conn.query(
+				"INSERT INTO profile (created_by) VALUES ($1) RETURNING id",
+				[user_id]
 			)
-			return token
+			let id = result.rows[0]["id"] as number
+			return (await this.get(id))!
 		},
-		async delete(token: string) {
+		async get(id: number) {
+			let result = await conn.query<DbProfile>(
+				"SELECT * FROM profile WHERE id = $1",
+				[id]
+			)
+			return result.rows[0]
+		}
+	},
+	membership: {
+		async getAllForUser(userId: number) {
+			let result = await conn.query<DbMembership>(
+				"SELECT * FROM membership WHERE user_id = $1",
+				[userId]
+			)
+			return result.rows
+		},
+		async create(userId: number, profileId: number, role: "admin" | "regular") {
 			await conn.query(
-				"DELETE FROM user_token WHERE token = $1",
-				[token]
+				"INSERT INTO membership (user_id, profile_id, invited_by, admin) VALUES ($1,$2,$3,$4)",
+				[userId, profileId, userId, role === "admin"]
 			)
 		},
 	},
 	record: {
-		async upatedSince(userId: string, since: Date) {
+		async upatedSince(profileId: number, since: Date) {
 			let result = await conn.query<DbRecord>(
 				`SELECT * FROM records 
-				 WHERE user_id = $1 AND updated_at > $2
+				 WHERE profile = $1 AND updated_at > $2
 				 ORDER BY updated_at DESC
 				`,
-				[userId, since]
+				[profileId, since]
 			)
 			return result.rows
 		},
 		async upsert(
-			userId: string,
+			profileId: number,
+			userId: number,
 			recordId: string,
 			recordType: DbRecordType,
 			deleted: boolean,
@@ -68,15 +153,16 @@ export const db = {
 			}
 			let now = new Date()
 			await conn.query(`
-				INSERT INTO records (id, type, user_id, created_at, updated_at, deleted, data)
-				VALUES ($1,$2,$3,$4,$5,$6,$7)
-				ON CONFLICT (id, type, user_id)
+				INSERT INTO records (id, type, profile, created_by, created_at, updated_at, updated_by, deleted, data)
+				VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+				ON CONFLICT (id, type, profile)
 				DO UPDATE SET
 					deleted = EXCLUDED.deleted,
 					data = EXCLUDED.data,
+					updated_by = EXCLUDED.updated_by,
 					updated_at = EXCLUDED.updated_at
 			`,
-				[recordId, recordType, userId, now, now, deleted, data]
+				[recordId, recordType, profileId, userId, now, now, userId, deleted, data]
 			)
 		},
 	},

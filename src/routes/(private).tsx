@@ -1,5 +1,5 @@
 import { createAsync, RouteDefinition, RouteSectionProps } from "@solidjs/router";
-import { Show } from "solid-js";
+import { createEffect, Show } from "solid-js";
 import { clientOnly } from "@solidjs/start"
 import { getUser } from "~/lib/client";
 

@@ -1,25 +1,27 @@
 import { cache, useNavigate, useSearchParams } from "@solidjs/router";
-import { getCurrentUser, loginWithToken } from "~/lib/server";
+import { getCurrentUser, loginWithToken, signupWithToken } from "~/lib/server";
 import { idb } from "./idb";
-import { clientOnly } from "@solidjs/start"
 import { triggerSync } from "./sync";
-
-
+import { SignedInUser } from "./models";
 
 
 export const getUser = cache(async () => {
 	let navigate = useNavigate()
 	let [params, setParams] = useSearchParams()
-	if (params.auth_token) {
-		await loginWithToken(params.auth_token)
-		setParams({ ...params, auth_token: undefined }, { replace: true })
+	if (params.login_token) {
+		await loginWithToken(params.login_token)
+		setParams({ ...params, login_token: undefined }, { replace: true })
+	} else if (params.signup_token) {
+		await signupWithToken(params.signup_token)
+		setParams({ ...params, signup_token: undefined }, { replace: true })
 	}
-	let user = await getCurrentUser()
-	if (user.name) {
-		idb.initialize(user.id)
+	let user: SignedInUser | Response = await getCurrentUser()
+	if (user.id) {
+		idb.initialize(`${user.id}:${user.activeProfile.id}`)
 		await triggerSync(user)
-	} else {
-		navigate("/welcome")
+		if (!user.name) {
+			navigate("/welcome")
+		}
 	}
 	return user
 }, "user")

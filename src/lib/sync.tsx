@@ -1,11 +1,11 @@
-import { DbUser, UncheckedRecord } from "./models";
+import { DbUser, SignedInUser, UncheckedRecord } from "./models";
 import { onCleanup } from "solid-js";
 import { VoidProps } from "solid-js";
 import { idb } from "./idb";
 import { sync } from "./server";
 
 
-export default function ClientSyncService(props: VoidProps<{ user: DbUser }>) {
+export default function ClientSyncService(props: VoidProps<{ user: SignedInUser }>) {
 	let unsubscribe = idb.subscribe(() => triggerSync(props.user))
 
 	onCleanup(() => {
@@ -20,7 +20,7 @@ export default function ClientSyncService(props: VoidProps<{ user: DbUser }>) {
 
 
 let syncing = false
-export async function triggerSync(user: DbUser) {
+export async function triggerSync(user: SignedInUser) {
 	if (syncing) return
 	syncing = true
 
@@ -42,7 +42,7 @@ export async function triggerSync(user: DbUser) {
 		})
 
 		let syncTimestamp = localStorage.getItem(`syncTimestamp:${user.id}`)
-		let { records, syncTimestamp: updatedSyncTimestamp } = await sync(unchecked, syncTimestamp)
+		let { records, syncTimestamp: updatedSyncTimestamp } = await sync(user.activeProfile.id, unchecked, syncTimestamp)
 
 		await Promise.all(
 			records.map(

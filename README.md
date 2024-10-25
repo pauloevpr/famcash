@@ -31,6 +31,7 @@
     - [ ] Use language-specific currency formatting
 - [ ] Data Sync
     - [x] Basic syncing 
+    - [ ] Periodic syncing
     - [ ] Real-time syncing
 - [ ] Transactions
     - [x] View transactions summary for a given month:

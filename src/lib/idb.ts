@@ -521,19 +521,6 @@ class Idb {
 				]) {
 					store.createIndex("unsynced", "unsynced", { unique: false })
 				}
-
-				categories.put({
-					id: generateDbRecordId(),
-					name: "General",
-					icon: "🏠",
-				} satisfies Category)
-
-
-				accounts.put({
-					id: generateDbRecordId(),
-					name: "Cash",
-					icon: "💰",
-				} satisfies Account)
 			}
 			open.onblocked = () => {
 				reject("error when opening the database: database blocked")
