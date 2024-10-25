@@ -1,4 +1,4 @@
-import { A, useNavigate } from "@solidjs/router";
+import { A, action, useNavigate } from "@solidjs/router";
 import { For, useContext } from "solid-js";
 import { SignedInUserContext } from "~/components/context";
 import { HomeIcon, LogoutIcon, TagIcon, WalletIcon } from "~/components/icons";
@@ -7,8 +7,9 @@ import { logout } from "~/lib/server";
 
 
 export default function MenuPage() {
-  let navigate = useNavigate()
-  const { user } = useContext(SignedInUserContext);
+  let { user } = useContext(SignedInUserContext);
+  let logoutAction = action(logout)
+
   let links = [
     { title: "Home", href: "/", icon: HomeIcon },
     { title: "Categories", href: "/categories", icon: TagIcon },
@@ -19,11 +20,6 @@ export default function MenuPage() {
     if (!name) return "??"
     let parts = name.split(" ")
     return `${parts[0][0]}${parts[1]?.[0] || ""}`.toUpperCase()
-  }
-
-  async function onLogoutClick() {
-    await logout()
-    navigate("/login")
   }
 
   return (
@@ -60,12 +56,14 @@ export default function MenuPage() {
             </ul>
             <ul class=" bg-white rounded-xl border border-gray-200 mt-8">
               <li>
-                <button class="flex items-center group gap-6 w-full text-lg px-8 h-16 hover:bg-gradient-to-r hover:from-white hover:via-slate-50 hover:to-primary-50"
-                  onClick={onLogoutClick}
-                >
-                  <span class="block text-left flex-grow">Logout</span>
-                  <LogoutIcon class="flex-shrink-0 w-8 h-8 text-gray-400 group-hover:text-primary" />
-                </button>
+                <form action={logoutAction}
+                  method="post">
+                  <button class="flex items-center group gap-6 w-full text-lg px-8 h-16 hover:bg-gradient-to-r hover:from-white hover:via-slate-50 hover:to-primary-50"
+                  >
+                    <span class="block text-left flex-grow">Logout</span>
+                    <LogoutIcon class="flex-shrink-0 w-8 h-8 text-gray-400 group-hover:text-primary" />
+                  </button>
+                </form>
               </li>
             </ul>
           </nav>
