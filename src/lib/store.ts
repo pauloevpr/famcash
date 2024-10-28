@@ -1,5 +1,5 @@
-import { Idb, IdbRecord } from "./idb";
-import { CategoryWithSpending, CurrentFamily, CurrentUser, Summary } from "./models";
+import { IdbRecord, useReactiveIdb } from "./idb";
+import { CategoryWithSpending, CurrentFamily, CurrentUser, DbRecordType, Summary } from "./models";
 import { Account, Transaction, Category, TransactionWithRefs, CarryOver, ParsedTransactionId as ParsedTransactionId } from "./models"
 import { DateOnly, generateDbRecordId } from "./utils"
 
@@ -8,8 +8,14 @@ import { DateOnly, generateDbRecordId } from "./utils"
 
 
 export function createStore(user: CurrentUser, family: CurrentFamily) {
-	let idb = new Idb(`${user.id}:${family.id}`)
+	let idb = useReactiveIdb(`${user.id}:${family.id}`, filterOutDeleted)
 	let carryOverCategory: Category = { id: "carryover", name: "Carry Over", icon: "" }
+
+	function filterOutDeleted(...records: any): any[] {
+		return records.filter(
+			(record: any) => !(typeof record === "object" && "deleted" in record)
+		)
+	}
 
 	function calculateSpendingByCategory(transactions: TransactionWithRefs[]): CategoryWithSpending[] {
 		let category: { [id: string]: CategoryWithSpending } = {}
@@ -116,24 +122,24 @@ export function createStore(user: CurrentUser, family: CurrentFamily) {
 	}
 
 	async function deleteAccount(id: string) {
-		await idb.delete("accounts", id)
+		await softDelete("accounts", id)
 	}
 
-	async function getAccount(id: string) {
-		return await idb.get<Account>("accounts", id)
+	function getAccount(id: string) {
+		return idb.get<Account>("accounts", id)
 	}
 
-	async function getCategory(id: string) {
-		return await idb.get<Category>("categories", id)
+	function getCategory(id: string) {
+		return idb.get<Category>("categories", id)
 
 	}
 
 	async function deleteCategory(id: string) {
-		await idb.delete("categories", id)
+		await softDelete("categories", id)
 	}
 
-	async function getCategories() {
-		let categories = (await idb.getAll<Category>("categories")).toSorted()
+	function getCategories() {
+		let categories = idb.getAll<Category>("categories")
 		categories.sort((a, b) => {
 			if (a.name < b.name) return -1;
 			if (a.name > b.name) return 1;
@@ -143,7 +149,7 @@ export function createStore(user: CurrentUser, family: CurrentFamily) {
 	}
 
 	async function getAccounts() {
-		let accounts = (await idb.getAll<Account>("accounts")).toSorted()
+		let accounts = idb.getAll<Account>("accounts")
 		accounts.sort((a, b) => {
 			if (a.name < b.name) return -1;
 			if (a.name > b.name) return 1;
@@ -156,15 +162,15 @@ export function createStore(user: CurrentUser, family: CurrentFamily) {
 		let parsedId = parseTransactionId(id)
 		if (parsedId.recurrency) {
 			if (parsedId.recurrency.index === 0) {
-				await idb.delete("recurrencies", parsedId.recurrency.id)
+				await softDelete("recurrencies", parsedId.recurrency.id)
 			} else {
-				let base = await getRequiredRecurrency(parsedId.recurrency.id)
-				let occurrence = await getOccurrenceByIndex(base, parsedId.recurrency.index)
+				let base = getRequiredRecurrency(parsedId.recurrency.id)
+				let occurrence = getOccurrenceByIndex(base, parsedId.recurrency.index)
 				base.recurrency!.endDate = occurrence.date
 				await idb.set("recurrencies", { ...base, id: parsedId.recurrency.id })
 			}
 		}
-		await idb.delete("transactions", id)
+		await softDelete("transactions", id)
 	}
 
 	async function saveAccount(account: Account) {
@@ -178,7 +184,7 @@ export function createStore(user: CurrentUser, family: CurrentFamily) {
 	async function saveTransaction(transaction: Transaction) {
 		let parsedId = parseTransactionId(transaction.id)
 		if (parsedId.carryOver) {
-			let existing = await getCarryOver(
+			let existing = getCarryOver(
 				parsedId.carryOver.accountId,
 				parsedId.carryOver.year,
 				parsedId.carryOver.month
@@ -205,8 +211,8 @@ export function createStore(user: CurrentUser, family: CurrentFamily) {
 			if (parsedId.recurrency.index === 0) {
 				await idb.set("recurrencies", { ...transaction, id: parsedId.recurrency.id })
 			} else {
-				let base = await getRequiredRecurrency(parsedId.recurrency.id)
-				let occurrence = await getOccurrenceByIndex(base, parsedId.recurrency.index)
+				let base = getRequiredRecurrency(parsedId.recurrency.id)
+				let occurrence = getOccurrenceByIndex(base, parsedId.recurrency.index)
 				base.recurrency!.endDate = occurrence.date
 				await idb.set("recurrencies", base)
 				transaction.id = generateDbRecordId()
@@ -217,36 +223,36 @@ export function createStore(user: CurrentUser, family: CurrentFamily) {
 		}
 	}
 
-	async function getRecurrencies() {
-		return await idb.getAll<Transaction>("recurrencies")
+	function getRecurrencies() {
+		return idb.getAll<Transaction>("recurrencies")
 	}
 
-	async function getTransactions() {
-		return await idb.getAll<Transaction>("transactions")
+	function getTransactions() {
+		return idb.getAll<Transaction>("transactions")
 	}
 
-	async function getTransactionById(id: string): Promise<TransactionWithRefs> {
+	function getTransactionById(id: string): TransactionWithRefs {
 		let parsedId = parseTransactionId(id)
 		if (parsedId.carryOver) {
-			let account = await idb.get<Account>("accounts", parsedId.carryOver.accountId)
+			let account = idb.get<Account>("accounts", parsedId.carryOver.accountId)
 			if (!account) throw Error(`invalid carryover id '${id}': account not found`)
-			let cutoff = await getCutoffDate()
-			let carryOver = await calculateCarryOverRecursively(account, parsedId.carryOver.year, parsedId.carryOver.month, cutoff)
+			let cutoff = getCutoffDate()
+			let carryOver = calculateCarryOverRecursively(account, parsedId.carryOver.year, parsedId.carryOver.month, cutoff)
 			return {
 				...carryOver,
 				account: account,
 				category: carryOverCategory,
 			}
 		}
-		let accounts = await idb.getAll<Account>("accounts")
-		let categories = await idb.getAll<Category>("categories")
+		let accounts = idb.getAll<Account>("accounts")
+		let categories = idb.getAll<Category>("categories")
 		let transaction: Transaction
 		if (parsedId.recurrency) {
-			let recurrent = await idb.get<Transaction>("recurrencies", parsedId.recurrency.id)
+			let recurrent = idb.get<Transaction>("recurrencies", parsedId.recurrency.id)
 			if (!recurrent) throw Error(`invalid recurrency id '${id}': recurrency not found`)
-			transaction = await getOccurrenceByIndex(recurrent, parsedId.recurrency.index)
+			transaction = getOccurrenceByIndex(recurrent, parsedId.recurrency.index)
 		} else {
-			transaction = await idb.get<Transaction>("transactions", id)
+			transaction = idb.get<Transaction>("transactions", id)
 		}
 
 		return {
@@ -258,22 +264,22 @@ export function createStore(user: CurrentUser, family: CurrentFamily) {
 
 	async function getTransactionsByMonth(year: number, month: number): Promise<TransactionWithRefs[]> {
 		// TODO: order by date from the oldest
-		let cutoff = await getCutoffDate()
-		let accounts = await idb.getAll<Account>("accounts")
-		let categories = await idb.getAll<Category>("categories")
+		let cutoff = getCutoffDate()
+		let accounts = idb.getAll<Account>("accounts")
+		let categories = idb.getAll<Category>("categories")
 		categories.push({ ...carryOverCategory })
 
-		let transactions = await idb.filter<Transaction>(
-			"transactions",
-			"yearMonthIndex",
-			DateOnly.yearMonthString(year, month)
+		let transactions = (
+			idb.getAll<Transaction>("transactions")
+		).filter(
+			item => item.yearMonthIndex === DateOnly.yearMonthString(year, month)
 		)
 
-		let recurrent = await getRecurrentTransactionsByMonth(year, month)
+		let recurrent = getRecurrentTransactionsByMonth(year, month)
 		transactions.push(...recurrent)
 
 		for (let account of accounts) {
-			transactions.push(await calculateCarryOverRecursively(account, year, month, cutoff))
+			transactions.push(calculateCarryOverRecursively(account, year, month, cutoff))
 		}
 
 		return transactions.map<TransactionWithRefs>(transaction => {
@@ -285,14 +291,14 @@ export function createStore(user: CurrentUser, family: CurrentFamily) {
 		})
 	}
 
-	async function getRequiredRecurrency(id: string) {
-		let recurrent = await idb.get<Transaction>("recurrencies", id)
+	function getRequiredRecurrency(id: string) {
+		let recurrent = idb.get<Transaction>("recurrencies", id)
 		if (!recurrent) throw Error(`Recurrency with id '${id}' not found`)
 		if (!recurrent.recurrency) throw Error(`Recurrency with id '${id}' is corrupted`)
 		return recurrent
 	}
 
-	async function getOccurrenceByIndex(transaction: Transaction, index: number): Promise<Transaction> {
+	function getOccurrenceByIndex(transaction: Transaction, index: number): Transaction {
 		if (!transaction.recurrency) throw Error(`transaction '${transaction.id}' does not have recurrency settings`)
 		if (index === 0) return {
 			...JSON.parse(JSON.stringify(transaction)),
@@ -331,11 +337,11 @@ export function createStore(user: CurrentUser, family: CurrentFamily) {
 		throw Error(`transaction '${transaction.id}' does not have occurrence at index ${index}`)
 	}
 
-	async function getRecurrentTransactionsByMonth(year: number, month: number): Promise<Transaction[]> {
+	function getRecurrentTransactionsByMonth(year: number, month: number): Transaction[] {
 		let start = DateOnly.fromYearMonth(year, month)
 		let end = start.addMonths(1).addDays(-1)
 		let transactions: Transaction[] = []
-		let recurrencies = await idb.getAll<Transaction>("recurrencies")
+		let recurrencies = idb.getAll<Transaction>("recurrencies")
 		for (let transaction of recurrencies) {
 			if (transaction.yearMonthIndex === DateOnly.yearMonthString(year, month)) {
 				transactions.push({
@@ -378,17 +384,16 @@ export function createStore(user: CurrentUser, family: CurrentFamily) {
 		return transactions
 	}
 
-	async function getCarryOver(accountId: string, year: number, month: number) {
+	function getCarryOver(accountId: string, year: number, month: number) {
 		return (
-			await idb.filter<CarryOver>(
-				"carryovers",
-				"yearMonthIndex",
-				DateOnly.fromYearMonth(year, month).toYearMonthString()
-			)
-		).filter(item => item.accountId === accountId)[0]
+			idb.getAll<CarryOver>("carryovers")
+		).filter(item =>
+			item.yearMonthIndex === DateOnly.fromYearMonth(year, month).toYearMonthString() &&
+			item.accountId === accountId
+		)[0]
 	}
 
-	async function calculateCarryOverRecursively(account: Account, year: number, month: number, cutoff: DateOnly): Promise<Transaction> {
+	function calculateCarryOverRecursively(account: Account, year: number, month: number, cutoff: DateOnly): Transaction {
 		let thisMonth = DateOnly.fromYearMonth(year, month)
 		let id = buildCarryOverId(thisMonth, account.id)
 		let carryover: Transaction = {
@@ -405,24 +410,25 @@ export function createStore(user: CurrentUser, family: CurrentFamily) {
 			return carryover
 		}
 
-		let manual = await getCarryOver(account.id, thisMonth.year, thisMonth.month)
+		let manual = getCarryOver(account.id, thisMonth.year, thisMonth.month)
 		if (manual) {
 			carryover.amount = manual.amount
 		} else {
 			let previousMonth = thisMonth.addMonths(-1)
-			let previousTransactions = (await idb.filter<Transaction>(
-				"transactions",
-				"yearMonthIndex",
-				previousMonth.toYearMonthString(),
-			)).filter(transaction => transaction.accountId === account.id)
+			let previousTransactions = (
+				idb.getAll<Transaction>("transactions")
+			).filter(transaction =>
+				transaction.yearMonthIndex === previousMonth.toYearMonthString() &&
+				transaction.accountId === account.id
+			)
 
-			let previousRecurrencies = (await getRecurrentTransactionsByMonth(
+			let previousRecurrencies = (getRecurrentTransactionsByMonth(
 				previousMonth.year,
 				previousMonth.month
 			)).filter(transaction => transaction.accountId === account.id)
 			previousTransactions.push(...previousRecurrencies)
 
-			let previousCarryOver = await calculateCarryOverRecursively(account, previousMonth.year, previousMonth.month, cutoff)
+			let previousCarryOver = calculateCarryOverRecursively(account, previousMonth.year, previousMonth.month, cutoff)
 			previousTransactions.push(previousCarryOver)
 
 			carryover.amount = calculateSummary(previousTransactions).total
@@ -430,18 +436,40 @@ export function createStore(user: CurrentUser, family: CurrentFamily) {
 		return carryover
 	}
 
-	async function getCutoffDate() {
-		let firstRecurrency = await idb.filterFirst<Transaction>("recurrencies", "dateIndex", null)
+	function getCutoffDate() {
+		let getFirstTransction = (transactions: Transaction[]) => {
+			return transactions.sort(
+				(a, b) => new DateOnly(a.date).time - new DateOnly(b.date).time
+			)[0];
+		}
+		let getFirstCarryOver = (carryovers: CarryOver[]) => {
+			return carryovers.sort(
+				(a, b) => new DateOnly(`${a.yearMonthIndex}-01`).time - new DateOnly(`${b.yearMonthIndex}-01`).time
+			)[0];
+		}
+		let firstRecurrency = getFirstTransction(idb.getAll<Transaction>("recurrencies"))
 		let firstRecurrencyDate = new DateOnly(firstRecurrency?.date || new Date())
-		let firstTransaction = await idb.filterFirst<Transaction>("transactions", "dateIndex", null)
+		let firstTransaction = getFirstTransction(idb.getAll<Transaction>("transactions"))
 		let firstTransactionDate = new DateOnly(firstTransaction?.date || new Date())
-		let firstCarryOver = await idb.filterFirst<CarryOver>("carryovers", "yearMonthIndex", null)
+		let firstCarryOver = getFirstCarryOver(idb.getAll<CarryOver>("carryovers"))
 		let firstCarryOverDate = firstCarryOver ? new DateOnly(`${firstCarryOver.yearMonthIndex}-01`) : new DateOnly(new Date)
 		return [
 			firstRecurrencyDate,
 			firstTransactionDate,
 			firstCarryOverDate
 		].sort((a, b) => a.time - b.time)[0]
+	}
+
+
+	async function softDelete(store: DbRecordType, id: string) {
+		let d = await idb.get(store, id)
+		if (!d) return
+		let record = {
+			id,
+			deleted: "true",
+		}
+		await idb.set(store, record, false)
+		idb.deleteFromCache(store, id)
 	}
 
 	return {

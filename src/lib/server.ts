@@ -64,7 +64,7 @@ export async function signupWithToken(token: string) {
 		throw Error("user already signed up")
 	}
 	user = await db.user.create(tokenData.email, "")
-	let family = await db.family.create(user.id)
+	let family = await db.family.create(user.id, "My Family")
 	await db.member.create(user.id, family.id, "admin")
 	await db.token.signup.delete(token)
 	let session = await getSession()

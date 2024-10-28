@@ -2,8 +2,8 @@ import { Account } from "~/lib/models"
 import { useNavigate } from "@solidjs/router"
 import { AccountForm } from "./(components)"
 import { generateDbRecordId } from "~/lib/utils"
-import { useContext } from "solid-js/types/server/reactive.js"
 import { AppContext } from "~/components/context"
+import { useContext } from "solid-js"
 
 export default function AccountCreatePage() {
   let { store } = useContext(AppContext)

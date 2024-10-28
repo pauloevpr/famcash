@@ -49,7 +49,7 @@ export async function triggerSync(context: AppContextValue) {
 				record => {
 					record.data.id = record.id
 					if (record.deleted) {
-						return context.store.idb.deleteForever(record.type, record.id)
+						return context.store.idb.delete(record.type, record.id)
 					} else {
 						return context.store.idb.set(record.type, record.data, true)
 					}

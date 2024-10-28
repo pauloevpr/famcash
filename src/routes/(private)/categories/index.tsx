@@ -1,4 +1,4 @@
-import { For, VoidProps, createResource, useContext } from "solid-js";
+import { For, VoidProps, createMemo, createResource, useContext } from "solid-js";
 import { AppContext } from "~/components/context";
 import { TagIcon } from "~/components/icons";
 import { PageLayout } from "~/components/layouts";
@@ -8,9 +8,7 @@ import { Category } from "~/lib/models";
 
 export default function CategoryListPage() {
   let { store } = useContext(AppContext)
-  let [categories] = createResource(async () => {
-    return await store.category.getAll()
-  }, { initialValue: [] })
+  let categories = createMemo(() => store.category.getAll())
   return (
     <PageLayout>
       <main class="px-4 pb-32">

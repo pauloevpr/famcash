@@ -2,8 +2,8 @@ import { Category } from "~/lib/models"
 import { CategoryForm } from "./(components)"
 import { useNavigate } from "@solidjs/router"
 import { generateDbRecordId } from "~/lib/utils"
-import { useContext } from "solid-js/types/server/reactive.js"
 import { AppContext } from "~/components/context"
+import { useContext } from "solid-js"
 
 export default function CategoryCreatePage() {
   let { store } = useContext(AppContext)

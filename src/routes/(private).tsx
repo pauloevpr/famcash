@@ -1,6 +1,6 @@
 import { action, cache, createAsync, RouteDefinition, RouteSectionProps, useSearchParams } from "@solidjs/router";
 import { clientOnly } from "@solidjs/start"
-import { Show } from "solid-js";
+import { createMemo, createSignal, onCleanup, Show, useContext } from "solid-js";
 import { Button } from "~/components/buttons";
 import { AppContext } from "~/components/context";
 import { finishSignup, getCurrentSession, loginWithToken, signupWithToken } from "~/lib/server";
@@ -25,6 +25,9 @@ export const route = {
 } satisfies RouteDefinition;
 
 
+// TODO: addd loading indicator while the store loads
+
+
 export default function PrivateSection(props: RouteSectionProps) {
   let session = createAsync(() => loadSession())
   return (
@@ -38,8 +41,9 @@ export default function PrivateSection(props: RouteSectionProps) {
                 family: family(),
                 store: createStore(session().user, family())
               }}>
-                <ClientSyncService />
                 {props.children}
+                <ClientSyncService />
+                <LoadingScreenOverlay />
               </AppContext.Provider>
             )}
           </Show>
@@ -54,6 +58,26 @@ export default function PrivateSection(props: RouteSectionProps) {
 }
 
 
+function LoadingScreenOverlay() {
+  let { store } = useContext(AppContext)
+  let [minimumDisplayTimeReached, setMinimumDisplayTimeReached] = createSignal(false)
+  let done = createMemo(() => minimumDisplayTimeReached() && store.idb.ready)
+
+  let timeout = setTimeout(() => {
+    setMinimumDisplayTimeReached(true)
+  }, 300)
+
+  onCleanup(() => clearTimeout(timeout))
+
+  return (
+    <Show when={!done()}>
+      <dialog class="bg-white z-[999] fixed top-0 left-0 flex items-center justify-center h-screen w-screen"
+        open>
+        Loading...
+      </dialog>
+    </Show>
+  )
+}
 
 function Welcome() {
   let finishSignupAction = action(async (data: FormData) => {
@@ -88,3 +112,4 @@ function Welcome() {
     </main>
   )
 }
+

@@ -98,10 +98,10 @@ export const db = {
 		},
 	},
 	family: {
-		async create(user_id: number) {
+		async create(user_id: number, name: string) {
 			let result = await conn.query(
-				"INSERT INTO family (created_by) VALUES ($1) RETURNING id",
-				[user_id]
+				"INSERT INTO family (name, created_by) VALUES ($1, $2) RETURNING id",
+				[name, user_id]
 			)
 			let id = result.rows[0]["id"] as number
 			return (await this.get(id))!
@@ -124,7 +124,7 @@ export const db = {
 		},
 		async create(userId: number, familyId: number, role: "admin" | "regular") {
 			await conn.query(
-				"INSERT INTO membership (user_id, family_id, invited_by, admin) VALUES ($1,$2,$3,$4)",
+				"INSERT INTO member (user_id, family_id, invited_by, admin) VALUES ($1,$2,$3,$4)",
 				[userId, familyId, userId, role === "admin"]
 			)
 		},
@@ -141,7 +141,7 @@ export const db = {
 			return result.rows
 		},
 		async upsert(
-			profileId: number,
+			familyId: number,
 			userId: number,
 			recordId: string,
 			recordType: DbRecordType,
@@ -153,16 +153,16 @@ export const db = {
 			}
 			let now = new Date()
 			await conn.query(`
-				INSERT INTO records (id, type, profile, created_by, created_at, updated_at, updated_by, deleted, data)
+				INSERT INTO records (id, type, family_id, created_by, created_at, updated_at, updated_by, deleted, data)
 				VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-				ON CONFLICT (id, type, profile)
+				ON CONFLICT (id, type, family_id)
 				DO UPDATE SET
 					deleted = EXCLUDED.deleted,
 					data = EXCLUDED.data,
 					updated_by = EXCLUDED.updated_by,
 					updated_at = EXCLUDED.updated_at
 			`,
-				[recordId, recordType, profileId, userId, now, now, userId, deleted, data]
+				[recordId, recordType, familyId, userId, now, now, userId, deleted, data]
 			)
 		},
 	},
