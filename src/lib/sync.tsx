@@ -1,17 +1,15 @@
-import { SignedInUser, UncheckedRecord } from "./models";
-import { onCleanup } from "solid-js";
-import { VoidProps } from "solid-js";
-import { idb } from "./idb";
+import { UncheckedRecord } from "./models";
+import { onCleanup, useContext } from "solid-js";
 import { sync } from "./server";
+import { AppContext, AppContextValue } from "~/components/context";
 
 
-export default function ClientSyncService(props: VoidProps<{ user: SignedInUser }>) {
-	let unsubscribe = idb.subscribe(() => triggerSync(props.user))
-
+export default function ClientSyncService() {
+	let context = useContext(AppContext)
+	let unsubscribe = context.store.idb.subscribe(() => triggerSync(context))
 	onCleanup(() => {
 		unsubscribe()
 	})
-
 	return (
 		<></>
 	)
@@ -20,12 +18,14 @@ export default function ClientSyncService(props: VoidProps<{ user: SignedInUser 
 
 
 let syncing = false
-export async function triggerSync(user: SignedInUser) {
+export async function triggerSync(context: AppContextValue) {
 	if (syncing) return
 	syncing = true
 
 	try {
-		let unsynced = await idb.getUnsynced()
+		let user = context.user
+		let family = context.family
+		let unsynced = await context.store.getUnsynced()
 		let unchecked = unsynced.map(item => {
 			let record: UncheckedRecord = {
 				id: item.id,
@@ -42,16 +42,16 @@ export async function triggerSync(user: SignedInUser) {
 		})
 
 		let syncTimestamp = localStorage.getItem(`syncTimestamp:${user.id}`)
-		let { records, syncTimestamp: updatedSyncTimestamp } = await sync(user.activeProfile.id, unchecked, syncTimestamp)
+		let { records, syncTimestamp: updatedSyncTimestamp } = await sync(family.id, unchecked, syncTimestamp)
 
 		await Promise.all(
 			records.map(
 				record => {
 					record.data.id = record.id
 					if (record.deleted) {
-						return idb.deleteForever(record.type, record.id)
+						return context.store.idb.deleteForever(record.type, record.id)
 					} else {
-						return idb.set(record.type, record.data, true)
+						return context.store.idb.set(record.type, record.data, true)
 					}
 				}
 			)

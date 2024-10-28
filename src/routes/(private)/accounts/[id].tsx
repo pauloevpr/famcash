@@ -1,28 +1,29 @@
 
-import { Account, Transaction } from "~/lib/models";
-import { idb } from "~/lib/idb";
+import { Account, } from "~/lib/models";
 import { useNavigate, useParams } from "@solidjs/router";
-import { Show, createResource } from "solid-js";
+import { Show, createResource, useContext } from "solid-js";
 import { AccountForm } from "./(components)";
+import { AppContext } from "~/components/context";
 
 export default function AccountEditPage() {
+  let { store } = useContext(AppContext)
   let params = useParams()
   let navigate = useNavigate()
   let [account] = createResource(() => params.id, async (id) => {
-    let account = await idb.get<Account>("accounts", id)
+    let account = await store.account.get(id)
     if (!account) throw Error(`Account ${id} not found`)
     return account
   })
 
-  function onSubmit(account: Account) {
-    idb.set("accounts", account)
+  async function onSubmit(account: Account) {
+    await store.account.save(account)
     navigate(-1)
   }
 
   async function onDelete(id: string) {
     let used = 0
-    let transactions = await idb.getAll<Transaction>("transactions")
-    let recurrencies = await idb.getAll<Transaction>("recurrencies")
+    let transactions = await store.transaction.getAll()
+    let recurrencies = await store.recurrency.getAll()
     for (let transaction of transactions) {
       if (transaction.accountId === id) {
         used++
@@ -41,7 +42,7 @@ export default function AccountEditPage() {
     let confirmed = confirm("You are about to delete this account. Confirm?")
     if (!confirmed) return
 
-    idb.delete("accounts", id)
+    await store.account.delete(id)
     navigate(-1)
   }
 

@@ -1,12 +1,13 @@
 
 import { useNavigate, useSearchParams } from "@solidjs/router";
-import { createResource, Show } from "solid-js";
-import { idb } from "~/lib/idb";
+import { createResource, Show, useContext } from "solid-js";
 import { DateOnly, generateDbRecordId } from "~/lib/utils";
-import { Account, Category, Transaction, TransactionWithRefs } from "~/lib/models";
+import { Transaction, TransactionWithRefs } from "~/lib/models";
 import { TransactionForm } from "./(components)";
+import { AppContext } from "~/components/context";
 
 export default function TransactionCreatePage() {
+  let { store } = useContext(AppContext)
   let navigate = useNavigate()
   let [searchParams] = useSearchParams()
   let [data] = createResource(async () => {
@@ -16,8 +17,8 @@ export default function TransactionCreatePage() {
       dateRaw.setMonth(parseInt(searchParams.month) - 1, 1)
     }
     let date = new DateOnly(dateRaw)
-    let accounts = await idb.getAll<Account>("accounts")
-    let categories = await idb.getAll<Category>("categories")
+    let accounts = await store.account.getAll()
+    let categories = await store.category.getAll()
     let transaction: TransactionWithRefs = {
       name: "",
       type: "expense",
@@ -37,7 +38,7 @@ export default function TransactionCreatePage() {
     }
   })
   async function onSubmit(transaction: Transaction) {
-    await idb.saveTransaction(transaction)
+    await store.transaction.save(transaction)
     navigate(-1)
   }
   return (

@@ -1,17 +1,17 @@
 import { A, useSearchParams } from "@solidjs/router";
-import { createMemo, createResource, For, Show, VoidProps } from "solid-js";
+import { createMemo, createResource, For, Show, useContext, VoidProps } from "solid-js";
 import { ChevronLeftIcon, ChevronRightIcon } from "~/components/icons";
 import { PageLayout } from "~/components/layouts";
-import { idb } from "~/lib/idb";
 import { DateOnly } from "~/lib/utils";
 import { TransactionListItem } from "./transactions/(components)";
-import { calculator } from "~/lib/calculator";
 import { useTabs } from "~/components/tabs";
 import { CategoryWithSpending } from "~/lib/models";
 import { Button } from "~/components/buttons";
+import { AppContext } from "~/components/context";
 
 
 export default function Home() {
+  let { store } = useContext(AppContext)
   let [params] = useSearchParams()
   let currentMonth = createMemo(() => {
     let now = new Date()
@@ -25,10 +25,10 @@ export default function Home() {
   })
   let [transactions, _] = createResource(() => `${currentMonth().year}-${currentMonth().month}`, async () => {
     let current = currentMonth()
-    return await idb.getTransactionsByMonth(current.year, current.month)
+    return await store.transaction.getByMonth(current.year, current.month)
   }, { initialValue: [] })
   let spending = createMemo(() => {
-    return calculator.spendingByCategory(transactions())
+    return store.calculateSpendingByCategory(transactions())
   })
   let nextMonthLink = createMemo(() => {
     let current = currentMonth()
@@ -51,7 +51,7 @@ export default function Home() {
     return DateOnly.fromYearMonth(current.year, current.month).date.toLocaleDateString(undefined, { month: "long" })
   })
   let summary = createMemo(() => {
-    return calculator.summary(transactions())
+    return store.calculateSummary(transactions())
   })
   let { Tab, TabPanel } = useTabs("Transactions Views", () => [
     { label: "Transactions", key: "transactions" },

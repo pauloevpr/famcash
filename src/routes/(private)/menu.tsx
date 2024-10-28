@@ -1,13 +1,13 @@
-import { A, action, useNavigate } from "@solidjs/router";
+import { A, action, } from "@solidjs/router";
 import { For, useContext } from "solid-js";
-import { SignedInUserContext } from "~/components/context";
+import { AppContext } from "~/components/context";
 import { HomeIcon, LogoutIcon, TagIcon, WalletIcon } from "~/components/icons";
 import { PageLayout } from "~/components/layouts";
 import { logout } from "~/lib/server";
 
 
 export default function MenuPage() {
-  let { user } = useContext(SignedInUserContext);
+  let { user } = useContext(AppContext);
   let logoutAction = action(logout)
 
   let links = [

@@ -5,15 +5,16 @@ export type DbRecordType = "accounts" | "categories" | "transactions" | "carryov
 export const DbRecordTypes = () => ["accounts", "categories", "transactions", "carryovers", "recurrencies"]
 
 
-export interface DbProfile {
+export interface DbFamily {
 	id: number
+	name: string
 	created_by: number
 	created_at: Date
 }
 
-export interface DbMembership {
+export interface DbMember {
 	user_id: number
-	profile_id: number
+	family_id: number
 	invited_by: number
 	admin: boolean
 }
@@ -30,7 +31,7 @@ export interface DbInvite {
 export interface DbRecord {
 	id: string
 	type: DbRecordType
-	profile: number
+	family_id: number
 	created_by: number
 	created_at: Date
 	updated_at: Date
@@ -59,15 +60,22 @@ export interface DbLoginToken {
 	created_at: Date
 }
 
-export interface SignedInUser extends DbUser {
-	activeProfile: {
-		id: number,
-		admin: boolean,
-	},
-	otherProfiles: {
-		id: number,
-		admin: boolean,
-	}[],
+export interface CurrentUser {
+	id: number,
+	name: string,
+	email: string
+}
+
+
+export interface CurrentFamily {
+	id: number,
+	name: string,
+	admin: boolean,
+}
+
+export interface CurrentSession {
+	user: CurrentUser,
+	family?: CurrentFamily,
 }
 
 export interface UncheckedRecord {

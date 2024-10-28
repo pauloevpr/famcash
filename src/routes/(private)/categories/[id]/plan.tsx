@@ -1,15 +1,16 @@
 import { useNavigate, useParams } from "@solidjs/router"
-import { createResource, createSignal, Show } from "solid-js"
+import { createResource, Show, useContext } from "solid-js"
 import { Button } from "~/components/buttons"
-import { idb } from "~/lib/idb"
+import { AppContext } from "~/components/context"
 import { Category } from "~/lib/models"
 
 
 export default function CategoryPlanEditPage() {
+  let { store } = useContext(AppContext)
   let navigate = useNavigate()
   let params = useParams()
   let [category, { mutate }] = createResource(() => params.id, async (id) => {
-    let category = await idb.get<Category>("categories", id)
+    let category = await store.category.get(id)
     if (!category) throw Error(`Category ${id} not found`)
     return category
   })
@@ -22,7 +23,7 @@ export default function CategoryPlanEditPage() {
     mutate(category)
   }
 
-  function save(category: Category, e: SubmitEvent & { currentTarget: HTMLFormElement }) {
+  async function save(category: Category, e: SubmitEvent & { currentTarget: HTMLFormElement }) {
     e.preventDefault()
     let data = new FormData(e.currentTarget)
     let amount = parseInt(data.get("amount") as string)
@@ -34,7 +35,7 @@ export default function CategoryPlanEditPage() {
         limit: amount
       }
     }
-    idb.set("categories", category)
+    await store.category.save(category)
     navigate(-1)
   }
 

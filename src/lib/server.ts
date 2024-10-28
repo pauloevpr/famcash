@@ -5,7 +5,7 @@ import { mailer } from "./mailer";
 import { db } from "./db";
 import { useSession } from "vinxi/http";
 import { redirect } from "@solidjs/router";
-import { DbRecord, DbUser, SignedInUser, UncheckedRecord } from "./models";
+import { CurrentSession, DbRecord, DbUser, UncheckedRecord } from "./models";
 
 
 
@@ -17,7 +17,7 @@ interface UserSession {
 }
 
 
-export async function getCurrentUser() {
+export async function getCurrentSession(): Promise<CurrentSession> {
 	let session = await getSession()
 	if (session.data.id) {
 		let user = await db.user.get(session.data.id)
@@ -25,19 +25,21 @@ export async function getCurrentUser() {
 			session.clear()
 			throw redirect("/login")
 		}
-		let memberships = await db.membership.getAllForUser(user.id)
+		let memberships = await db.member.getAllForUser(user.id)
 		if (!memberships.length) {
 			throw redirect("/login")
 		}
-		let active = memberships[0]
+		// TODO: this should be a single call in the database: type: MemberWithFamily
+		let member = memberships[0]
+		let family = await db.family.get(member.family_id)
 		return {
-			...user,
-			activeProfile: {
-				id: active.profile_id,
-				admin: active.admin
+			user: user,
+			family: {
+				id: family.id,
+				name: family.name,
+				admin: member.admin
 			},
-			otherProfiles: [],
-		} satisfies SignedInUser
+		}
 	}
 	throw redirect("/login")
 }
@@ -62,8 +64,8 @@ export async function signupWithToken(token: string) {
 		throw Error("user already signed up")
 	}
 	user = await db.user.create(tokenData.email, "")
-	let profile = await db.profile.create(user.id)
-	await db.membership.create(user.id, profile.id, "admin")
+	let family = await db.family.create(user.id)
+	await db.member.create(user.id, family.id, "admin")
 	await db.token.signup.delete(token)
 	let session = await getSession()
 	await session.update(data => {
@@ -111,7 +113,7 @@ export async function loginWithEmail(email: string) {
 }
 
 export async function finishSignup(name: string) {
-	let user = await getCurrentUser()
+	let { user } = await getCurrentSession()
 	user.name = name
 	validate.user(user)
 	db.user.update(user)
@@ -119,12 +121,12 @@ export async function finishSignup(name: string) {
 }
 
 export async function sync(
-	profileId: number,
+	familyId: number,
 	records: UncheckedRecord[],
 	syncTimestampRaw: string | null
 ): Promise<{ records: DbRecord[], syncTimestamp: string }> {
-	let user = await getCurrentUser()
-	await assureUserHasPermissions(user, profileId)
+	let { user } = await getCurrentSession()
+	await assureUserHasPermissions(user, familyId)
 	let syncTimestamp: Date
 	try {
 		syncTimestamp = new Date(syncTimestampRaw || '2000-01-01')
@@ -135,7 +137,7 @@ export async function sync(
 	for (let record of records) {
 		validate.record(record)
 		await db.record.upsert(
-			profileId,
+			familyId,
 			user.id,
 			record.id,
 			record.type,
@@ -143,15 +145,15 @@ export async function sync(
 			record.data,
 		)
 	}
-	let updated = await db.record.upatedSince(profileId, syncTimestamp)
+	let updated = await db.record.upatedSince(familyId, syncTimestamp)
 	let timestamp = updated[0]?.updated_at.toISOString() || syncTimestamp.toISOString()
 	return { records: updated, syncTimestamp: timestamp }
 }
 
-async function assureUserHasPermissions(user: DbUser, profileId: number) {
-	let memberships = await db.membership.getAllForUser(user.id)
+async function assureUserHasPermissions(user: DbUser, familyId: number) {
+	let memberships = await db.member.getAllForUser(user.id)
 	let hasPermission = memberships.some(
-		membership => membership.profile_id === profileId
+		membership => membership.family_id === familyId
 	)
 	if (!hasPermission) {
 		// TODO: figure out if solid has a built-in way to raise errors

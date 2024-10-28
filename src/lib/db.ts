@@ -1,5 +1,5 @@
 import pg from "pg"
-import { DbLoginToken, DbUser, DbRecordType, DbRecord, DbMembership, DbProfile, DbSignupToken } from "./models";
+import { DbLoginToken, DbUser, DbRecordType, DbRecord, DbMember, DbFamily, DbSignupToken } from "./models";
 import { randomBytes } from "crypto";
 
 const { Pool } = pg
@@ -97,46 +97,46 @@ export const db = {
 			},
 		},
 	},
-	profile: {
+	family: {
 		async create(user_id: number) {
 			let result = await conn.query(
-				"INSERT INTO profile (created_by) VALUES ($1) RETURNING id",
+				"INSERT INTO family (created_by) VALUES ($1) RETURNING id",
 				[user_id]
 			)
 			let id = result.rows[0]["id"] as number
 			return (await this.get(id))!
 		},
 		async get(id: number) {
-			let result = await conn.query<DbProfile>(
-				"SELECT * FROM profile WHERE id = $1",
+			let result = await conn.query<DbFamily>(
+				"SELECT * FROM family WHERE id = $1",
 				[id]
 			)
 			return result.rows[0]
 		}
 	},
-	membership: {
+	member: {
 		async getAllForUser(userId: number) {
-			let result = await conn.query<DbMembership>(
-				"SELECT * FROM membership WHERE user_id = $1",
+			let result = await conn.query<DbMember>(
+				"SELECT * FROM member WHERE user_id = $1",
 				[userId]
 			)
 			return result.rows
 		},
-		async create(userId: number, profileId: number, role: "admin" | "regular") {
+		async create(userId: number, familyId: number, role: "admin" | "regular") {
 			await conn.query(
-				"INSERT INTO membership (user_id, profile_id, invited_by, admin) VALUES ($1,$2,$3,$4)",
-				[userId, profileId, userId, role === "admin"]
+				"INSERT INTO membership (user_id, family_id, invited_by, admin) VALUES ($1,$2,$3,$4)",
+				[userId, familyId, userId, role === "admin"]
 			)
 		},
 	},
 	record: {
-		async upatedSince(profileId: number, since: Date) {
+		async upatedSince(familyId: number, since: Date) {
 			let result = await conn.query<DbRecord>(
 				`SELECT * FROM records 
-				 WHERE profile = $1 AND updated_at > $2
+				 WHERE family_id = $1 AND updated_at > $2
 				 ORDER BY updated_at DESC
 				`,
-				[profileId, since]
+				[familyId, since]
 			)
 			return result.rows
 		},

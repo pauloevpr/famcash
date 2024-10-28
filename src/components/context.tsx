@@ -1,8 +1,14 @@
 
 import { createContext } from "solid-js";
-import { SignedInUser } from "~/lib/models";
+import { CurrentFamily, CurrentUser } from "~/lib/models";
+import { createStore } from "~/lib/store";
 
 
-export type SignedInUserContextValue = { user: SignedInUser };
-export const SignedInUserContext = createContext<SignedInUserContextValue>({} as any as SignedInUserContextValue);
+export type AppContextValue = {
+  user: CurrentUser,
+  family: CurrentFamily,
+  store: ReturnType<typeof createStore>
+};
+
+export const AppContext = createContext<AppContextValue>({} as any as AppContextValue);
 

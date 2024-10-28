@@ -1,10 +1,12 @@
-import { idb } from "~/lib/idb"
 import { Account } from "~/lib/models"
 import { useNavigate } from "@solidjs/router"
 import { AccountForm } from "./(components)"
 import { generateDbRecordId } from "~/lib/utils"
+import { useContext } from "solid-js/types/server/reactive.js"
+import { AppContext } from "~/components/context"
 
 export default function AccountCreatePage() {
+  let { store } = useContext(AppContext)
   let navigate = useNavigate()
   let newAccount: Account = {
     id: generateDbRecordId(),
@@ -12,8 +14,8 @@ export default function AccountCreatePage() {
     icon: ""
   }
 
-  function onSubmit(account: Account) {
-    idb.set("accounts", account)
+  async function onSubmit(account: Account) {
+    await store.account.save(account)
     navigate(-1)
   }
 

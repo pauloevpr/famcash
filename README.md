@@ -1,5 +1,13 @@
 # TODO
 
+## Now
+- refactor db so users are only linked to one family
+- refactor welcome screen
+    - make welcome only show when no family is associated with the user
+    - let user choose between creating a family or join existing one
+- refactor idb code to support encryption
+
+
 ## Issues
 
 - Fix: turning a normal expense into recurrent produces two records
