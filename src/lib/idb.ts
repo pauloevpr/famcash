@@ -1,28 +1,17 @@
 import { createMutable, } from "solid-js/store"
-import { DbRecordType, DbRecordTypes } from "./models"
+import { DbRecordType, DbRecordTypes, IdbRecord } from "./models"
 import { Accessor, createSignal } from "solid-js"
-
-type StoreName = DbRecordType
-
-export type IdbRecord = {
-	id: string,
-	unsynced?: "true"
-	deleted?: "true"
-	store: StoreName
-	[key: string]: any
-}
+import { validate } from "./utils"
 
 
-export function useReactiveIdb(name: string, cacheFilter?: (...records: any) => any[]) {
+
+
+export function useReactiveIdb(name: string) {
 	let [status, setStatus] = createSignal("" as "loading" | "ready")
-	let cache = createMutable({
-		accounts: {},
-		categories: {},
-		transactions: {},
-		carryovers: {},
-		recurrencies: {}
-	} as { [key: string]: { [key: string]: any } })
-
+	let cache = createMutable({} as { [key: string]: { [key: string]: any } })
+	for (let type of DbRecordTypes()) {
+		cache[type] = {}
+	}
 	let db: IDBDatabase | undefined
 	let subscribers: { [id: string]: Function } = {}
 
@@ -47,47 +36,80 @@ export function useReactiveIdb(name: string, cacheFilter?: (...records: any) => 
 		}, 1)
 	}
 
-
-	function delete_(store: StoreName, id: string) {
+	function delete_(type: DbRecordType, id: string) {
 		return new Promise(async (resolve, reject) => {
 			const db = await open()
-			const request = db.transaction(store, "readwrite").objectStore(store).delete(id)
-			request.onsuccess = () => {
-				delete cache[store][id]
-				resolve(undefined)
-			}
-			request.onerror = (e: any) => {
-				reject("error when updating data for store " + store + ": " + e.target.error)
-			}
-		})
+			const request = db.transaction("records", "readwrite").objectStore("records").index("type").openCursor(type)
+			request.onsuccess = function(event) {
+				const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+				if (cursor) {
+					if (cursor.value.id === id) {
+						delete cache[type][id]
+						cursor.delete();
+						resolve(undefined);
+					} else {
+						cursor.continue();
+					}
+				} else {
+					resolve(`No record found with type="${type}" and id="${id}"`);
+				}
+			};
+			request.onerror = function(event: any) {
+				reject("Error deleting record: " + event.target.error);
+			};
+		});
 	}
 
 
-	function set<T extends Object & { id: string }>(store: StoreName, data: T, synced?: boolean): Promise<void> {
+	function set<T extends Object & { id: string }>(type: DbRecordType, data: T, synced?: boolean): Promise<void> {
 		return new Promise(async (resolve, reject) => {
 			const db = await open()
-			if (!synced) {
-				((data as any) as IdbRecord).unsynced = "true"
+			let record: IdbRecord = {
+				id: data.id,
+				type,
+				data,
 			}
-			const request = db.transaction(store, "readwrite").objectStore(store).put(data)
+			delete record.data.id
+			if (!synced) {
+				record.unsynced = "true"
+			}
+			const request = db.transaction("records", "readwrite").objectStore("records").put(record)
 			request.onsuccess = () => {
-				cache[store][data.id] = data
+				cache[record.type][record.id] = data
 				resolve()
 				notify()
 			}
 			request.onerror = (e: any) => {
-				reject("error when updating data for store " + store + ": " + e.target.error)
+				reject("error when updating data for type " + type + ": " + e.target.error)
 			}
 		})
 	}
 
-	function get<T>(store: StoreName, id: string): T {
-		return cache[store][id]
+	function get<T>(type: DbRecordType, id: string): T {
+		return cache[type][id]
 	}
 
 
-	function getAll<T>(store: StoreName): T[] {
-		return Object.values(cache[store])
+	function getAll<T>(type: DbRecordType): T[] {
+		return Object.values(cache[type])
+	}
+
+
+	async function getUnsynced(): Promise<IdbRecord[]> {
+		const db = await open()
+		return new Promise<IdbRecord[]>(async (resolve, reject) => {
+			const request = db.transaction("records", "readonly").objectStore("records").index("unsynced").getAll("true")
+			request.onsuccess = () => {
+				let records = request.result as any[]
+				records = filterOutInvalid(records)
+				records = records.filter(record => "unsynced" in record && record["unsynced"] === "true")
+				resolve(records)
+			}
+			request.onerror = (e: any) => {
+				reject("error when reading records: " + e.target.error)
+			}
+		})
+
 	}
 
 	function open() {
@@ -112,26 +134,10 @@ export function useReactiveIdb(name: string, cacheFilter?: (...records: any) => 
 					reject("error when setting up the database: " + target.error)
 					db = undefined
 				}
-				let accounts = openedDb.createObjectStore("accounts", { keyPath: "id" })
-				let categories = openedDb.createObjectStore("categories", { keyPath: "id" })
-				let carryovers = openedDb.createObjectStore("carryovers", { keyPath: "id" })
-				let transactions = openedDb.createObjectStore("transactions", { keyPath: "id" })
-				let recurrencies = openedDb.createObjectStore("recurrencies", { keyPath: "id" })
-
-				carryovers.createIndex("yearMonthIndex", "yearMonthIndex", { unique: false })
-				transactions.createIndex("yearMonthIndex", "yearMonthIndex", { unique: false })
-				transactions.createIndex("dateIndex", "date", { unique: false })
-				recurrencies.createIndex("dateIndex", "date", { unique: false })
-
-				for (let store of [
-					accounts,
-					categories,
-					carryovers,
-					recurrencies,
-					transactions,
-				]) {
-					store.createIndex("unsynced", "unsynced", { unique: false })
-				}
+				let store = openedDb.createObjectStore("records", { keyPath: "id" })
+				store.createIndex("unsynced", "unsynced", { unique: false })
+				store.createIndex("deleted", "deleted", { unique: false })
+				store.createIndex("type", "type", { unique: false })
 			}
 			open.onblocked = () => {
 				reject("error when opening the database: database blocked")
@@ -140,31 +146,48 @@ export function useReactiveIdb(name: string, cacheFilter?: (...records: any) => 
 		})
 	}
 
-	function deleteFromCache(store: StoreName, id: string) {
-		delete cache[store][id]
+	function deleteFromCache(type: DbRecordType, id: string) {
+		delete cache[type][id]
+	}
+
+	function filterOutDeleted(records: any[]): any[] {
+		return records.filter(
+			(record: any) => !(typeof record === "object" && "deleted" in record)
+		)
+	}
+	function filterOutInvalid(records: any[]): any[] {
+		return records.filter(
+			(record: any) => {
+				try {
+					validate.idbRecord(record)
+					return true
+				} catch (e) {
+					console.error("invalid record: " + e, record)
+					return false
+				}
+			}
+		)
 	}
 
 	async function start() {
 		if (status() === "loading") return
 		setStatus("loading")
-		await Promise.all(
-			DbRecordTypes().map(store => (
-				new Promise(async (resolve, reject) => {
-					const db = await open()
-					const request = db.transaction(store, "readonly").objectStore(store).getAll()
-					request.onsuccess = () => {
-						let records = cacheFilter ? cacheFilter(...request.result) : request.result
-						for (let record of records) {
-							cache[store][record.id] = record
-						}
-						resolve(undefined)
-					}
-					request.onerror = (e: any) => {
-						reject("error when reading data for store " + store + ": " + e.target.error)
-					}
-				})
-			))
-		)
+		await new Promise(async (resolve, reject) => {
+			const db = await open()
+			const request = db.transaction("records", "readonly").objectStore("records").getAll()
+			request.onsuccess = () => {
+				let records = filterOutDeleted(request.result)
+				records = filterOutInvalid(records)
+				for (let record of records) {
+					record.data.id = record.id
+					cache[record.type][record.id] = record.data
+				}
+				resolve(undefined)
+			}
+			request.onerror = (e: any) => {
+				reject("error when reading records: " + e.target.error)
+			}
+		})
 		setStatus("ready")
 	}
 
@@ -178,7 +201,7 @@ export function useReactiveIdb(name: string, cacheFilter?: (...records: any) => 
 		set,
 		get,
 		getAll,
-		open,
+		getUnsynced,
 	}
 }
 

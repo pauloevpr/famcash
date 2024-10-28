@@ -1,4 +1,4 @@
-import { DbRecordTypes, DbUser, UncheckedRecord } from "./models"
+import { DbRecordTypes, DbUser, IdbRecord, UncheckedRecord } from "./models"
 
 export class DateOnly {
 	date: Date
@@ -76,6 +76,14 @@ export const validate = {
 		this.plainObject(user)
 		this.email(user, "email")
 		this.string(user, "name", 2, 32)
+	},
+
+	idbRecord(record: IdbRecord) {
+		this.plainObject(record)
+		this.string(record, "id", 20, 20)
+		this.string(record, "type", 1, 32)
+		this.enum(record, "type", DbRecordTypes())
+		this.dictionary(record, "data")
 	},
 
 	record(record: UncheckedRecord) {

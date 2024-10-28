@@ -25,19 +25,14 @@ export async function triggerSync(context: AppContextValue) {
 	try {
 		let user = context.user
 		let family = context.family
-		let unsynced = await context.store.getUnsynced()
+		let unsynced = await context.store.idb.getUnsynced()
 		let unchecked = unsynced.map(item => {
 			let record: UncheckedRecord = {
 				id: item.id,
-				type: item.store,
+				type: item.type,
 				deleted: item.deleted === "true",
-				data: { ...item }
+				data: { ...item.data }
 			}
-			// @ts-ignore
-			delete item.store
-			delete item.unsynced
-			delete item.deleted
-			record.data = item
 			return record
 		})
 
@@ -51,7 +46,11 @@ export async function triggerSync(context: AppContextValue) {
 					if (record.deleted) {
 						return context.store.idb.delete(record.type, record.id)
 					} else {
-						return context.store.idb.set(record.type, record.data, true)
+						return context.store.idb.set(
+							record.type,
+							{ ...record.data, id: record.id },
+							true
+						)
 					}
 				}
 			)

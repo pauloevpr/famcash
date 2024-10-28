@@ -1,4 +1,4 @@
-import { IdbRecord, useReactiveIdb } from "./idb";
+import { useReactiveIdb } from "./idb";
 import { CategoryWithSpending, CurrentFamily, CurrentUser, DbRecordType, Summary } from "./models";
 import { Account, Transaction, Category, TransactionWithRefs, CarryOver, ParsedTransactionId as ParsedTransactionId } from "./models"
 import { DateOnly, generateDbRecordId } from "./utils"
@@ -8,14 +8,9 @@ import { DateOnly, generateDbRecordId } from "./utils"
 
 
 export function createStore(user: CurrentUser, family: CurrentFamily) {
-	let idb = useReactiveIdb(`${user.id}:${family.id}`, filterOutDeleted)
+	let idb = useReactiveIdb(`${user.id}:${family.id}`)
 	let carryOverCategory: Category = { id: "carryover", name: "Carry Over", icon: "" }
 
-	function filterOutDeleted(...records: any): any[] {
-		return records.filter(
-			(record: any) => !(typeof record === "object" && "deleted" in record)
-		)
-	}
 
 	function calculateSpendingByCategory(transactions: TransactionWithRefs[]): CategoryWithSpending[] {
 		let category: { [id: string]: CategoryWithSpending } = {}
@@ -62,29 +57,6 @@ export function createStore(user: CurrentUser, family: CurrentFamily) {
 		return summary
 	}
 
-	async function getUnsynced(): Promise<IdbRecord[]> {
-		const db = await idb.open()
-		let get = async (store: string) => new Promise<IdbRecord[]>(async (resolve, reject) => {
-			const request = db.transaction(store, "readonly").objectStore(store).index("unsynced").getAll("true")
-			request.onsuccess = () => {
-				let records = request.result as any[]
-				for (let record of records) {
-					record.store = store
-				}
-				resolve(records)
-			}
-			request.onerror = (e: any) => {
-				reject("error when reading data for store " + store + ": " + e.target.error)
-			}
-		})
-		let all = await Promise.all(
-			["accounts", "categories", "transactions", "carryovers", "recurrencies"]
-				.map(store => get(store))
-		)
-		return all.reduce((mainList, list) => {
-			return mainList.concat(list)
-		}, [])
-	}
 
 	function parseTransactionId(id: string): ParsedTransactionId {
 		if (id.startsWith("carryover")) {
@@ -496,7 +468,6 @@ export function createStore(user: CurrentUser, family: CurrentFamily) {
 		recurrency: {
 			getAll: getRecurrencies,
 		},
-		getUnsynced,
 		calculateSpendingByCategory,
 		calculateSummary,
 		parseTransactionId,

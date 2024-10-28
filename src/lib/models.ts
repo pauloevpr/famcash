@@ -60,6 +60,15 @@ export interface DbLoginToken {
 	created_at: Date
 }
 
+
+export interface IdbRecord {
+	id: string,
+	unsynced?: "true"
+	deleted?: "true"
+	type: DbRecordType
+	data: { [key: string]: any }
+}
+
 export interface CurrentUser {
 	id: number,
 	name: string,
