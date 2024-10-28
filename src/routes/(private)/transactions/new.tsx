@@ -1,24 +1,25 @@
 
 import { useNavigate, useSearchParams } from "@solidjs/router";
-import { createResource, Show, useContext } from "solid-js";
+import { createMemo, Show, useContext } from "solid-js";
 import { DateOnly, generateDbRecordId } from "~/lib/utils";
 import { Transaction, TransactionWithRefs } from "~/lib/models";
 import { TransactionForm } from "./(components)";
 import { AppContext } from "~/components/context";
 
+
 export default function TransactionCreatePage() {
   let { store } = useContext(AppContext)
   let navigate = useNavigate()
   let [searchParams] = useSearchParams()
-  let [data] = createResource(async () => {
+  let data = createMemo(() => {
     let dateRaw = new Date()
     if (searchParams.month && searchParams.year) {
       dateRaw.setFullYear(parseInt(searchParams.year))
       dateRaw.setMonth(parseInt(searchParams.month) - 1, 1)
     }
     let date = new DateOnly(dateRaw)
-    let accounts = await store.account.getAll()
-    let categories = await store.category.getAll()
+    let accounts = store.account.getAll()
+    let categories = store.category.getAll()
     let transaction: TransactionWithRefs = {
       name: "",
       type: "expense",

@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "@solidjs/router";
-import { createResource, Show, useContext } from "solid-js";
+import { createMemo, Show, useContext } from "solid-js";
 import { Transaction } from "~/lib/models";
 import { TransactionForm } from "./(components)";
 import { AppContext } from "~/components/context";
@@ -8,10 +8,10 @@ export default function TransactionEditPage() {
   let { store } = useContext(AppContext)
   let params = useParams()
   let navigate = useNavigate()
-  let [data] = createResource(() => params.id, async (id) => {
-    let transaction = await store.transaction.get(id)
-    let accounts = await store.account.getAll()
-    let categories = await store.category.getAll()
+  let data = createMemo(() => {
+    let transaction = store.transaction.get(params.id)
+    let accounts = store.account.getAll()
+    let categories = store.category.getAll()
     return {
       transaction,
       accounts,

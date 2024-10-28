@@ -1,5 +1,5 @@
 import { A, useSearchParams } from "@solidjs/router";
-import { createMemo, createResource, For, Show, useContext, VoidProps } from "solid-js";
+import { createEffect, createMemo, For, Show, useContext, VoidProps } from "solid-js";
 import { ChevronLeftIcon, ChevronRightIcon } from "~/components/icons";
 import { PageLayout } from "~/components/layouts";
 import { DateOnly } from "~/lib/utils";
@@ -23,10 +23,9 @@ export default function Home() {
     }
     return { year, month }
   })
-  let [transactions, _] = createResource(() => `${currentMonth().year}-${currentMonth().month}`, async () => {
-    let current = currentMonth()
-    return await store.transaction.getByMonth(current.year, current.month)
-  }, { initialValue: [] })
+  let transactions = createMemo(() => {
+    return store.transaction.getByMonth(currentMonth().year, currentMonth().month)
+  })
   let spending = createMemo(() => {
     return store.calculateSpendingByCategory(transactions())
   })

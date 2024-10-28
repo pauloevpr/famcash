@@ -3,9 +3,6 @@ import { CategoryWithSpending, CurrentFamily, CurrentUser, DbRecordType, Summary
 import { Account, Transaction, Category, TransactionWithRefs, CarryOver, ParsedTransactionId as ParsedTransactionId } from "./models"
 import { DateOnly, generateDbRecordId } from "./utils"
 
-// TODO: move wrapper functions from idb to this store;
-// then change all callers to use this store instead of the idb directly
-
 
 export function createStore(user: CurrentUser, family: CurrentFamily) {
 	let idb = useReactiveIdb(`${user.id}:${family.id}`)
@@ -120,7 +117,7 @@ export function createStore(user: CurrentUser, family: CurrentFamily) {
 		return categories
 	}
 
-	async function getAccounts() {
+	function getAccounts() {
 		let accounts = idb.getAll<Account>("accounts")
 		accounts.sort((a, b) => {
 			if (a.name < b.name) return -1;
@@ -234,7 +231,7 @@ export function createStore(user: CurrentUser, family: CurrentFamily) {
 		}
 	}
 
-	async function getTransactionsByMonth(year: number, month: number): Promise<TransactionWithRefs[]> {
+	function getTransactionsByMonth(year: number, month: number): TransactionWithRefs[] {
 		// TODO: order by date from the oldest
 		let cutoff = getCutoffDate()
 		let accounts = idb.getAll<Account>("accounts")
@@ -254,13 +251,14 @@ export function createStore(user: CurrentUser, family: CurrentFamily) {
 			transactions.push(calculateCarryOverRecursively(account, year, month, cutoff))
 		}
 
-		return transactions.map<TransactionWithRefs>(transaction => {
+		let items = transactions.map<TransactionWithRefs>(transaction => {
 			return {
 				...transaction,
 				account: accounts.find(account => account.id == transaction.accountId)!,
 				category: categories.find(category => category.id == transaction.categoryId)!,
 			}
 		})
+		return items
 	}
 
 	function getRequiredRecurrency(id: string) {

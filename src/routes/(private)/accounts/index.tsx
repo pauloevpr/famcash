@@ -1,5 +1,5 @@
 
-import { For, VoidProps, createResource, useContext } from "solid-js";
+import { For, VoidProps, createMemo, useContext } from "solid-js";
 import { AppContext } from "~/components/context";
 import { WalletIcon } from "~/components/icons";
 import { PageLayout } from "~/components/layouts";
@@ -8,9 +8,7 @@ import { Category as Account } from "~/lib/models";
 
 export default function AccountsListPage() {
   let { store } = useContext(AppContext)
-  let [accounts] = createResource(async () => {
-    return await store.account.getAll()
-  }, { initialValue: [] })
+  let accounts = createMemo(() => store.account.getAll())
   return (
     <PageLayout>
       <main class="px-4 pb-32">

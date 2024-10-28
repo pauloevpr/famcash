@@ -25,9 +25,6 @@ export const route = {
 } satisfies RouteDefinition;
 
 
-// TODO: addd loading indicator while the store loads
-
-
 export default function PrivateSection(props: RouteSectionProps) {
   let session = createAsync(() => loadSession())
   return (

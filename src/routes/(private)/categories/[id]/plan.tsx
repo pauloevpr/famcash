@@ -9,8 +9,8 @@ export default function CategoryPlanEditPage() {
   let { store } = useContext(AppContext)
   let navigate = useNavigate()
   let params = useParams()
-  let [category, { mutate }] = createResource(() => params.id, async (id) => {
-    let category = await store.category.get(id)
+  let [category, { mutate }] = createResource(() => params.id, (id) => {
+    let category = store.category.get(id)
     if (!category) throw Error(`Category ${id} not found`)
     return category
   })
