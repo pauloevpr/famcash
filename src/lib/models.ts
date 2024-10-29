@@ -46,6 +46,12 @@ export interface DbUser {
 	email: string
 }
 
+export interface MemberUser {
+	id: number
+	name: string
+	admin: boolean
+}
+
 export interface DbSignupToken {
 	token: string
 	expiration: Date
@@ -80,6 +86,7 @@ export interface CurrentFamily {
 	id: number,
 	name: string,
 	admin: boolean,
+	members: MemberUser[]
 }
 
 export interface CurrentSession {

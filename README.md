@@ -27,7 +27,7 @@
 - [ ] Collaboration
     - [ ] Invite others to join family
     - [ ] Join family from QR code
-    - [ ] List members of a family
+    - [x] List members of a family
     - [ ] Remove member from family
 - [ ] Internationalization
     - [ ] Display user-selected currency for money values

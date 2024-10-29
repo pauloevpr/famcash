@@ -1,7 +1,8 @@
 import { A, action, } from "@solidjs/router";
 import { For, useContext } from "solid-js";
+import { InitialsAvatar } from "~/components/avatar";
 import { AppContext } from "~/components/context";
-import { HomeIcon, LogoutIcon, TagIcon, WalletIcon } from "~/components/icons";
+import { HandHeartIcon, HomeIcon, LogoutIcon, TagIcon, WalletIcon } from "~/components/icons";
 import { PageLayout } from "~/components/layouts";
 import { logout } from "~/lib/server";
 
@@ -13,13 +14,8 @@ export default function MenuPage() {
   let links = [
     { title: "Categories", href: "/categories", icon: TagIcon },
     { title: "Accounts", href: "/accounts", icon: WalletIcon },
+    { title: "Family", href: "/family", icon: HandHeartIcon },
   ]
-
-  function getInitials(name: string) {
-    if (!name) return "??"
-    let parts = name.split(" ")
-    return `${parts[0][0]}${parts[1]?.[0] || ""}`.toUpperCase()
-  }
 
   return (
     <PageLayout>
@@ -27,9 +23,9 @@ export default function MenuPage() {
         <section class="py-8 px-6">
           <header class="sr-only">Profile</header>
           <div class="flex items-center flex-col gap-4">
-            <p class="bg-slate-200 uppercase inline-flex items-center justify-center rounded-full text-2xl text-primary w-16 h-16 p-2">
-              {getInitials(user.name)}
-            </p>
+            <InitialsAvatar name={user.name}
+              large
+            />
             <p class="font-medium text-2xl text-center">{user.name}</p>
           </div>
         </section>
@@ -43,6 +39,8 @@ export default function MenuPage() {
                       class="group flex items-center gap-6 text-lg px-6 h-16 hover:bg-gradient-to-r hover:to-white hover:via-slate-50 hover:from-primary-50"
                       classList={{
                         "border-t border-gray-200": index() > 0,
+                        "rounded-t-xl": index() === 0,
+                        "rounded-b-xl": index() === links.length - 1,
                       }}
                       replace
                     >
@@ -57,7 +55,7 @@ export default function MenuPage() {
               <li>
                 <form action={logoutAction}
                   method="post">
-                  <button class="flex items-center group gap-6 w-full text-lg px-8 h-16 hover:bg-gradient-to-r hover:from-white hover:via-slate-50 hover:to-primary-50"
+                  <button class="flex items-center group rounded-xl gap-6 w-full text-lg px-8 h-16 hover:bg-gradient-to-r hover:from-white hover:via-slate-50 hover:to-primary-50"
                   >
                     <span class="block text-left flex-grow">Logout</span>
                     <LogoutIcon class="flex-shrink-0 w-8 h-8 text-gray-400 group-hover:text-primary" />

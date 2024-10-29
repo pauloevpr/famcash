@@ -1,5 +1,5 @@
 import pg from "pg"
-import { DbLoginToken, DbUser, DbRecordType, DbRecord, DbMember, DbFamily, DbSignupToken } from "./models";
+import { DbLoginToken, DbUser, DbRecordType, DbRecord, DbMember, DbFamily, DbSignupToken, MemberUser } from "./models";
 import { randomBytes } from "crypto";
 
 const { Pool } = pg
@@ -106,6 +106,17 @@ export const db = {
 			let id = result.rows[0]["id"] as number
 			return (await this.get(id))!
 		},
+		async forUser(userId: number) {
+			let result = await conn.query<DbFamily>(
+				`SELECT * 
+				 FROM family 
+				 INNER JOIN member ON member.family_id = family.id
+				 WHERE member.user_id = $1
+				 LIMIT 1`,
+				[userId]
+			)
+			return result.rows[0]
+		},
 		async get(id: number) {
 			let result = await conn.query<DbFamily>(
 				"SELECT * FROM family WHERE id = $1",
@@ -115,7 +126,20 @@ export const db = {
 		}
 	},
 	member: {
-		async getAllForUser(userId: number) {
+		async forFamily(familyId: number) {
+			let result = await conn.query<MemberUser>(
+				`SELECT	
+						users.id as id, 
+						users.name as name, 
+						member.admin as admin
+				 FROM member
+				 INNER JOIN users ON member.user_id = users.id
+				 WHERE member.user_id = $1`,
+				[familyId]
+			)
+			return result.rows
+		},
+		async forUser(userId: number) {
 			let result = await conn.query<DbMember>(
 				"SELECT * FROM member WHERE user_id = $1",
 				[userId]

@@ -7,8 +7,6 @@ import { useSession } from "vinxi/http";
 import { redirect } from "@solidjs/router";
 import { CurrentSession as CurrentAccount, DbFamily, DbRecord, DbUser, UncheckedFamily, UncheckedRecord, UncheckedUser } from "./models";
 
-
-
 const BASE_URL = process.env.BASE_URL || "http://localhost:3000"
 const SESSION_SECRET = process.env.SESSION_SECRET || "dev-devdevdevdevdevdevdevdevdevdevdevdevdevdev"
 
@@ -16,32 +14,28 @@ interface UserSession {
 	id?: number
 }
 
-
 export async function getCurrentAccount(): Promise<CurrentAccount> {
 	let session = await getSession()
-	if (session.data.id) {
-		let user = await db.user.get(session.data.id)
-		if (!user) {
-			session.clear()
-			throw redirect("/login")
-		}
-		let account: CurrentAccount = { user }
-		// TODO: this should be a single call in the database: type: MemberWithFamily
-		let memberships = await db.member.getAllForUser(user.id)
-		let member = memberships[0]
-		if (member) {
-			let family = await db.family.get(member.family_id)
-			if (family) {
-				account.family = {
-					id: family.id,
-					name: family.name,
-					admin: member.admin
-				}
-			}
-		}
-		return account
+	if (!session.data.id) {
+		throw redirect("/login")
 	}
-	throw redirect("/login")
+	let user = await db.user.get(session.data.id)
+	if (!user) {
+		session.clear()
+		throw redirect("/login")
+	}
+	let account: CurrentAccount = { user }
+	let family = await db.family.forUser(user.id)
+	if (family) {
+		let users = await db.member.forFamily(family.id)
+		account.family = {
+			id: family.id,
+			name: family.name,
+			admin: users.some(member => member.id === user.id && member.admin),
+			members: users,
+		}
+	}
+	return account
 }
 
 export async function logout() {
@@ -112,6 +106,8 @@ export async function loginWithEmail(email: string) {
 
 export async function signupWithNewFamily(userName: string, familyName: string) {
 	let { user: { id: userId } } = await getCurrentAccount()
+	let existingFamily = await db.family.forUser(userId)
+	if (existingFamily) throw Error("user is already member of a family")
 	let user: UncheckedUser = { name: userName }
 	let family: UncheckedFamily = { name: familyName }
 	validate.user(user)
@@ -153,7 +149,7 @@ export async function sync(
 }
 
 async function assureUserHasPermissions(user: DbUser, familyId: number) {
-	let memberships = await db.member.getAllForUser(user.id)
+	let memberships = await db.member.forUser(user.id)
 	let hasPermission = memberships.some(
 		membership => membership.family_id === familyId
 	)
