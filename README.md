@@ -1,12 +1,5 @@
 # TODO
 
-## Now
-
-- refactor welcome screen
-    - make welcome only show when no family is associated with the user
-    - let user choose between creating a family or join existing one
-- refactor idb code to support encryption
-
 
 ## Issues
 
@@ -32,10 +25,10 @@
         - [ ] Require Captcha to avoid spammers
     - [x] Logoff
 - [ ] Collaboration
-    - [ ] Invite others to join profile
-    - [ ] Join profile from invitation
-    - [ ] List members of a profile
-    - [ ] Remove member from profile
+    - [ ] Invite others to join family
+    - [ ] Join family from QR code
+    - [ ] List members of a family
+    - [ ] Remove member from family
 - [ ] Internationalization
     - [ ] Display user-selected currency for money values
     - [ ] Use language-specific currency formatting

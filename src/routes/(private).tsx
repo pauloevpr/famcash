@@ -1,9 +1,10 @@
 import { action, cache, createAsync, RouteDefinition, RouteSectionProps, useSearchParams, } from "@solidjs/router";
 import { clientOnly } from "@solidjs/start"
-import { createMemo, createSignal, onCleanup, Show, useContext } from "solid-js";
+import { createMemo, createSignal, For, onCleanup, Show, useContext } from "solid-js";
 import { Button } from "~/components/buttons";
 import { AppContext } from "~/components/context";
-import { finishSignup, getCurrentAccount, loginWithToken, signupWithToken } from "~/lib/server";
+import { ChevronRightIcon, PlusIcon, QRCodeIcon } from "~/components/icons";
+import { signupWithNewFamily, getCurrentAccount, loginWithToken, signupWithToken } from "~/lib/server";
 import { createStore } from "~/lib/store";
 
 const ClientSyncService = clientOnly(() => import("~/lib/sync"));
@@ -77,10 +78,25 @@ function LoadingScreenOverlay() {
 }
 
 function Welcome() {
-  let finishSignupAction = action(async (data: FormData) => {
+  let [type, setType] = createSignal("" as "create" | "join")
+  let options = [
+    {
+      title: "Create new family",
+      icon: PlusIcon,
+      onClick: () => setType("create")
+    },
+    {
+      title: "Join existing family",
+      icon: QRCodeIcon,
+      onClick: () => { }
+    },
+  ]
+
+  let signup = action(async (data: FormData) => {
+    if (type() !== "create") return
     let name = data.get("name") as string
-    let family = data.get("family") as string
-    return await finishSignup(name, family)
+    let familyName = data.get("family") as string
+    return await signupWithNewFamily(name, familyName)
   })
 
   return (
@@ -92,7 +108,7 @@ function Welcome() {
             src="/logo.svg" />
         </div>
         <h1 class="text-2xl font-semibold pb-8">Welcome</h1>
-        <form action={finishSignupAction}
+        <form action={signup}
           method="post">
           <label for="name"
             class="block pb-2 text-light">Your Nickname</label>
@@ -100,16 +116,42 @@ function Welcome() {
             id="name"
             min="2"
             max="32"
-            class="block border h-12 px-4 w-full rounded-lg mb-6"
+            class="block border h-12 px-4 w-full rounded-lg"
             required />
-          <label for="family"
-            class="block pb-2 text-light">Your family's Nickname</label>
-          <input name="family"
-            id="family"
-            min="2"
-            max="64"
-            class="block border h-12 px-4 w-full rounded-lg mb-6"
-            required />
+          <Show when={!type()}>
+            <div class="bg-white rounded-xl border border-gray-200 my-12">
+              <For each={options}>
+                {(option, index) => (
+                  <button
+                    type="button"
+                    class="w-full group flex items-center gap-6 text-left text-lg px-6 h-16 hover:bg-gradient-to-r hover:to-white hover:via-slate-50 hover:from-primary-50"
+                    classList={{
+                      "border-t border-gray-200": index() > 0,
+                    }}
+                    onClick={option.onClick}
+                  >
+                    <option.icon class="text-primary w-6 h-6 text-light" />
+                    <span class="block flex-grow">
+                      <span class="block">{option.title}</span>
+                    </span>
+                    <ChevronRightIcon class="w-6 h-6 text-gray-400" />
+                  </button>
+                )}
+              </For>
+            </div>
+          </Show>
+          <Show when={type() === "create"}>
+            <div class="pt-6 pb-12">
+              <label for="family"
+                class="block pb-2 text-light">Your family's Nickname</label>
+              <input name="family"
+                id="family"
+                min="2"
+                max="64"
+                class="block border h-12 px-4 w-full rounded-lg"
+                required />
+            </div>
+          </Show>
           <Button style="primary"
             label="Continue"
           />

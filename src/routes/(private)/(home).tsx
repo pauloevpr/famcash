@@ -33,6 +33,7 @@ export default function Home() {
     let current = currentMonth()
     let next = DateOnly.fromYearMonth(current.year, current.month).addMonths(1)
     let url = new URL(window.location.href)
+    url.pathname = "/"
     url.searchParams.set("year", `${next.year}`)
     url.searchParams.set("month", `${next.month}`)
     return url.toString()
@@ -41,6 +42,7 @@ export default function Home() {
     let current = currentMonth()
     let previous = DateOnly.fromYearMonth(current.year, current.month).addMonths(-1)
     let url = new URL(window.location.href)
+    url.pathname = "/"
     url.searchParams.set("year", `${previous.year}`)
     url.searchParams.set("month", `${previous.month}`)
     return url.toString()
@@ -90,17 +92,23 @@ export default function Home() {
             <p class="px-4 text-negative"
               classList={{
                 "text-negative": summary().carryOver < 0,
-                "text-positive": summary().carryOver >= 0,
+                "text-positive": summary().carryOver > 0,
               }}
             >
               {summary().carryOver}
               <span class="block text-light text-xs">Carry Over</span>
             </p>
-            <p class="px-4 text-positive">
+            <p class="px-4"
+              classList={{
+                "text-positive": summary().totalIncome > 0
+              }}>
               {summary().totalIncome}
               <span class="block text-light text-xs">Income</span>
             </p>
-            <p class="px-4 text-negative">
+            <p class="px-4"
+              classList={{
+                "text-negative": summary().totalExpense > 0
+              }}>
               {summary().totalExpense}
               <span class="block text-light text-xs">Expense</span>
             </p>

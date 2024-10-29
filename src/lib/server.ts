@@ -110,7 +110,7 @@ export async function loginWithEmail(email: string) {
 	}
 }
 
-export async function finishSignup(userName: string, familyName: string) {
+export async function signupWithNewFamily(userName: string, familyName: string) {
 	let { user: { id: userId } } = await getCurrentAccount()
 	let user: UncheckedUser = { name: userName }
 	let family: UncheckedFamily = { name: familyName }
