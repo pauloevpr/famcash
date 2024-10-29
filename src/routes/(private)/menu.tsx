@@ -11,7 +11,6 @@ export default function MenuPage() {
   let logoutAction = action(logout)
 
   let links = [
-    { title: "Home", href: "/", icon: HomeIcon },
     { title: "Categories", href: "/categories", icon: TagIcon },
     { title: "Accounts", href: "/accounts", icon: WalletIcon },
   ]

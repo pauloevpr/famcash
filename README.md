@@ -15,6 +15,8 @@
 - The buttons that make API calls are missing:
     - loading indicators
     - error handling
+- all pages dont handle empty state 
+- all forms dont use useSubmission for error handling, loading indicator, prevent concurrency
 - TBD: should we delete the idb database on logout?
 - Syncing data during startup should display a loading indicator (if it takes longer than 100ms in which case it should be visible for at least 300ms)
 - TDB: should we validate all the data types (transactions, accounts, etc)?

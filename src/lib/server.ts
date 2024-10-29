@@ -5,7 +5,7 @@ import { mailer } from "./mailer";
 import { db } from "./db";
 import { useSession } from "vinxi/http";
 import { redirect } from "@solidjs/router";
-import { CurrentSession, DbRecord, DbUser, UncheckedRecord } from "./models";
+import { CurrentSession as CurrentAccount, DbFamily, DbRecord, DbUser, UncheckedFamily, UncheckedRecord, UncheckedUser } from "./models";
 
 
 
@@ -17,7 +17,7 @@ interface UserSession {
 }
 
 
-export async function getCurrentSession(): Promise<CurrentSession> {
+export async function getCurrentAccount(): Promise<CurrentAccount> {
 	let session = await getSession()
 	if (session.data.id) {
 		let user = await db.user.get(session.data.id)
@@ -25,21 +25,21 @@ export async function getCurrentSession(): Promise<CurrentSession> {
 			session.clear()
 			throw redirect("/login")
 		}
-		let memberships = await db.member.getAllForUser(user.id)
-		if (!memberships.length) {
-			throw redirect("/login")
-		}
+		let account: CurrentAccount = { user }
 		// TODO: this should be a single call in the database: type: MemberWithFamily
+		let memberships = await db.member.getAllForUser(user.id)
 		let member = memberships[0]
-		let family = await db.family.get(member.family_id)
-		return {
-			user: user,
-			family: {
-				id: family.id,
-				name: family.name,
-				admin: member.admin
-			},
+		if (member) {
+			let family = await db.family.get(member.family_id)
+			if (family) {
+				account.family = {
+					id: family.id,
+					name: family.name,
+					admin: member.admin
+				}
+			}
 		}
+		return account
 	}
 	throw redirect("/login")
 }
@@ -64,8 +64,6 @@ export async function signupWithToken(token: string) {
 		throw Error("user already signed up")
 	}
 	user = await db.user.create(tokenData.email, "")
-	let family = await db.family.create(user.id, "My Family")
-	await db.member.create(user.id, family.id, "admin")
 	await db.token.signup.delete(token)
 	let session = await getSession()
 	await session.update(data => {
@@ -112,11 +110,15 @@ export async function loginWithEmail(email: string) {
 	}
 }
 
-export async function finishSignup(name: string) {
-	let { user } = await getCurrentSession()
-	user.name = name
+export async function finishSignup(userName: string, familyName: string) {
+	let { user: { id: userId } } = await getCurrentAccount()
+	let user: UncheckedUser = { name: userName }
+	let family: UncheckedFamily = { name: familyName }
 	validate.user(user)
-	db.user.update(user)
+	validate.family(family)
+	let { id: familyId } = await db.family.create(userId, family.name)
+	await db.member.create(userId, familyId, "admin")
+	await db.user.update(userId, user.name)
 	throw redirect("/", { revalidate: "user" })
 }
 
@@ -125,7 +127,7 @@ export async function sync(
 	records: UncheckedRecord[],
 	syncTimestampRaw: string | null
 ): Promise<{ records: DbRecord[], syncTimestamp: string }> {
-	let { user } = await getCurrentSession()
+	let { user } = await getCurrentAccount()
 	await assureUserHasPermissions(user, familyId)
 	let syncTimestamp: Date
 	try {

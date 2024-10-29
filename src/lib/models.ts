@@ -87,6 +87,14 @@ export interface CurrentSession {
 	family?: CurrentFamily,
 }
 
+export interface UncheckedFamily {
+	name: string
+}
+
+export interface UncheckedUser {
+	name: string
+}
+
 export interface UncheckedRecord {
 	id: string
 	type: DbRecordType

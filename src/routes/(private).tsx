@@ -1,14 +1,14 @@
-import { action, cache, createAsync, RouteDefinition, RouteSectionProps, useSearchParams } from "@solidjs/router";
+import { action, cache, createAsync, RouteDefinition, RouteSectionProps, useSearchParams, } from "@solidjs/router";
 import { clientOnly } from "@solidjs/start"
 import { createMemo, createSignal, onCleanup, Show, useContext } from "solid-js";
 import { Button } from "~/components/buttons";
 import { AppContext } from "~/components/context";
-import { finishSignup, getCurrentSession, loginWithToken, signupWithToken } from "~/lib/server";
+import { finishSignup, getCurrentAccount, loginWithToken, signupWithToken } from "~/lib/server";
 import { createStore } from "~/lib/store";
 
 const ClientSyncService = clientOnly(() => import("~/lib/sync"));
 
-const loadSession = cache(async () => {
+const loadAccount = cache(async () => {
   let [params, setParams] = useSearchParams()
   if (params.login_token) {
     await loginWithToken(params.login_token)
@@ -17,26 +17,26 @@ const loadSession = cache(async () => {
     await signupWithToken(params.signup_token)
     setParams({ ...params, signup_token: undefined }, { replace: true })
   }
-  return await getCurrentSession()
+  return await getCurrentAccount()
 }, "user")
 
 export const route = {
-  preload() { loadSession() }
+  preload() { loadAccount() }
 } satisfies RouteDefinition;
 
 
 export default function PrivateSection(props: RouteSectionProps) {
-  let session = createAsync(() => loadSession())
+  let account = createAsync(() => loadAccount())
   return (
-    <Show when={session()} >
-      {session => (
+    <Show when={account()} >
+      {account => (
         <>
-          <Show when={session().family}>
+          <Show when={account().family}>
             {family => (
               <AppContext.Provider value={{
-                user: session().user,
+                user: account().user,
                 family: family(),
-                store: createStore(session().user, family())
+                store: createStore(account().user, family())
               }}>
                 {props.children}
                 <ClientSyncService />
@@ -44,7 +44,7 @@ export default function PrivateSection(props: RouteSectionProps) {
               </AppContext.Provider>
             )}
           </Show>
-          <Show when={!session().family}>
+          <Show when={!account().family}>
             <Welcome />
           </Show>
         </>
@@ -79,7 +79,8 @@ function LoadingScreenOverlay() {
 function Welcome() {
   let finishSignupAction = action(async (data: FormData) => {
     let name = data.get("name") as string
-    return await finishSignup(name)
+    let family = data.get("family") as string
+    return await finishSignup(name, family)
   })
 
   return (
@@ -94,11 +95,19 @@ function Welcome() {
         <form action={finishSignupAction}
           method="post">
           <label for="name"
-            class="block pb-2 text-light">What is your name?</label>
+            class="block pb-2 text-light">Your Nickname</label>
           <input name="name"
             id="name"
             min="2"
             max="32"
+            class="block border h-12 px-4 w-full rounded-lg mb-6"
+            required />
+          <label for="family"
+            class="block pb-2 text-light">Your family's Nickname</label>
+          <input name="family"
+            id="family"
+            min="2"
+            max="64"
             class="block border h-12 px-4 w-full rounded-lg mb-6"
             required />
           <Button style="primary"

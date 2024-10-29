@@ -12,7 +12,7 @@ export const db = {
 		async create(email: string, name: string) {
 			let result = await conn.query(
 				"INSERT INTO users(email, name) VALUES($1, $2) RETURNING id",
-				[email, name]
+				[email.trim(), name.trim()]
 			)
 			let id = result.rows[0]["id"] as number
 			return (await this.get(id))!
@@ -31,10 +31,10 @@ export const db = {
 			)
 			return result.rows[0]
 		},
-		async update(user: DbUser) {
+		async update(id: number, name: string) {
 			await conn.query(
 				"UPDATE users set name = $1 WHERE id = $2",
-				[user.name, user.id]
+				[name.trim(), id]
 			)
 		}
 	},
@@ -101,7 +101,7 @@ export const db = {
 		async create(user_id: number, name: string) {
 			let result = await conn.query(
 				"INSERT INTO family (name, created_by) VALUES ($1, $2) RETURNING id",
-				[name, user_id]
+				[name.trim(), user_id]
 			)
 			let id = result.rows[0]["id"] as number
 			return (await this.get(id))!

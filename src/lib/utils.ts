@@ -1,4 +1,4 @@
-import { DbRecordTypes, DbUser, IdbRecord, UncheckedRecord } from "./models"
+import { DbRecordTypes, DbUser, IdbRecord, UncheckedFamily, UncheckedRecord, UncheckedUser } from "./models"
 
 export class DateOnly {
 	date: Date
@@ -72,9 +72,13 @@ export class ValidationError extends Error {
 
 
 export const validate = {
-	user(user: DbUser) {
+	family(input: UncheckedFamily) {
+		this.plainObject(input)
+		this.string(input, "name", 2, 64)
+	},
+
+	user(user: UncheckedUser) {
 		this.plainObject(user)
-		this.email(user, "email")
 		this.string(user, "name", 2, 32)
 	},
 
