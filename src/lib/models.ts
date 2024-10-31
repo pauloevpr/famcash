@@ -20,11 +20,11 @@ export interface DbMember {
 }
 
 export interface DbInvite {
-	id: number
+	code: string
+	family_id: number
 	created_by: number
 	created_at: Date
 	expired_at: Date
-	email: string
 	accepted: boolean
 }
 

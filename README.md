@@ -25,8 +25,8 @@
         - [ ] Require Captcha to avoid spammers
     - [x] Logoff
 - [ ] Collaboration
-    - [ ] Invite others to join family
-    - [ ] Join family from QR code
+    - [x] Invite others to join family
+    - [ ] Join family from QR code. TBD: allow multiple joins?
     - [x] List members of a family
     - [ ] Remove member from family
 - [ ] Internationalization

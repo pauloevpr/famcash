@@ -1,11 +1,11 @@
 
-import { For, Show, useContext } from "solid-js";
+import { createMemo, For, Show, useContext } from "solid-js";
 import { InitialsAvatar } from "~/components/avatar";
+import { Button, LinkButton } from "~/components/buttons";
 import { AppContext } from "~/components/context";
 import { HandHeartIcon, UsersIcon } from "~/components/icons";
 import { PageLayout } from "~/components/layouts";
 
-// TODO: CONTINUE: list actual family members
 
 export default function FamilyPage() {
   let { family } = useContext(AppContext);
@@ -27,12 +27,12 @@ export default function FamilyPage() {
             </p>
           </div>
         </section>
-        <section class="pt-4">
+        <section class="pt-8">
           <header class="flex items-center gap-3 text-lg">
             Members
             <UsersIcon class="w-4 h-4 text-gray-400" />
           </header>
-          <ul class="pt-4">
+          <ul class="pt-4 pb-10">
             <For each={family.members}>
               {member => (
                 <li class="flex items-center gap-4 bg-white rounded-lg shadow-lg px-6 py-4">
@@ -47,6 +47,12 @@ export default function FamilyPage() {
               )}
             </For>
           </ul>
+          <Show when={family.admin}>
+            <LinkButton style="primary"
+              href="/family/invite"
+              label="Invite member"
+            />
+          </Show>
         </section>
       </main >
     </PageLayout>

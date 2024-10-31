@@ -1,5 +1,5 @@
 import pg from "pg"
-import { DbLoginToken, DbUser, DbRecordType, DbRecord, DbMember, DbFamily, DbSignupToken, MemberUser } from "./models";
+import { DbLoginToken, DbUser, DbRecordType, DbRecord, DbMember, DbFamily, DbSignupToken, MemberUser, DbInvite } from "./models";
 import { randomBytes } from "crypto";
 
 const { Pool } = pg
@@ -188,6 +188,25 @@ export const db = {
 			`,
 				[recordId, recordType, familyId, userId, now, now, userId, deleted, data]
 			)
+		},
+	},
+	invite: {
+		async create(userId: number, familyId: number) {
+			let code = randomBytes(64).toString("base64url")
+			let expiration = new Date()
+			expiration.setMinutes(expiration.getMinutes() + 30)
+			await conn.query<DbInvite>(
+				"INSERT INTO invite (code, created_by, family_id, expired_at) VALUES ($1,$2,$3,$4)",
+				[code, userId, familyId, expiration]
+			)
+			return await this.get(code)
+		},
+		async get(code: string) {
+			let result = await conn.query<DbInvite>(
+				"SELECT * FROM invite WHERE code = $1",
+				[code]
+			)
+			return result.rows[0]
 		},
 	},
 }

@@ -118,13 +118,20 @@ export async function signupWithNewFamily(userName: string, familyName: string) 
 	throw redirect("/", { revalidate: "user" })
 }
 
+export async function createInvite(familyId: number) {
+	let { user } = await getCurrentAccount()
+	await assureUserHasPermissions(user.id, familyId, true)
+	let invite = await db.invite.create(user.id, familyId)
+	return invite
+}
+
 export async function sync(
 	familyId: number,
 	records: UncheckedRecord[],
 	syncTimestampRaw: string | null
 ): Promise<{ records: DbRecord[], syncTimestamp: string }> {
 	let { user } = await getCurrentAccount()
-	await assureUserHasPermissions(user, familyId)
+	await assureUserHasPermissions(user.id, familyId)
 	let syncTimestamp: Date
 	try {
 		syncTimestamp = new Date(syncTimestampRaw || '2000-01-01')
@@ -148,10 +155,10 @@ export async function sync(
 	return { records: updated, syncTimestamp: timestamp }
 }
 
-async function assureUserHasPermissions(user: DbUser, familyId: number) {
-	let memberships = await db.member.forUser(user.id)
+async function assureUserHasPermissions(userId: number, familyId: number, admin?: boolean) {
+	let memberships = await db.member.forUser(userId)
 	let hasPermission = memberships.some(
-		membership => membership.family_id === familyId
+		member => member.family_id === familyId && (admin === undefined || member.admin === admin)
 	)
 	if (!hasPermission) {
 		// TODO: figure out if solid has a built-in way to raise errors

@@ -34,12 +34,12 @@ create table member (
 );
 
 create table invite (
-	id serial primary key,
+	code varchar(255) primary key,
+	family_id integer not null references family(id) on delete cascade,
 	created_by integer not null references users(id) on delete cascade,
 	created_at timestamptz not null default NOW(),
 	expired_at timestamptz not null default NOW(),
-	email varchar(255) not null,
-	accepted boolean not null
+	accepted boolean not null default false
 );
 
 create table records (
