@@ -13,7 +13,7 @@ export default function FamilyPage() {
     <PageLayout>
       <main class="px-4 pb-32">
         <section class="py-8 px-6">
-          <header class="sr-only">Categories
+          <header class="sr-only">Family Details
           </header>
           <div class="flex items-center flex-col gap-4">
             <p class="bg-slate-200 uppercase inline-flex items-center justify-center rounded-full text-2xl text-primary w-16 h-16 p-2">
@@ -32,7 +32,7 @@ export default function FamilyPage() {
             Members
             <UsersIcon class="w-4 h-4 text-gray-400" />
           </header>
-          <ul class="pt-4 pb-10">
+          <ul class="pt-4 pb-10 space-y-1">
             <For each={family.members}>
               {member => (
                 <li class="flex items-center gap-4 bg-white rounded-lg shadow-lg px-6 py-4">

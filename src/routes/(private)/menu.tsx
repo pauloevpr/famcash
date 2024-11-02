@@ -27,6 +27,7 @@ export default function MenuPage() {
               large
             />
             <p class="font-medium text-2xl text-center">{user.name}</p>
+            <p class="text-light text-center -mt-3">{user.email}</p>
           </div>
         </section>
         <section class="px-1">

@@ -3,6 +3,7 @@
 
 ## Issues
 
+- Fix: when syncing data for the first time when records already exits in the server, an exception will throw when loading the app because the sync updates the records one at a time and might leave the database in a invalid state (e.g. a transaction exists without the macthing acocunt)
 - Fix: turning a normal expense into recurrent produces two records
 - Fix: The "Spending" tab does not show categories that don't have expenses in the selected month
 - The buttons that make API calls are missing:
@@ -26,9 +27,12 @@
     - [x] Logoff
 - [ ] Collaboration
     - [x] Invite others to join family
-    - [ ] Join family from QR code. TBD: allow multiple joins?
+    - [ ] Join family from QR code
+        - [x] from a link
+        - [ ] from scanning the QR code from the signup screen
     - [x] List members of a family
     - [ ] Remove member from family
+    - [ ] Switch between families: TDB: auto-switch after joining?
 - [ ] Internationalization
     - [ ] Display user-selected currency for money values
     - [ ] Use language-specific currency formatting

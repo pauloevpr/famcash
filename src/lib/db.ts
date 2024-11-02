@@ -134,7 +134,7 @@ export const db = {
 						member.admin as admin
 				 FROM member
 				 INNER JOIN users ON member.user_id = users.id
-				 WHERE member.user_id = $1`,
+				 WHERE member.family_id = $1`,
 				[familyId]
 			)
 			return result.rows
@@ -146,10 +146,10 @@ export const db = {
 			)
 			return result.rows
 		},
-		async create(userId: number, familyId: number, role: "admin" | "regular") {
+		async create(userId: number, familyId: number, role: "admin" | "regular", invitedBy?: number) {
 			await conn.query(
 				"INSERT INTO member (user_id, family_id, invited_by, admin) VALUES ($1,$2,$3,$4)",
-				[userId, familyId, userId, role === "admin"]
+				[userId, familyId, invitedBy ?? userId, role === "admin"]
 			)
 		},
 	},
@@ -207,6 +207,12 @@ export const db = {
 				[code]
 			)
 			return result.rows[0]
+		},
+		async delete(code: string) {
+			await conn.query(
+				"DELETE FROM invite WHERE code = $1",
+				[code]
+			)
 		},
 	},
 }

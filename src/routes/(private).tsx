@@ -78,6 +78,8 @@ function LoadingScreenOverlay() {
 }
 
 function Welcome() {
+  // TODO: make sure we can also join a family from this page; we will basic scan the qr, get the url, and redirect the user to the Join page
+
   let [type, setType] = createSignal("" as "create" | "join")
   let options = [
     {

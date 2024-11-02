@@ -125,6 +125,44 @@ export async function createInvite(familyId: number) {
 	return invite
 }
 
+
+export async function joinFamily(code: string) {
+	let { user } = await getCurrentAccount()
+	let invite = await db.invite.get(code)
+	if (!invite) throw Error("Invalid invite")
+	let expired = invite.expired_at.getTime() < new Date().getTime()
+	if (expired) {
+		await db.invite.delete(invite.code)
+		throw Error("Invalid invite")
+	}
+	let membeships = await db.member.forUser(user.id)
+	let alreadyMember = membeships.some(member => member.family_id === invite.family_id)
+	if (alreadyMember) {
+		await db.invite.delete(invite.code)
+		throw Error("You are already a member of this family")
+	}
+	await db.member.create(user.id, invite.family_id, "regular", invite.created_by)
+	await db.invite.delete(invite.code)
+	throw redirect("/", { revalidate: "user" })
+}
+
+export async function getInvite(code: string) {
+	let { user } = await getCurrentAccount()
+	let invite = await db.invite.get(code)
+	if (!invite) return
+	let expired = invite.expired_at.getTime() < new Date().getTime()
+	if (expired) {
+		await db.invite.delete(invite.code)
+		return
+	}
+	let family = await db.family.get(invite.family_id)
+	let membeships = await db.member.forUser(user.id)
+	return {
+		familyName: family.name,
+		alreadyMember: membeships.some(member => member.family_id === invite.family_id),
+	}
+}
+
 export async function sync(
 	familyId: number,
 	records: UncheckedRecord[],

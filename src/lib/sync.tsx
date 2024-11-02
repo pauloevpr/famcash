@@ -1,5 +1,5 @@
 import { UncheckedRecord } from "./models";
-import { onCleanup, useContext } from "solid-js";
+import { onCleanup, onMount, useContext } from "solid-js";
 import { sync } from "./server";
 import { AppContext, AppContextValue } from "~/components/context";
 
@@ -10,12 +10,13 @@ export default function ClientSyncService() {
 	onCleanup(() => {
 		unsubscribe()
 	})
+	onMount(() => {
+		triggerSync(context)
+	})
 	return (
 		<></>
 	)
 }
-
-
 
 let syncing = false
 export async function triggerSync(context: AppContextValue) {

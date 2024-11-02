@@ -25,8 +25,8 @@ export default {
           DEFAULT: colors.green['500'],
         },
         error: {
-          ...colors.red,
-          DEFAULT: colors.red['500'],
+          ...colors.pink,
+          DEFAULT: colors.pink['600'],
         },
       },
       aspectRatio: {

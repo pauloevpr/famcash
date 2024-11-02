@@ -38,8 +38,7 @@ create table invite (
 	family_id integer not null references family(id) on delete cascade,
 	created_by integer not null references users(id) on delete cascade,
 	created_at timestamptz not null default NOW(),
-	expired_at timestamptz not null default NOW(),
-	accepted boolean not null default false
+	expired_at timestamptz not null default NOW()
 );
 
 create table records (

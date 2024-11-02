@@ -1,8 +1,9 @@
 import { action, useNavigate, useSubmission } from "@solidjs/router";
-import { createMemo, createSignal, onCleanup, Show, useContext, VoidProps } from "solid-js";
+import { createEffect, createMemo, createResource, createSignal, onCleanup, onMount, Show, useContext, VoidProps } from "solid-js";
 import { Button } from "~/components/buttons";
 import { AppContext } from "~/components/context";
 import { HandHeartIcon, HoursGlassIcon, QRCodeIcon } from "~/components/icons";
+import { QRCodeBar } from "~/components/qrcode";
 import { createInvite } from "~/lib/server";
 
 export default function InvitePage() {
@@ -12,6 +13,15 @@ export default function InvitePage() {
     return createInvite(family.id)
   })
   let inviteResult = useSubmission(invite)
+  let inviteLink = createMemo(() => {
+    let code = inviteResult.result?.code
+    if (!code) return ""
+    let url = new URL(window.location.href)
+    url.pathname = "/family/join"
+    url.search = ""
+    url.searchParams.set("code", code)
+    return url.href
+  })
 
   if (!family.admin) {
     navigate("/family")
@@ -74,9 +84,8 @@ export default function InvitePage() {
               Invite family members or trusted people to join your family and help manage your finances together. Share the QR code below with the person you are inviting. The QR code can only be used once.
             </p>
             <div class="pt-10 pb-16">
-              <div class="bg-white w-64 h-64 rounded-xl border border-gray-300 mx-auto shadow shadow-primary-200">
-                <img alt="Invite QR Code"
-                  src="https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg" />
+              <div class="bg-white p-1 w-64 h-64 rounded-xl border border-gray-300 mx-auto shadow shadow-primary-200">
+                <QRCodeBar text={inviteLink()} />
               </div>
               <ExpirationTimer date={result().expired_at} />
             </div>
@@ -90,6 +99,7 @@ export default function InvitePage() {
     </main>
   )
 }
+
 
 function ExpirationTimer(props: VoidProps<{ date: Date | string }>) {
   let expiration = createMemo(() => new Date(props.date))
