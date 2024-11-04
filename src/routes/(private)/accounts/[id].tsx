@@ -1,7 +1,7 @@
 
 import { Account, } from "~/lib/models";
 import { useNavigate, useParams } from "@solidjs/router";
-import { createMemo, Show, useContext } from "solid-js";
+import { useContext } from "solid-js";
 import { AccountForm } from "./(components)";
 import { AppContext } from "~/components/context";
 
@@ -9,11 +9,11 @@ export default function AccountEditPage() {
   let { store } = useContext(AppContext)
   let params = useParams()
   let navigate = useNavigate()
-  let account = createMemo(() => {
+  let account = (() => {
     let account = store.account.get(params.id)
     if (!account) throw Error(`Account ${params.id} not found`)
     return account
-  })
+  })()
 
   async function onSubmit(account: Account) {
     await store.account.save(account)
@@ -47,13 +47,9 @@ export default function AccountEditPage() {
   }
 
   return (
-    <Show when={account()}>
-      {account => (
-        <AccountForm account={account()}
-          onSubmit={onSubmit}
-          onDelete={onDelete}
-        />
-      )}
-    </Show>
+    <AccountForm account={account}
+      onSubmit={onSubmit}
+      onDelete={onDelete}
+    />
   )
 }

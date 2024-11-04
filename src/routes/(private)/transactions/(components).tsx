@@ -1,5 +1,5 @@
 import { A, useNavigate } from "@solidjs/router";
-import { createMemo, createSignal, For, Show, VoidProps } from "solid-js";
+import { createMemo, createSignal, For, onMount, Show, VoidProps } from "solid-js";
 import { Button } from "~/components/buttons";
 import { Account, Category, RecurrencyInterval, Transaction, TransactionType, TransactionWithRefs } from "~/lib/models";
 import { DateOnly } from "~/lib/utils";

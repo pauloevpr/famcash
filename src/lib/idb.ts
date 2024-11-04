@@ -1,6 +1,6 @@
 import { createMutable, } from "solid-js/store"
 import { DbRecordType, DbRecordTypes, IdbRecord } from "./models"
-import { Accessor, createSignal } from "solid-js"
+import { Accessor, batch, createSignal } from "solid-js"
 import { validate } from "./utils"
 
 
@@ -16,7 +16,7 @@ export function useReactiveIdb(name: string) {
 	let subscribers: { [id: string]: Function } = {}
 
 
-	function subscribe(callback: Function) {
+	function listenToUnsyncedChanges(callback: Function) {
 		let id = new Date().getTime().toString()
 		subscribers[id] = callback
 		return () => {
@@ -24,7 +24,7 @@ export function useReactiveIdb(name: string) {
 		}
 	}
 
-	function notify() {
+	function notifyUnsyncedChanges() {
 		setTimeout(() => {
 			for (let sub of Object.values(subscribers)) {
 				try {
@@ -36,53 +36,76 @@ export function useReactiveIdb(name: string) {
 		}, 1)
 	}
 
-	function delete_(type: DbRecordType, id: string) {
-		return new Promise(async (resolve, reject) => {
-			const db = await open()
+	async function deleteMany(items: [type: DbRecordType, id: string][]) {
+		const db = await open()
+		let updates = await Promise.all(items.map(([type, id]) => new Promise<Function>((resolve, reject) => {
 			const request = db.transaction("records", "readwrite").objectStore("records").index("type").openCursor(type)
 			request.onsuccess = function(event) {
 				const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
 				if (cursor) {
 					if (cursor.value.id === id) {
-						delete cache[type][id]
 						cursor.delete();
-						resolve(undefined);
+						resolve(() => {
+							delete cache[type][id]
+						});
 					} else {
 						cursor.continue();
 					}
 				} else {
-					resolve(`No record found with type="${type}" and id="${id}"`);
+					resolve(() => { });
 				}
 			};
 			request.onerror = function(event: any) {
 				reject("Error deleting record: " + event.target.error);
 			};
-		});
-	}
-
-
-	function set<T extends Object & { id: string }>(type: DbRecordType, data: T, synced?: boolean): Promise<void> {
-		return new Promise(async (resolve, reject) => {
-			const db = await open()
-			let record: IdbRecord = {
-				id: data.id,
-				type,
-				data: JSON.parse(JSON.stringify(data)),
-			}
-			delete record.data.id
-			if (!synced) {
-				record.unsynced = "true"
-			}
-			const request = db.transaction("records", "readwrite").objectStore("records").put(record)
-			request.onsuccess = () => {
-				cache[record.type][record.id] = data
-				resolve()
-				notify()
-			}
-			request.onerror = (e: any) => {
-				reject("error when updating data for type " + type + ": " + e.target.error)
+		})))
+		batch(() => {
+			for (let update of updates) {
+				update()
 			}
 		})
+	}
+
+	function delete_(type: DbRecordType, id: string) {
+		return deleteMany([[type, id]])
+	}
+
+	async function setMany<T extends Object & { id: string }>(items: [DbRecordType, data: T][], synced?: boolean): Promise<void> {
+		const db = await open()
+		let updates = await Promise.all(
+			items.map(([type, data]) => new Promise<Function>((resolve, reject) => {
+				let record: IdbRecord = {
+					id: data.id,
+					type,
+					data: JSON.parse(JSON.stringify(data)),
+				}
+				delete record.data.id
+				if (!synced) {
+					record.unsynced = "true"
+				}
+				const request = db.transaction("records", "readwrite").objectStore("records").put(record)
+				request.onsuccess = () => {
+					resolve(() => {
+						cache[record.type][record.id] = data
+					})
+				}
+				request.onerror = (e: any) => {
+					reject("error when updating data for type " + type + ": " + e.target.error)
+				}
+			}))
+		)
+		batch(() => {
+			for (let update of updates) {
+				update()
+			}
+		})
+		if (!synced) {
+			notifyUnsyncedChanges()
+		}
+	}
+
+	function set<T extends Object & { id: string }>(type: DbRecordType, data: T, synced?: boolean): Promise<void> {
+		return setMany([[type, data]], synced)
 	}
 
 	function get<T>(type: DbRecordType, id: string): T {
@@ -195,10 +218,12 @@ export function useReactiveIdb(name: string) {
 
 	return {
 		ready: (() => status() === "ready") as Accessor<boolean>,
-		subscribe,
+		listenToUnsyncedChanges,
+		deleteMany,
 		delete: delete_,
 		deleteFromCache,
 		set,
+		setMany,
 		get,
 		getAll,
 		getUnsynced,

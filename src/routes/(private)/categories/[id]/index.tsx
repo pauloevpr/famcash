@@ -8,11 +8,11 @@ export default function CategoryEditPage() {
   let { store } = useContext(AppContext)
   let params = useParams()
   let navigate = useNavigate()
-  let category = createMemo(() => {
+  let category = (() => {
     let category = store.category.get(params.id)
     if (!category) throw Error(`Category ${params.id} not found`)
     return category
-  })
+  })()
 
   async function onSubmit(category: Category) {
     await store.category.save(category)
@@ -45,13 +45,9 @@ export default function CategoryEditPage() {
   }
 
   return (
-    <Show when={category()}>
-      {category => (
-        <CategoryForm category={category()}
-          onSubmit={onSubmit}
-          onDelete={onDelete}
-        />
-      )}
-    </Show>
+    <CategoryForm category={category}
+      onSubmit={onSubmit}
+      onDelete={onDelete}
+    />
   )
 }

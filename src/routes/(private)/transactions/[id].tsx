@@ -8,7 +8,7 @@ export default function TransactionEditPage() {
   let { store } = useContext(AppContext)
   let params = useParams()
   let navigate = useNavigate()
-  let data = createMemo(() => {
+  let data = (() => {
     let transaction = store.transaction.get(params.id)
     let accounts = store.account.getAll()
     let categories = store.category.getAll()
@@ -17,7 +17,7 @@ export default function TransactionEditPage() {
       accounts,
       categories
     }
-  })
+  })()
   async function onSubmit(transaction: Transaction) {
     let parsedId = store.parseTransactionId(transaction.id)
     if (parsedId.recurrency) {
@@ -39,16 +39,12 @@ export default function TransactionEditPage() {
     navigate(-1)
   }
   return (
-    <Show when={data()}>
-      {data => (
-        <TransactionForm transaction={data().transaction}
-          categories={data().categories}
-          accounts={data().accounts}
-          onSubmit={onSubmit}
-          onDelete={onDelete}
-        />
-      )}
-    </Show>
+    <TransactionForm transaction={data.transaction}
+      categories={data.categories}
+      accounts={data.accounts}
+      onSubmit={onSubmit}
+      onDelete={onDelete}
+    />
   )
 }
 

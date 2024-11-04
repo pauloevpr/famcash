@@ -1,6 +1,6 @@
 import { action, createAsync, RouteDefinition, RouteSectionProps, query, useSearchParams, useNavigate, } from "@solidjs/router";
 import { clientOnly } from "@solidjs/start"
-import { createMemo, createSignal, For, onCleanup, Show, useContext } from "solid-js";
+import { createMemo, createSignal, For, onCleanup, ParentProps, Show, useContext } from "solid-js";
 import { createStore } from "solid-js/store";
 import Alert from "~/components/alert";
 import { Button } from "~/components/buttons";
@@ -42,9 +42,10 @@ export default function PrivateSection(props: RouteSectionProps) {
                 family: family(),
                 store: createGlobalStore(account().user, family())
               }}>
-                {props.children}
-                <ClientSyncService />
-                <LoadingScreenOverlay />
+                <Startup>
+                  {props.children}
+                  <ClientSyncService />
+                </Startup>
               </AppContext.Provider>
             )}
           </Show>
@@ -59,7 +60,7 @@ export default function PrivateSection(props: RouteSectionProps) {
 }
 
 
-function LoadingScreenOverlay() {
+function Startup(props: ParentProps) {
   // TODO: this needs a better design
   let { store } = useContext(AppContext)
   let [minimumDisplayTimeReached, setMinimumDisplayTimeReached] = createSignal(false)
@@ -72,11 +73,14 @@ function LoadingScreenOverlay() {
   onCleanup(() => clearTimeout(timeout))
 
   return (
-    <Show when={!done()}>
-      <dialog class="bg-white z-[999] fixed top-0 left-0 flex items-center justify-center h-screen w-screen"
-        open>
-        Loading...
-      </dialog>
+    <Show when={done()}
+      fallback={
+        <dialog class="bg-white z-[999] fixed top-0 left-0 flex items-center justify-center h-screen w-screen"
+          open>
+          Loading...
+        </dialog>
+      }>
+      {props.children}
     </Show>
   )
 }

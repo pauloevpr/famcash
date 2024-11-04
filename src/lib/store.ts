@@ -8,7 +8,6 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 	let idb = useReactiveIdb(`${user.id}:${family.id}`)
 	let carryOverCategory: Category = { id: "carryover", name: "Carry Over", icon: "" }
 
-
 	function calculateSpendingByCategory(transactions: TransactionWithRefs[]): CategoryWithSpending[] {
 		let category: { [id: string]: CategoryWithSpending } = {}
 		for (let transaction of transactions) {

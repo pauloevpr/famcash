@@ -1,6 +1,6 @@
 
 import { useNavigate, useSearchParams } from "@solidjs/router";
-import { createMemo, Show, useContext } from "solid-js";
+import { createMemo, createResource, Show, useContext } from "solid-js";
 import { DateOnly, generateDbRecordId } from "~/lib/utils";
 import { Transaction, TransactionWithRefs } from "~/lib/models";
 import { TransactionForm } from "./(components)";
@@ -11,11 +11,11 @@ export default function TransactionCreatePage() {
   let { store } = useContext(AppContext)
   let navigate = useNavigate()
   let [searchParams] = useSearchParams()
-  let data = createMemo(() => {
+  let data = (() => {
     let dateRaw = new Date()
     if (searchParams.month && searchParams.year) {
-      dateRaw.setFullYear(parseInt(searchParams.year))
-      dateRaw.setMonth(parseInt(searchParams.month) - 1, 1)
+      dateRaw.setFullYear(parseInt(searchParams.year as string))
+      dateRaw.setMonth(parseInt(searchParams.month as string) - 1, 1)
     }
     let date = new DateOnly(dateRaw)
     let accounts = store.account.getAll()
@@ -37,20 +37,16 @@ export default function TransactionCreatePage() {
       accounts,
       categories,
     }
-  })
+  })()
   async function onSubmit(transaction: Transaction) {
     await store.transaction.save(transaction)
     navigate(-1)
   }
   return (
-    <Show when={data()}>
-      {data => (
-        <TransactionForm transaction={data().transaction}
-          categories={data().categories}
-          accounts={data().accounts}
-          onSubmit={onSubmit}
-        />
-      )}
-    </Show>
+    <TransactionForm transaction={data.transaction}
+      categories={data.categories}
+      accounts={data.accounts}
+      onSubmit={onSubmit}
+    />
   )
 }
