@@ -4,7 +4,7 @@ import { Account, Transaction, Category, TransactionWithRefs, CarryOver, ParsedT
 import { DateOnly, generateDbRecordId } from "./utils"
 
 
-export function createStore(user: CurrentUser, family: CurrentFamily) {
+export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 	let idb = useReactiveIdb(`${user.id}:${family.id}`)
 	let carryOverCategory: Category = { id: "carryover", name: "Carry Over", icon: "" }
 

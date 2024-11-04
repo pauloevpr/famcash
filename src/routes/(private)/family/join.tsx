@@ -6,6 +6,7 @@ import TriangleAlertIcon, { HandHeartIcon } from "~/components/icons";
 import { getInvite, joinFamily } from "~/lib/server";
 
 
+
 export default function JoinFamilyPage() {
   let [params] = useSearchParams()
   let [invite] = createResource(() => params.code, async (code) => {

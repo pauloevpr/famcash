@@ -10,6 +10,9 @@ import { CurrentSession as CurrentAccount, DbFamily, DbRecord, DbUser, Unchecked
 const BASE_URL = process.env.BASE_URL || "http://localhost:3000"
 const SESSION_SECRET = process.env.SESSION_SECRET || "dev-devdevdevdevdevdevdevdevdevdevdevdevdevdev"
 
+// TODO: refactor writes so multiple calls happen within the same transaction
+// use API like db.transaction(db => { })
+
 interface UserSession {
 	id?: number
 }
@@ -104,7 +107,7 @@ export async function loginWithEmail(email: string) {
 	}
 }
 
-export async function signupWithNewFamily(userName: string, familyName: string) {
+export async function completeSignUpWithNewFamily(userName: string, familyName: string) {
 	let { user: { id: userId } } = await getCurrentAccount()
 	let existingFamily = await db.family.forUser(userId)
 	if (existingFamily) throw Error("user is already member of a family")
@@ -118,16 +121,12 @@ export async function signupWithNewFamily(userName: string, familyName: string) 
 	throw redirect("/", { revalidate: "user" })
 }
 
-export async function createInvite(familyId: number) {
-	let { user } = await getCurrentAccount()
-	await assureUserHasPermissions(user.id, familyId, true)
-	let invite = await db.invite.create(user.id, familyId)
-	return invite
-}
-
-
-export async function joinFamily(code: string) {
-	let { user } = await getCurrentAccount()
+export async function completeSignUpWithInvite(userName: string, code: string) {
+	let { user: { id: userId } } = await getCurrentAccount()
+	let user: UncheckedUser = { name: userName }
+	validate.user(user)
+	let existingFamily = await db.family.forUser(userId)
+	if (existingFamily) throw Error("user is already member of a family")
 	let invite = await db.invite.get(code)
 	if (!invite) throw Error("Invalid invite")
 	let expired = invite.expired_at.getTime() < new Date().getTime()
@@ -135,25 +134,33 @@ export async function joinFamily(code: string) {
 		await db.invite.delete(invite.code)
 		throw Error("Invalid invite")
 	}
-	let membeships = await db.member.forUser(user.id)
+	let membeships = await db.member.forUser(userId)
 	let alreadyMember = membeships.some(member => member.family_id === invite.family_id)
 	if (alreadyMember) {
 		await db.invite.delete(invite.code)
 		throw Error("You are already a member of this family")
 	}
-	await db.member.create(user.id, invite.family_id, "regular", invite.created_by)
+	await db.user.update(userId, user.name)
+	await db.member.create(userId, invite.family_id, "regular", invite.created_by)
 	await db.invite.delete(invite.code)
 	throw redirect("/", { revalidate: "user" })
+}
+
+export async function createInvite(familyId: number) {
+	let { user } = await getCurrentAccount()
+	await assureUserHasPermissions(user.id, familyId, true)
+	let invite = await db.invite.create(user.id, familyId)
+	return invite
 }
 
 export async function getInvite(code: string) {
 	let { user } = await getCurrentAccount()
 	let invite = await db.invite.get(code)
-	if (!invite) return
+	if (!invite) throw Error("Invalid invite")
 	let expired = invite.expired_at.getTime() < new Date().getTime()
 	if (expired) {
 		await db.invite.delete(invite.code)
-		return
+		throw Error("Invalid invite")
 	}
 	let family = await db.family.get(invite.family_id)
 	let membeships = await db.member.forUser(user.id)

@@ -8,6 +8,7 @@
 - Fix: The "Spending" tab does not show categories that don't have expenses in the selected month
 - The buttons that make API calls are missing:
     - loading indicators
+        - only displays if it takes longer than 100ms, then shows for at least 300ms
     - error handling
 - all pages dont handle empty state 
 - all forms dont use useSubmission for error handling, loading indicator, prevent concurrency
@@ -27,9 +28,7 @@
     - [x] Logoff
 - [ ] Collaboration
     - [x] Invite others to join family
-    - [ ] Join family from QR code
-        - [x] from a link
-        - [ ] from scanning the QR code from the signup screen
+    - [x] Join family from QR code
     - [x] List members of a family
     - [ ] Remove member from family
     - [ ] Switch between families: TDB: auto-switch after joining?

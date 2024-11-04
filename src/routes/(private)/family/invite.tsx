@@ -13,20 +13,12 @@ export default function InvitePage() {
     return createInvite(family.id)
   })
   let inviteResult = useSubmission(invite)
-  let inviteLink = createMemo(() => {
-    let code = inviteResult.result?.code
-    if (!code) return ""
-    let url = new URL(window.location.href)
-    url.pathname = "/family/join"
-    url.search = ""
-    url.searchParams.set("code", code)
-    return url.href
-  })
 
   if (!family.admin) {
     navigate("/family")
     return
   }
+  // TODO: show "expired" msg when expiration timer is up
 
   return (
     <main class="px-4 mx-auto max-w-xl pb-32">
@@ -83,9 +75,9 @@ export default function InvitePage() {
             <p class="text-light pt-2">
               Invite family members or trusted people to join your family and help manage your finances together. Share the QR code below with the person you are inviting. The QR code can only be used once.
             </p>
-            <div class="pt-10 pb-16">
+            <div class="py-10">
               <div class="bg-white p-1 w-64 h-64 rounded-xl border border-gray-300 mx-auto shadow shadow-primary-200">
-                <QRCodeBar text={inviteLink()} />
+                <QRCodeBar text={result().code} />
               </div>
               <ExpirationTimer date={result().expired_at} />
             </div>
