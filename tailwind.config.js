@@ -7,7 +7,11 @@ export default {
   ],
   theme: {
     extend: {
+      borderRadius: {
+        DEFAULT: "0.75rem",
+      },
       colors: {
+        gray: colors.slate,
         primary: {
           ...colors.sky,
           DEFAULT: colors.sky['600'],

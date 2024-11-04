@@ -21,7 +21,7 @@ export default function AccountsListPage() {
             <p class="text-2xl text-center font-medium">Accounts</p>
           </div>
         </section>
-        <ul class="space-y-1.5">
+        <ul class="space-y-1">
           <For each={accounts()}>
             {account => (
               <AccountListItem account={account} />
@@ -41,7 +41,7 @@ function AccountListItem(props: VoidProps<{ account: Account }>) {
   return (
     <li>
       <a href={`/accounts/${props.account.id}`}
-        class="flex items-center gap-4 bg-white rounded-lg shadow-lg px-6 py-4">
+        class="flex items-center gap-4 surface rounded px-6 py-4">
         <span class="bg-gray-100 w-10 h-10 p-1 rounded-full flex items-center justify-center"
           aria-hidden>
           {props.account.icon}

@@ -35,7 +35,7 @@ export default function FamilyPage() {
           <ul class="pt-4 pb-10 space-y-1">
             <For each={family.members}>
               {member => (
-                <li class="flex items-center gap-4 bg-white rounded-lg shadow-lg px-6 py-4">
+                <li class="flex items-center gap-4 surface rounded px-6 py-4">
                   <InitialsAvatar name={member.name} />
                   {member.name}
                   <Show when={member.admin}>

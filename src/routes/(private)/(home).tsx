@@ -62,11 +62,11 @@ export default function Home() {
   return (
     <PageLayout>
       <main class="relative px-4 pt-8 pb-24">
-        <section class="bg-white shadow-lg rounded-2xl text-center border border-gray-100 mb-4 py-8">
+        <section class="rounded text-center surface mb-4 py-8">
           <div class="grid grid-cols-[auto,1fr,auto] px-4">
             <a href={previousMonthLink()}
               aria-label="Previous month"
-              class="flex items-center justify-center bg-gray-100 rounded-full h-14 w-14"
+              class="flex items-center justify-center surface-elevated rounded-full h-14 w-14"
             >
               <ChevronLeftIcon />
             </a>
@@ -77,7 +77,7 @@ export default function Home() {
             </header>
             <a href={nextMonthLink()}
               aria-label="Next month"
-              class="flex items-center justify-center bg-gray-100 rounded-full h-14 w-14"
+              class="flex items-center justify-center surface-elevated rounded-full h-14 w-14"
             >
               <ChevronRightIcon />
             </a>
@@ -88,7 +88,7 @@ export default function Home() {
               "text-positive": summary().total >= 0,
             }}
           >{summary().total}</p>
-          <div class="inline-flex items-center text-center bg-gray-100 rounded-xl text-light px-4 py-2">
+          <div class="inline-flex items-center text-center surface-elevated rounded-xl text-light px-4 py-2">
             <p class="px-4 text-negative"
               classList={{
                 "text-negative": summary().carryOver < 0,
@@ -114,14 +114,16 @@ export default function Home() {
             </p>
           </div>
         </section>
-        <section class="pt-8">
+        <section class="pt-4">
           <header class="sr-only">Expenses</header>
           <Tab>
             <TabPanel key="transactions">
-              <ul class="space-y-1.5" >
+              <ul class="space-y-1 rounded-xl surface" >
                 <For each={transactions()}>
-                  {transaction => (
-                    <li>
+                  {(transaction, index) => (
+                    <li classList={{
+                      "border-t border-gray-200": index() > 0
+                    }}>
                       <TransactionListItem transaction={transaction}
                       />
                     </li>
@@ -162,7 +164,7 @@ function CategorySpending(props: VoidProps<{ category: CategoryWithSpending }>) 
         "border-negative/30": isNegative(),
       }}
     >
-      <details class="group bg-white rounded-r-lg shadow-lg [&[open]]:mb-10">
+      <details class="group surface [&[open]]:mb-10">
         <summary class="flex items-center gap-4 cursor-pointer py-6 px-6">
           <span class="bg-gray-100 w-10 h-10 p-1 rounded-full flex props.spending.-center justify-center"
             aria-hidden>

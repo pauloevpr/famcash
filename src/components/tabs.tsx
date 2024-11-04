@@ -20,7 +20,7 @@ export function useTabs(
       <div
         role="tablist" aria-label={label}>
         <div
-          class="flex gap-2 pb-6"
+          class="flex gap-6 pb-4"
         >
           <For each={tabs()}>{(item) => (
             <button type="button"
@@ -28,10 +28,10 @@ export function useTabs(
               id={`tab-${id()}-${item.key}`}
               aria-controls={`tabpanel-${id()}-${item.key}`}
               onClick={() => setSelected(item.key)}
-              class="flex items-center peer-focus:outline text-lg rounded-full cursor-pointer px-4 h-12"
+              class="flex items-center peer-focus:outline text-lg rounded-full cursor-pointer h-12"
               classList={{
                 "text-light": selected() !== item.key,
-                "bg-gray-200 text-default font-medium": selected() === item.key,
+                " text-default font-semibold": selected() === item.key,
               }}
             >
               {item.label}

@@ -3,7 +3,6 @@
 
 ## Issues
 
-- Fix: when syncing data for the first time when records already exits in the server, an exception will throw when loading the app because the sync updates the records one at a time and might leave the database in a invalid state (e.g. a transaction exists without the macthing acocunt)
 - Fix: turning a normal expense into recurrent produces two records
 - Fix: The "Spending" tab does not show categories that don't have expenses in the selected month
 - The buttons that make API calls are missing:
@@ -19,7 +18,7 @@
 
 ## Features
 - [ ] Auth
-    - [ ] Google
+    - [?] Google
     - [ ] Login with email 
         - [x] Basic login workflow
         - [x] Basic signup workflow

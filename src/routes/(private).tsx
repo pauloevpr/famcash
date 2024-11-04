@@ -86,6 +86,7 @@ function Startup(props: ParentProps) {
 }
 
 function Welcome() {
+  // TODO: this is missing a logoug button
   let navigate = useNavigate()
   let [params, setParams] = useSearchParams()
   let [store, setStore] = createStore({
@@ -138,7 +139,7 @@ function Welcome() {
 
   return (
     <main class="px-6 py-24">
-      <div class="relative mx-auto bg-white shadow-xl rounded-2xl px-10 pb-12 pt-6 max-w-md">
+      <div class="relative mx-auto surface shadow-xl rounded-2xl px-10 pb-12 pt-6 max-w-md">
         <div class="flex justify-center pb-10">
           <img class="h-20 w-20"
             alt="Logo"
@@ -158,7 +159,7 @@ function Welcome() {
             required />
           <Show when={store.nickname}>
             <Show when={params.type === undefined}>
-              <div class="bg-white rounded-xl border border-gray-200 mt-12">
+              <div class="surface rounded mt-12">
                 <For each={options}>
                   {(option, index) => (
                     <button

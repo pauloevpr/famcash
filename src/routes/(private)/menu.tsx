@@ -9,7 +9,12 @@ import { logout } from "~/lib/server";
 
 export default function MenuPage() {
   let { user } = useContext(AppContext);
-  let logoutAction = action(logout)
+  let logoutAction = action(async () => {
+    let confirmed = confirm("You are about to logout from this device. Confirm")
+    if (!confirmed) return
+    return await logout()
+  })
+
 
   let links = [
     { title: "Categories", href: "/categories", icon: TagIcon },
@@ -32,7 +37,7 @@ export default function MenuPage() {
         </section>
         <section class="px-1">
           <nav>
-            <ul class="bg-white rounded-xl border border-gray-200">
+            <ul class="surface rounded">
               <For each={links}>
                 {(link, index) => (
                   <li>
@@ -52,7 +57,7 @@ export default function MenuPage() {
                 )}
               </For>
             </ul>
-            <ul class=" bg-white rounded-xl border border-gray-200 mt-8">
+            <ul class="surface rounded mt-8">
               <li>
                 <form action={logoutAction}
                   method="post">

@@ -22,7 +22,7 @@ export function TransactionListItem(props: VoidProps<{
   return (
     <A
       href={`/transactions/${props.transaction.id}`}
-      class="flex items-center gap-4 bg-white rounded-lg shadow-lg px-6 py-4">
+      class="flex items-center gap-4 px-6 py-4">
       <span class="bg-gray-100 w-10 h-10 p-1 rounded-full flex items-center justify-center"
         aria-hidden>
         {props.transaction.category.icon}
@@ -109,7 +109,7 @@ export function TransactionForm(props: VoidProps<{
         onSubmit={onSubmit}
       >
         <Show when={!isCarryOver()}>
-          <fieldset class="flex bg-white rounded-full border border-gray-200 p-1 focus-within:outline focus-within:outline-2">
+          <fieldset class="flex surface rounded-full p-1 focus-within:outline focus-within:outline-2">
             <legend class="sr-only">Transaction Type</legend>
             <For each={typeSelection}>
               {(item) => (
@@ -132,7 +132,7 @@ export function TransactionForm(props: VoidProps<{
             </For>
           </fieldset>
         </Show>
-        <div class="grid grid-cols-[auto,1fr] bg-white rounded-xl border border-gray-200 ">
+        <div class="grid grid-cols-[auto,1fr] surface rounded">
           <label for="name"
             class="flex items-center h-full px-6"
           >Name</label>
@@ -200,7 +200,7 @@ export function TransactionForm(props: VoidProps<{
             </For>
           </select>
         </div>
-        <div class="bg-white rounded-xl border border-gray-200">
+        <div class="surface rounded">
           <label class="sr-only"
             for="amount"
           >Amount</label>
@@ -221,7 +221,7 @@ export function TransactionForm(props: VoidProps<{
           />
         </div>
         <Show when={!isCarryOver()}>
-          <div class="group grid grid-cols-[auto,1fr] bg-white rounded-xl border border-gray-200">
+          <div class="group grid grid-cols-[auto,1fr] surface rounded">
             <label class="group/repeat focus-within:outline-2 focus-within:outline flex items-center justify-between px-6 gap-6 col-span-2 h-12 rounded-xl group-has-[input:checked]:rounded-b-none">
               Repeat
               <input

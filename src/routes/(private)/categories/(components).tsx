@@ -38,7 +38,7 @@ export function CategoryForm(props: VoidProps<{
   }
 
   return (
-    <main>
+    <main class="max-w-2xl mx-auto">
       <h1 class="block px-6 py-12 font-medium text-2xl text-center">Category</h1>
       <form method="post"
         action="/categories/new"

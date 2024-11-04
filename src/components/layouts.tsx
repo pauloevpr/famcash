@@ -14,7 +14,7 @@ export function PageLayout(props: ParentProps) {
     return url.toString()
   })
   return (
-    <div class="max-w-5xl mx-auto" >
+    <div class="max-w-4xl mx-auto" >
       <Nav newTransactionUrl={newTransactionUrl()} />
       {props.children}
     </div>
@@ -25,21 +25,22 @@ function Nav(props: VoidProps<{ newTransactionUrl: string }>) {
   let navigate = useNavigate()
   let matchMenu = useMatch(() => "/menu")
   return (
-    <nav class={`fixed left-0 bottom-0 h-16 w-screen border-2 border-gray-200 z-10 bg-gradient-to-r from-primary-100 via-primary-50 to-primary-100 border-white shadow-lg
-                 sm:relative sm:mt-8 sm:mx-6 sm:mb-8 sm:rounded-full sm:w-auto `}>
+    <nav class={`fixed left-0 bottom-0 h-16 w-screen z-10 bg-white border border-gray-200 
+                 sm:relative sm:mt-8 sm:mx-6 sm:mb-0 sm:rounded-full sm:w-auto `}>
       <ul class="flex h-full max-w-5xl mx-auto">
-        <li class="flex items-center justify-center flex-grow">
-          <A href="/">
+        <li class="flex items-center justify-center flex-grow hover:bg-gradient-to-r hover:to-transparent hover:from-transparent hover:via-primary-50 hover:text-primary">
+          <A href="/"
+            class="flex items-center justify-center w-full h-full">
             <HomeIcon aria-label="Home" />
           </A>
         </li>
         <li class="flex items-center justify-center">
           <A href={props.newTransactionUrl}
-            class="flex items-center justify-center rounded-full bg-primary shadow-lg h-16 w-16 -mt-4 sm:-mt-2">
+            class="flex items-center justify-center rounded-full bg-primary-500 shadow-lg h-16 w-16 -mt-4 sm:-mt-2">
             <PlusIcon class="text-white w-8 h-8" />
           </A>
         </li>
-        <li class="flex items-center justify-center flex-grow">
+        <li class="flex items-center justify-center flex-grow hover:bg-gradient-to-r hover:to-transparent hover:from-transparent hover:via-primary-50 hover:text-primary">
           <Show when={matchMenu()}>
             <button
               onClick={() => navigate(-1)}

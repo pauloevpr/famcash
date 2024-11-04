@@ -49,7 +49,7 @@ export default function CategoryPlanEditPage() {
             <p class="text-light text-center">Spending Category</p>
           </header>
           <section >
-            <div class="bg-white rounded-xl border border-gray-200">
+            <div class="surface rounded">
               <h1 class="block px-6 py-4 text-xl font-medium">Spending Plan</h1>
               <div class="border-t border-gray-200 px-6 py-4">
                 <p class="text-light">The spending plan lets you set how much you'd like to allocate towards this category every month. It gives you the freedom to spend guilty-free up to the amount you define, and it helps you stay on track.</p>

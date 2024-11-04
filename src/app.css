@@ -10,11 +10,24 @@
 }
 
 @layer components {
+
     .text-default {
         color: hsla(240, 1%, 26%, 1);
     }
     .text-light {
         color: hsla(240, 1%, 26%, 0.73);
+    }
+    .surface {
+        @apply bg-white text-default border border-gray-200;
+    }
+    .surface {
+        @apply bg-white text-default border border-gray-200;
+    }
+    .surface-elevated {
+        @apply bg-gray-100 text-default;
+    }
+    .background {
+        @apply bg-gray-100 text-default;
     }
 }
 
