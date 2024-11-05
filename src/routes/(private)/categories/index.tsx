@@ -1,4 +1,4 @@
-import { For, VoidProps, createMemo, useContext } from "solid-js";
+import { For, Show, VoidProps, createMemo, useContext } from "solid-js";
 import { AppContext } from "~/components/context";
 import { TagIcon } from "~/components/icons";
 import { PageLayout } from "~/components/layouts";
@@ -51,6 +51,18 @@ function CategoryListItem(props: VoidProps<{ category: Category }>) {
             {props.category.name}
           </p>
         </span>
+        <Show when={props.category.plan}
+          fallback={
+            <span class="rounded border px-2 text-light">Unplanned</span>
+          }
+        >
+          {plan => (
+            <span class="text-light">
+              Plan:
+              <span class="font-medium text-default">{" " + plan().limit}</span>
+            </span>
+          )}
+        </Show>
       </a></li>
   )
 }

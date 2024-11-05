@@ -1,8 +1,7 @@
 # TODO
 
 ## Now
-   
-- display planned amount in the category list
+    
 - display plan editing in the category editing form
 - on desktop, improve the nav bar so it links to the main pages (home, categories, accounts); keep the plus and menu button still
 - add support for transfering
