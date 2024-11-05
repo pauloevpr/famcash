@@ -1,8 +1,8 @@
 type TransactionId = string
 
-export type DbRecordType = "accounts" | "categories" | "transactions" | "carryovers" | "recurrencies"
+export type DbRecordType = "categories" | "transactions" | "carryovers" | "recurrencies"
 
-export const DbRecordTypes = () => ["accounts", "categories", "transactions", "carryovers", "recurrencies"]
+export const DbRecordTypes = () => ["categories", "transactions", "carryovers", "recurrencies"]
 
 
 export interface DbFamily {
@@ -127,7 +127,6 @@ export interface ParsedTransactionId {
 	carryOver?: {
 		year: number
 		month: number
-		accountId: string
 	}
 	recurrency?: {
 		id: string
@@ -139,7 +138,6 @@ export type RecurrencyInterval = "month" | "week" | "year"
 
 export interface CarryOver {
 	id: string
-	accountId: string
 	yearMonthIndex: string,
 	amount: number
 }
@@ -157,14 +155,12 @@ export interface Transaction {
 	amount: number,
 	date: string,
 	yearMonthIndex: string,
-	accountId: string,
 	categoryId: string,
 	recurrency?: TransactionRecurrency
 }
 export type TransactionType = "expense" | "income" | "carryover"
 
 export interface TransactionWithRefs extends Transaction {
-	account: Account
 	category: Category
 }
 
@@ -177,10 +173,5 @@ export interface Category {
 	}
 }
 
-export interface Account {
-	id: string,
-	name: string,
-	icon: string,
-}
 
 

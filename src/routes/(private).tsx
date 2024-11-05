@@ -89,7 +89,7 @@ function Welcome() {
   // TODO: this is missing a logoug button
   let navigate = useNavigate()
   let [params, setParams] = useSearchParams()
-  let [store, setStore] = createStore({
+  let [state, setState] = createStore({
     nickname: "",
     invite: undefined as undefined | { familyName: string, code: string }
   })
@@ -131,7 +131,7 @@ function Welcome() {
     setParams({ ...params, scanner: undefined, error: undefined }, { replace: true })
     try {
       let invite = await getInvite(code)
-      setStore(current => ({ ...current, invite: { ...invite, code: code } }))
+      setState(current => ({ ...current, invite: { ...invite, code: code } }))
     } catch (e: any) {
       setParams({ ...params, error: e?.toString() || "Something went wront" }, { replace: true })
     }
@@ -154,10 +154,10 @@ function Welcome() {
             id="name"
             min="2"
             max="32"
-            onChange={e => setStore(current => ({ ...current, nickname: e.currentTarget.value.trim() }))}
+            onChange={e => setState(current => ({ ...current, nickname: e.currentTarget.value.trim() }))}
             class="block border h-12 px-4 w-full rounded-lg"
             required />
-          <Show when={store.nickname}>
+          <Show when={state.nickname}>
             <Show when={params.type === undefined}>
               <div class="surface rounded mt-12">
                 <For each={options}>
@@ -201,7 +201,7 @@ function Welcome() {
                   onCancel={onScannerCancel}
                 />
               </Show>
-              <Show when={store.invite}>
+              <Show when={state.invite}>
                 {(invite) => (
                   <div class="pt-12">
                     <label for="code"

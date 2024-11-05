@@ -1,7 +1,7 @@
 import { Accessor } from "solid-js";
 import { useReactiveIdb } from "./idb";
 import { CategoryWithSpending, CurrentFamily, CurrentUser, DbRecordType, Summary } from "./models";
-import { Account, Transaction, Category, TransactionWithRefs, CarryOver, ParsedTransactionId as ParsedTransactionId } from "./models"
+import { Transaction, Category, TransactionWithRefs, CarryOver, ParsedTransactionId as ParsedTransactionId } from "./models"
 import { DateOnly, generateDbRecordId } from "./utils"
 
 
@@ -61,7 +61,6 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 			if (plannedExpenses > summary.totalExpense) {
 				summary.total = summary.total + summary.totalExpense
 				summary.total -= plannedExpenses
-				summary.planned = plannedExpenses
 			}
 		}
 		return summary
@@ -69,18 +68,16 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 
 	function parseTransactionId(id: string): ParsedTransactionId {
 		if (id.startsWith("carryover")) {
-			let result = /^carryover-(\d{4})-(\d{2})-(.+)$/.exec(id)
-			if (result?.length != 4) throw Error("invalid carryover id")
+			let result = /^carryover-(\d{4})-(\d{2})$/.exec(id)
+			if (result?.length != 3) throw Error("invalid carryover id")
 			let year = parseInt(result[1])
 			if (isNaN(year)) throw Error("invalid carryover id")
 			let month = parseInt(result[2])
 			if (isNaN(month)) throw Error("invalid carryover id")
-			let accountId = result[3]
 			return {
 				carryOver: {
 					year: year,
-					month: month,
-					accountId: accountId,
+					month: month
 				},
 			}
 		}
@@ -98,16 +95,8 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 		return {}
 	}
 
-	function buildCarryOverId(date: DateOnly, accountId: string) {
-		return `carryover-${date.toYearMonthString()}-${accountId}`
-	}
-
-	async function deleteAccount(id: string) {
-		await softDelete("accounts", id)
-	}
-
-	function getAccount(id: string) {
-		return idb.get<Account>("accounts", id)
+	function buildCarryOverId(date: DateOnly) {
+		return `carryover-${date.toYearMonthString()}`
 	}
 
 	function getCategory(id: string) {
@@ -129,16 +118,6 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 		return categories
 	}
 
-	function getAccounts() {
-		let accounts = idb.getAll<Account>("accounts")
-		accounts.sort((a, b) => {
-			if (a.name < b.name) return -1;
-			if (a.name > b.name) return 1;
-			return 0;
-		});
-		return accounts
-	}
-
 	async function deleteTransaction(id: string) {
 		let parsedId = parseTransactionId(id)
 		if (parsedId.recurrency) {
@@ -154,10 +133,6 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 		await softDelete("transactions", id)
 	}
 
-	async function saveAccount(account: Account) {
-		await idb.set("accounts", account)
-	}
-
 	async function saveCategory(category: Category) {
 		await idb.set("categories", category)
 	}
@@ -166,13 +141,11 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 		let parsedId = parseTransactionId(transaction.id)
 		if (parsedId.carryOver) {
 			let existing = getCarryOver(
-				parsedId.carryOver.accountId,
 				parsedId.carryOver.year,
 				parsedId.carryOver.month
 			)
 			let carryOver: CarryOver = {
 				id: existing?.id || generateDbRecordId(),
-				accountId: parsedId.carryOver.accountId,
 				yearMonthIndex: DateOnly.fromYearMonth(
 					parsedId.carryOver.year,
 					parsedId.carryOver.month
@@ -215,17 +188,13 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 	function getTransactionById(id: string): TransactionWithRefs {
 		let parsedId = parseTransactionId(id)
 		if (parsedId.carryOver) {
-			let account = idb.get<Account>("accounts", parsedId.carryOver.accountId)
-			if (!account) throw Error(`invalid carryover id '${id}': account not found`)
 			let cutoff = getCutoffDate()
-			let carryOver = calculateCarryOverRecursively(account, parsedId.carryOver.year, parsedId.carryOver.month, cutoff)
+			let carryOver = calculateCarryOverRecursively(parsedId.carryOver.year, parsedId.carryOver.month, cutoff)
 			return {
 				...carryOver,
-				account: account,
 				category: carryOverCategory,
 			}
 		}
-		let accounts = idb.getAll<Account>("accounts")
 		let categories = idb.getAll<Category>("categories")
 		let transaction: Transaction
 		if (parsedId.recurrency) {
@@ -238,7 +207,6 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 
 		return {
 			...transaction,
-			account: accounts.find(account => account.id == transaction.accountId)!,
 			category: categories.find(category => category.id == transaction.categoryId)!,
 		}
 	}
@@ -246,7 +214,6 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 	function getTransactionsByMonth(year: number, month: number): TransactionWithRefs[] {
 		// TODO: order by date from the oldest
 		let cutoff = getCutoffDate()
-		let accounts = idb.getAll<Account>("accounts")
 		let categories = idb.getAll<Category>("categories")
 		categories.push({ ...carryOverCategory })
 		categories.push({ ...incomeCategory })
@@ -260,14 +227,11 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 		let recurrent = getRecurrentTransactionsByMonth(year, month)
 		transactions.push(...recurrent)
 
-		for (let account of accounts) {
-			transactions.push(calculateCarryOverRecursively(account, year, month, cutoff))
-		}
+		transactions.push(calculateCarryOverRecursively(year, month, cutoff))
 
 		let items = transactions.map<TransactionWithRefs>(transaction => {
 			return {
 				...transaction,
-				account: accounts.find(account => account.id == transaction.accountId)!,
 				category: categories.find(category => category.id == transaction.categoryId)!,
 			}
 		})
@@ -367,25 +331,23 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 		return transactions
 	}
 
-	function getCarryOver(accountId: string, year: number, month: number) {
+	function getCarryOver(year: number, month: number) {
 		return (
 			idb.getAll<CarryOver>("carryovers")
 		).filter(item =>
-			item.yearMonthIndex === DateOnly.fromYearMonth(year, month).toYearMonthString() &&
-			item.accountId === accountId
+			item.yearMonthIndex === DateOnly.fromYearMonth(year, month).toYearMonthString()
 		)[0]
 	}
 
-	function calculateCarryOverRecursively(account: Account, year: number, month: number, cutoff: DateOnly): Transaction {
+	function calculateCarryOverRecursively(year: number, month: number, cutoff: DateOnly): Transaction {
 		let thisMonth = DateOnly.fromYearMonth(year, month)
-		let id = buildCarryOverId(thisMonth, account.id)
+		let id = buildCarryOverId(thisMonth)
 		let carryover: Transaction = {
 			id: id,
 			type: "carryover",
-			name: `Carry Over ${account.name}`,
+			name: `Carry Over`,
 			date: `${thisMonth.toYearMonthString()}-01`,
 			yearMonthIndex: thisMonth.toYearMonthString(),
-			accountId: account.id,
 			categoryId: carryOverCategory.id,
 			amount: 0,
 		}
@@ -393,7 +355,7 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 			return carryover
 		}
 
-		let manual = getCarryOver(account.id, thisMonth.year, thisMonth.month)
+		let manual = getCarryOver(thisMonth.year, thisMonth.month)
 		if (manual) {
 			carryover.amount = manual.amount
 		} else {
@@ -401,17 +363,13 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 			let previousTransactions = (
 				idb.getAll<Transaction>("transactions")
 			).filter(transaction =>
-				transaction.yearMonthIndex === previousMonth.toYearMonthString() &&
-				transaction.accountId === account.id
+				transaction.yearMonthIndex === previousMonth.toYearMonthString()
 			)
 
-			let previousRecurrencies = (getRecurrentTransactionsByMonth(
-				previousMonth.year,
-				previousMonth.month
-			)).filter(transaction => transaction.accountId === account.id)
+			let previousRecurrencies = getRecurrentTransactionsByMonth(previousMonth.year, previousMonth.month)
 			previousTransactions.push(...previousRecurrencies)
 
-			let previousCarryOver = calculateCarryOverRecursively(account, previousMonth.year, previousMonth.month, cutoff)
+			let previousCarryOver = calculateCarryOverRecursively(previousMonth.year, previousMonth.month, cutoff)
 			previousTransactions.push(previousCarryOver)
 
 			let summary = calculateSummary(previousMonth.year, previousMonth.month, previousTransactions)
@@ -465,12 +423,6 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 			save: saveCategory,
 			income: (() => incomeCategory) as Accessor<Category>,
 			carryover: (() => carryOverCategory) as Accessor<Category>,
-		},
-		account: {
-			delete: deleteAccount,
-			getAll: getAccounts,
-			get: getAccount,
-			save: saveAccount,
 		},
 		transaction: {
 			delete: deleteTransaction,

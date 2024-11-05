@@ -2,7 +2,6 @@
 
 ## Now
   
-- force income to have a name
 - summary calculation for current and future months: some up the planned spending from the categories; use it as total spending if it is larger than actual spending
 - display "Planned" indicator in the summary for the current and future months 
 - display planned amount in the category list

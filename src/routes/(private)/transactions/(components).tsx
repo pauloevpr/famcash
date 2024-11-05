@@ -1,8 +1,8 @@
 import { A, useNavigate } from "@solidjs/router";
-import { createEffect, createMemo, createSignal, For, onMount, Show, useContext, VoidProps } from "solid-js";
+import { createMemo, createSignal, For, Show, useContext, VoidProps } from "solid-js";
 import { Button } from "~/components/buttons";
 import { AppContext } from "~/components/context";
-import { Account, Category, RecurrencyInterval, Transaction, TransactionRecurrency, TransactionType, TransactionWithRefs } from "~/lib/models";
+import { Category, RecurrencyInterval, Transaction, TransactionRecurrency, TransactionType, TransactionWithRefs } from "~/lib/models";
 import { DateOnly } from "~/lib/utils";
 
 export function TransactionListItem(props: VoidProps<{
@@ -29,7 +29,7 @@ export function TransactionListItem(props: VoidProps<{
         {props.transaction.category.icon}
       </span>
       <div class="flex-grow">
-        <p class="text-lg">{props.transaction.name}</p>
+        <p class="text-lg">{props.transaction.name || props.transaction.category.name}</p>
         <time class="text-light text-sm" datetime="2024-10-28T00:00:00Z" >
           {new DateOnly(props.transaction.date).date.toLocaleDateString()}
         </time>
@@ -51,7 +51,6 @@ export function TransactionListItem(props: VoidProps<{
 export function TransactionForm(props: VoidProps<{
   transaction: TransactionWithRefs,
   categories: Category[],
-  accounts: Account[],
   onSubmit: (transaction: Transaction) => Promise<void>,
   onDelete?: (id: string) => Promise<void>,
   type?: TransactionType
@@ -83,7 +82,6 @@ export function TransactionForm(props: VoidProps<{
       id: props.transaction.id,
       name: data.get("name") as string,
       amount: parseFloat(data.get("amount") as string),
-      accountId: data.get("account") as string,
       categoryId: data.get("category") as string,
       date: date.toString(),
       yearMonthIndex: date.toYearMonthString(),
@@ -144,11 +142,6 @@ export function TransactionForm(props: VoidProps<{
             <FieldDate value={props.transaction.date}
               disabled
             />
-            <Border />
-            <FieldAccount disabled={isCarryOver()}
-              accounts={props.accounts}
-              value={props.transaction.accountId}
-            />
           </div>
           <FieldAmount value={props.transaction.amount}
             colors
@@ -191,10 +184,6 @@ export function TransactionForm(props: VoidProps<{
               <Border />
               <FieldDate value={props.transaction.date} />
               <Border />
-              <FieldAccount accounts={props.accounts}
-                value={props.transaction.accountId}
-              />
-              <Border />
               <FieldName label="Note"
                 placeholder="Optional"
                 value={props.transaction.name} />
@@ -219,11 +208,6 @@ export function TransactionForm(props: VoidProps<{
                 value={props.transaction.name} />
               <Border />
               <FieldDate value={props.transaction.date} />
-              <Border />
-              <FieldAccount disabled={isCarryOver()}
-                accounts={props.accounts}
-                value={props.transaction.accountId}
-              />
             </div>
             <FieldAmount value={props.transaction.amount}
               min={0}
@@ -327,32 +311,6 @@ function FieldAmount(props: VoidProps<{ value: number, colors?: boolean, min?: n
           max={Number.MAX_VALUE}
         />
       </div>
-    </>
-  )
-}
-
-function FieldAccount(props: VoidProps<{ accounts: Account[], value: string, disabled?: boolean }>) {
-  return (
-    <>
-      <label
-        for="account"
-        class="flex items-center h-full px-6"
-      >Account</label>
-      <select
-        disabled={props.disabled}
-        id="account"
-        name="account"
-        class="h-12 px-4 bg-transparent w-full"
-      >
-        <For each={props.accounts}>
-          {account => (
-            <option value={account.id}
-              selected={account.id === props.value}>
-              {`${account.icon} ${account.name}`}
-            </option>
-          )}
-        </For>
-      </select>
     </>
   )
 }

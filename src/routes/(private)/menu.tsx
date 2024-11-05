@@ -2,7 +2,7 @@ import { A, action, } from "@solidjs/router";
 import { For, useContext } from "solid-js";
 import { InitialsAvatar } from "~/components/avatar";
 import { AppContext } from "~/components/context";
-import { HandHeartIcon, HomeIcon, LogoutIcon, TagIcon, WalletIcon } from "~/components/icons";
+import { HandHeartIcon, LogoutIcon, TagIcon, } from "~/components/icons";
 import { PageLayout } from "~/components/layouts";
 import { logout } from "~/lib/server";
 
@@ -15,10 +15,8 @@ export default function MenuPage() {
     return await logout()
   })
 
-
   let links = [
     { title: "Categories", href: "/categories", icon: TagIcon },
-    { title: "Accounts", href: "/accounts", icon: WalletIcon },
     { title: "Family", href: "/family", icon: HandHeartIcon },
   ]
 

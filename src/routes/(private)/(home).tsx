@@ -52,7 +52,7 @@ export default function Home() {
     return DateOnly.fromYearMonth(current.year, current.month).date.toLocaleDateString(undefined, { month: "long" })
   })
   let summary = createMemo(() => {
-    return store.calculateSummary(transactions())
+    return store.calculateSummary(currentMonth().year, currentMonth().month, transactions())
   })
   let { Tab, TabPanel } = useTabs("Transactions Views", () => [
     { label: "Transactions", key: "transactions" },

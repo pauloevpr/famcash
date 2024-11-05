@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "@solidjs/router";
-import { createMemo, Show, useContext } from "solid-js";
+import { useContext } from "solid-js";
 import { Transaction } from "~/lib/models";
 import { TransactionForm } from "./(components)";
 import { AppContext } from "~/components/context";
@@ -10,11 +10,9 @@ export default function TransactionEditPage() {
   let navigate = useNavigate()
   let data = (() => {
     let transaction = store.transaction.get(params.id)
-    let accounts = store.account.getAll()
     let categories = store.category.getAll()
     return {
       transaction,
-      accounts,
       categories
     }
   })()
@@ -41,7 +39,6 @@ export default function TransactionEditPage() {
   return (
     <TransactionForm transaction={data.transaction}
       categories={data.categories}
-      accounts={data.accounts}
       onSubmit={onSubmit}
       onDelete={onDelete}
       type={data.transaction.type}
