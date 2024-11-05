@@ -2,7 +2,6 @@
 
 ## Now
   
-- summary calculation for current and future months: some up the planned spending from the categories; use it as total spending if it is larger than actual spending
 - display "Planned" indicator in the summary for the current and future months 
 - display planned amount in the category list
 - display plan editing in the category editing form
@@ -85,8 +84,3 @@
         - [x] total planned
         - [x] remaining amount to spend
     - [x] View all expenses for a given category and month
-- [x] Accounts
-    - [x] List accounts
-    - [x] Add account
-    - [x] Edit account
-    - [x] Delete unlikend account
