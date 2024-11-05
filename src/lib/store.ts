@@ -31,7 +31,7 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 		return Object.values(category)
 	}
 
-	function calculateSummary(transactions: Transaction[]): Summary {
+	function calculateSummary(year: number, month: number, transactions: Transaction[]): Summary {
 		let summary: Summary = {
 			total: 0,
 			totalExpense: 0,
@@ -52,9 +52,20 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 				summary.total += t.amount
 			}
 		}
+		let pastMonth = new Date()
+		pastMonth.setDate(-1)
+		let isUpcomingMonth = DateOnly.fromYearMonth(year, month).time > pastMonth.getTime()
+		if (isUpcomingMonth) {
+			let categories = idb.getAll<Category>("categories")
+			let plannedExpenses = categories.reduce((sum, current) => ((current.plan?.limit || 0) + sum), 0)
+			if (plannedExpenses > summary.totalExpense) {
+				summary.total = summary.total + summary.totalExpense
+				summary.total -= plannedExpenses
+				summary.planned = plannedExpenses
+			}
+		}
 		return summary
 	}
-
 
 	function parseTransactionId(id: string): ParsedTransactionId {
 		if (id.startsWith("carryover")) {
@@ -403,7 +414,8 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 			let previousCarryOver = calculateCarryOverRecursively(account, previousMonth.year, previousMonth.month, cutoff)
 			previousTransactions.push(previousCarryOver)
 
-			carryover.amount = calculateSummary(previousTransactions).total
+			let summary = calculateSummary(previousMonth.year, previousMonth.month, previousTransactions)
+			carryover.amount = summary.total
 		}
 		return carryover
 	}
@@ -438,7 +450,7 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 		if (!d) return
 		let record = {
 			id,
-			deleted: "true",
+			deleted: "true" as "true",
 		}
 		await idb.set(store, record, false)
 		idb.deleteFromCache(store, id)

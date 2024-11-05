@@ -70,13 +70,14 @@ export function useReactiveIdb(name: string) {
 		return deleteMany([[type, id]])
 	}
 
-	async function setMany<T extends Object & { id: string }>(items: [DbRecordType, data: T][], synced?: boolean): Promise<void> {
+	async function setMany<T extends Object & { id: string, deleted?: "true" }>(items: [DbRecordType, data: T][], synced?: boolean): Promise<void> {
 		const db = await open()
 		let updates = await Promise.all(
 			items.map(([type, data]) => new Promise<Function>((resolve, reject) => {
 				let record: IdbRecord = {
 					id: data.id,
 					type,
+					deleted: data.deleted,
 					data: JSON.parse(JSON.stringify(data)),
 				}
 				delete record.data.id
@@ -104,7 +105,7 @@ export function useReactiveIdb(name: string) {
 		}
 	}
 
-	function set<T extends Object & { id: string }>(type: DbRecordType, data: T, synced?: boolean): Promise<void> {
+	function set<T extends Object & { id: string, deleted?: "true" }>(type: DbRecordType, data: T, synced?: boolean): Promise<void> {
 		return setMany([[type, data]], synced)
 	}
 
