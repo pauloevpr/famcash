@@ -77,8 +77,10 @@ export function useReactiveIdb(name: string) {
 				let record: IdbRecord = {
 					id: data.id,
 					type,
-					deleted: data.deleted,
 					data: JSON.parse(JSON.stringify(data)),
+				}
+				if (data.deleted === "true") {
+					record.deleted = "true"
 				}
 				delete record.data.id
 				if (!synced) {

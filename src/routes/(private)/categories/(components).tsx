@@ -1,12 +1,14 @@
 import { useNavigate } from "@solidjs/router"
 import { For, Show, VoidProps } from "solid-js"
 import { Button } from "~/components/buttons"
+import { LightbulbIcon } from "~/components/icons"
 import { Category } from "~/lib/models"
 
 export function CategoryForm(props: VoidProps<{
   category: Category,
   onSubmit: (category: Category) => void,
-  onDelete?: (id: string) => void
+  onDelete?: (id: string) => void,
+  plan?: boolean
 }>
 ) {
   let navigate = useNavigate()
@@ -33,6 +35,14 @@ export function CategoryForm(props: VoidProps<{
       id: props.category.id,
       name: data.get("name") as string,
       icon: data.get("icon") as string,
+    }
+    let amount = parseInt(data.get("amount") as string)
+    if (isNaN(amount)) {
+      category.plan = undefined
+    } else {
+      category.plan = {
+        limit: amount
+      }
     }
     props.onSubmit(category)
   }
@@ -70,6 +80,7 @@ export function CategoryForm(props: VoidProps<{
             </For>
           </select>
         </div>
+        <SpendingPlanField category={props.category} />
         <div class="flex items-center flex-col gap-2">
           <Button label="Save Category"
             style="primary"
@@ -94,5 +105,32 @@ export function CategoryForm(props: VoidProps<{
       </form>
     </main>
 
+  )
+}
+
+export function SpendingPlanField(props: VoidProps<{ category: Category }>) {
+  return (
+    <section class="surface rounded">
+      <header class="flex items-center gap-3 px-6 py-4 text-lg font-medium">
+        <LightbulbIcon class="text-gray-400 w-5 h-5" />
+        Spending Plan
+      </header>
+      <div class="border-t border-gray-200 px-6 py-4">
+        <p class="text-light">The spending plan lets you set how much you'd like to allocate towards this category every month. It gives you the freedom to spend guilty-free up to the amount you define, and it helps you stay on track.</p>
+        <div class="pt-8">
+          <label for="amount"
+            class="font-medium block pb-4">How much would you like to spend?</label>
+          <input
+            id="amount"
+            name="amount"
+            class="h-16 rounded-lg border border-gray-200 px-6 text-center text-xl w-full"
+            type="number"
+            min="0"
+            step="0.01"
+            value={props.category.plan?.limit}
+          />
+        </div>
+      </div>
+    </section>
   )
 }

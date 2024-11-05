@@ -190,9 +190,11 @@ function CategorySpending(props: VoidProps<{ category: CategoryWithSpending }>) 
           <span class="block flex-grow text-lg group-open:font-semibold">
             {props.category.name}
           </span>
-          <span class="text-lg group-open:font-medium transition-all">
+          <span class="text-lg transition-all">
             <span class="sr-only" >Total Spent:</span>
-            {props.category.total}
+            <span class="font-medium">{props.category.total}</span>
+            <span class="sr-only" >Planned Spent:</span>
+            <span class="text-light font-normal" >{` / ${props.category.plan?.limit}`}</span>
           </span>
           <ChevronRightIcon class="w-5 h-5 text-gray-400 group-open:rotate-90 transition-transform duration-200" />
         </summary>
