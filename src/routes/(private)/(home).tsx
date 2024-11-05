@@ -108,26 +108,13 @@ export default function Home() {
               {summary().carryOver}
               <span class="block text-light text-xs">Carry Over</span>
             </p>
-            <p class="px-4"
-              classList={{
-                "text-positive": summary().totalIncome > 0
-              }}>
-              {summary().totalIncome}
-              <span class="block text-light text-xs">Income</span>
-            </p>
-            <p class="px-4"
-              classList={{
-                "text-negative": summary().totalExpenses > 0
-              }}>
-              {`${summary().totalExpenses}`}
+            <p class="px-4">
+              {`${summary().totalExpenses} / ${summary().plannedExpenses}`}
               <span class="block text-light text-xs">Expenses</span>
             </p>
-            <p class="px-4"
-              classList={{
-                "text-negative": summary().totalExpenses > 0
-              }}>
-              {`${summary().plannedExpenses}`}
-              <span class="block text-light text-xs">Planned</span>
+            <p class="px-4">
+              {summary().totalIncome}
+              <span class="block text-light text-xs">Income</span>
             </p>
           </div>
         </section>

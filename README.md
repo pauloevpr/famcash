@@ -1,8 +1,5 @@
 # TODO
 
-## Now
-      
-- auth: session expiration should auto extend as requests come in
 
 ## Issues
 
@@ -13,6 +10,7 @@
     - loading indicators
         - only displays if it takes longer than 100ms, then shows for at least 300ms
     - error handling
+- Fix: auth: session expiration should auto extend as requests come in
 - all pages dont handle empty state 
 - all forms dont use useSubmission for error handling, loading indicator, prevent concurrency
 - TBD: should we delete the idb database on logout?

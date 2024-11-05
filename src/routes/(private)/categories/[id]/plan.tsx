@@ -6,7 +6,7 @@ import { Category } from "~/lib/models"
 import { SpendingPlanField } from "../(components)"
 
 
-export default function CategoryPlanEditPage() {
+export default function PlanEditPage() {
   let { store } = useContext(AppContext)
   let navigate = useNavigate()
   let params = useParams()

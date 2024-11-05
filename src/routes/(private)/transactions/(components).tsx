@@ -2,7 +2,6 @@ import { A, useNavigate } from "@solidjs/router";
 import { createMemo, createSignal, For, Show, useContext, VoidProps } from "solid-js";
 import { Button } from "~/components/buttons";
 import { AppContext } from "~/components/context";
-import { BadgeCheckIcon } from "~/components/icons";
 import { Category, RecurrencyInterval, Transaction, TransactionRecurrency, TransactionType, TransactionWithRefs } from "~/lib/models";
 import { DateOnly } from "~/lib/utils";
 
@@ -16,6 +15,13 @@ export function TransactionListItem(props: VoidProps<{
   })
   let manualCarryOver = createMemo(() => props.transaction.carryOver?.type === "manual")
   let autoCarryOver = createMemo(() => props.transaction.carryOver?.type === "auto")
+  let normalizedAmount = createMemo(() => {
+    let amount = props.transaction.amount
+    if (amount < 0) {
+      amount = amount * -1
+    }
+    return amount
+  })
   return (
     <A
       href={`/transactions/${props.transaction.id}`}
@@ -46,7 +52,7 @@ export function TransactionListItem(props: VoidProps<{
         classList={{
           "text-positive-700 bg-positive-600/10 font-medium px-3 py-0.5 rounded-md before:content-['+']": isPositive(),
         }}>
-        {props.transaction.amount}
+        {normalizedAmount()}
       </p>
     </A>
   )
@@ -69,25 +75,6 @@ export function TransactionForm(props: VoidProps<{
     if (props.type === "expense") return [expense]
     if (props.type === "income") return [income]
     return [expense, income]
-  })
-  let isCarryOver = createMemo(() => {
-    return props.transaction.type === "carryover"
-  })
-  let title = createMemo(() => {
-    if (isCarryOver()) return "Carry Over"
-    return "Transaction"
-  })
-  let carryOverDate = createMemo(() => {
-    return new DateOnly(props.transaction.date).date.toLocaleDateString(
-      undefined, { year: "numeric", month: "long" }
-    )
-  })
-  let canSaveCarryOver = createMemo(() => {
-    let endOfThisMonth = new Date()
-    endOfThisMonth.setMonth(endOfThisMonth.getMonth() + 1)
-    endOfThisMonth.setDate(-1)
-    let transaction = new DateOnly(props.transaction.date)
-    return transaction.time < endOfThisMonth.getTime()
   })
 
   function onSubmit(e: SubmitEvent & { currentTarget: HTMLFormElement }) {
@@ -114,7 +101,7 @@ export function TransactionForm(props: VoidProps<{
         endDate: endDate ? new DateOnly(endDate).toString() : undefined,
       }
     }
-    if (!isCarryOver() && transaction.amount < 0) {
+    if (transaction.amount < 0) {
       transaction.amount = transaction.amount * -1
     }
     props.onSubmit(transaction)
@@ -143,126 +130,184 @@ export function TransactionForm(props: VoidProps<{
       )}
     </Show>
   )
-  let Border = () => (
-    <div class="border-t border-gray-200 col-span-2" />
+
+  return (
+    <>
+      <Show when={props.transaction.type === "carryover"}>
+        <CarryOverForm transaction={props.transaction}
+          onSubmit={props.onSubmit} />
+      </Show>
+      <Show when={props.transaction.type !== "carryover"}>
+        <main class="max-w-3xl mx-auto">
+          <h1 class="class=block px-6 py-8 font-medium text-2xl text-center">Transaction</h1>
+          <form class="flex flex-col gap-10 px-1 text-lg"
+            onSubmit={onSubmit}
+          >
+            <Show when={type() !== "carryover"}>
+              <fieldset class="flex surface rounded-full p-1 focus-within:outline focus-within:outline-2">
+                <legend class="sr-only">Transaction Type</legend>
+                <For each={typeSelection()}>
+                  {(item) => (
+                    <div>
+                      <input type="radio"
+                        id={`type-${item.value}`}
+                        value={item.value}
+                        name="type"
+                        class="peer sr-only"
+                        checked={item.value === type()}
+                        onChange={_ => setType(item.value)}
+                      />
+                      < label
+                        for={`type-${item.value}`}
+                        class={item.style + " inline-flex items-center peer-checked:font-medium cursor-pointer rounded-full px-6 h-12"}>
+                        {item.label}
+                      </label>
+                    </div>
+                  )}
+                </For>
+              </fieldset>
+              <Show when={type() === "expense"} >
+                <div class="grid grid-cols-[auto,1fr] surface rounded">
+                  <FieldCategory categories={props.categories}
+                    value={props.transaction.categoryId}
+                  />
+                  <Border />
+                  <FieldDate value={props.transaction.date} />
+                  <Border />
+                  <FieldName label="Note"
+                    placeholder="Optional"
+                    value={props.transaction.name} />
+                </div>
+                <FieldAmount value={props.transaction.amount}
+                  min={0}
+                />
+                <FieldRecurrency recurrency={props.transaction.recurrency} />
+                <div>
+                  <Button label="Save Expense"
+                    style="negative"
+                  />
+                  <DeleteButton />
+                  <CancelButton />
+                </div>
+              </Show>
+              <Show when={type() === "income"} >
+                <div class="grid grid-cols-[auto,1fr] surface rounded">
+                  <FieldName label="Name"
+                    required
+                    placeholder="Enter Name"
+                    value={props.transaction.name} />
+                  <Border />
+                  <FieldDate value={props.transaction.date} />
+                </div>
+                <FieldAmount value={props.transaction.amount}
+                  min={0}
+                />
+                <FieldRecurrency recurrency={props.transaction.recurrency} />
+                <div>
+                  <Button label="Save Income"
+                    style="positive"
+                  />
+                  <DeleteButton />
+                  <CancelButton />
+                </div>
+              </Show>
+            </Show>
+          </form>
+        </main >
+      </Show>
+    </>
+  )
+}
+
+function CarryOverForm(props: VoidProps<{
+  transaction: Transaction,
+  onSubmit: (transaction: Transaction) => Promise<void>,
+}>) {
+  let navigate = useNavigate()
+  let canSaveCarryOver = createMemo(() => {
+    let endOfThisMonth = new Date()
+    endOfThisMonth.setMonth(endOfThisMonth.getMonth() + 1)
+    endOfThisMonth.setDate(-1)
+    let transaction = new DateOnly(props.transaction.date)
+    return transaction.time < endOfThisMonth.getTime()
+  })
+  let carryOverDate = createMemo(() => {
+    return new DateOnly(props.transaction.date).date.toLocaleDateString(
+      undefined, { year: "numeric", month: "long" }
+    )
+  })
+
+  function onSubmit(e: SubmitEvent & { currentTarget: HTMLFormElement }) {
+    e.preventDefault()
+    let data = new FormData(e.currentTarget)
+    let transaction = JSON.parse(JSON.stringify(props.transaction)) as Transaction
+    transaction.amount = parseFloat(data.get("amount") as string)
+    props.onSubmit(transaction)
+  }
+
+  let CancelButton = (props: VoidProps<{ label?: string }>) => (
+    <div class="pt-8">
+      <Button label={props.label || "Cancel"}
+        type="button"
+        style="neutral"
+        onclick={() => navigate(-1)}
+      />
+    </div>
   )
 
   return (
     <main class="max-w-3xl mx-auto">
-      <h1 class="class=block px-6 py-8 font-medium text-2xl text-center">{title()}</h1>
+      <h1 class="class=block px-6 py-8 font-medium text-2xl text-center">
+        Carry Over
+      </h1>
       <form class="flex flex-col gap-10 px-1 text-lg"
         onSubmit={onSubmit}
       >
-        <Show when={type() === "carryover"}>
-          <div class="grid grid-cols-[auto,1fr] surface rounded">
-            <p class="flex items-center px-6 py-3">
-              Month
-            </p>
+        <div class="grid grid-cols-[auto,1fr] surface rounded">
+          <p class="flex items-center px-6 py-3">
+            Month
+          </p>
+          <p class="flex items-center px-6 text-light py-3">
+            {carryOverDate()}
+          </p>
+          <Border />
+          <p class="flex items-center px-6 py-3">
+            Status
+          </p>
+          <Show when={props.transaction.carryOver?.type === "auto"}>
             <p class="flex items-center px-6 text-light py-3">
-              {carryOverDate()}
+              Unconfirmed - this carryover is auto-calculated
             </p>
-            <Border />
-            <p class="flex items-center px-6 py-3">
-              Status
-            </p>
-            <Show when={props.transaction.carryOver?.type === "auto"}>
-              <p class="flex items-center px-6 text-light py-3">
-                Unconfirmed - this carryover is auto-calculated
+          </Show>
+          <Show when={props.transaction.carryOver?.type === "manual"}>
+            <div class="flex items-center px-6 text-light py-3">
+              <p class=" badge-primary">
+                Confirmed
               </p>
-            </Show>
-            <Show when={props.transaction.carryOver?.type === "manual"}>
-              <div class="flex items-center px-6 text-light py-3">
-                <p class=" badge-primary">
-                  Confirmed
-                </p>
-              </div>
-            </Show>
-          </div>
-          <FieldAmount value={props.transaction.amount}
-            colors
-          />
-          <div>
-            <Show when={canSaveCarryOver()}
-              fallback={<CancelButton label="Back" />}
-            >
-              <Button label={props.transaction.carryOver?.type === "auto" ? "Confim and Save Carry Over" : "Save Carry Over"}
-                style="primary"
-              />
-              <CancelButton />
-            </Show>
-          </div>
-        </Show>
-        <Show when={type() !== "carryover"}>
-          <fieldset class="flex surface rounded-full p-1 focus-within:outline focus-within:outline-2">
-            <legend class="sr-only">Transaction Type</legend>
-            <For each={typeSelection()}>
-              {(item) => (
-                <div>
-                  <input type="radio"
-                    id={`type-${item.value}`}
-                    value={item.value}
-                    name="type"
-                    class="peer sr-only"
-                    checked={item.value === type()}
-                    onChange={_ => setType(item.value)}
-                  />
-                  < label
-                    for={`type-${item.value}`}
-                    class={item.style + " inline-flex items-center peer-checked:font-medium cursor-pointer rounded-full px-6 h-12"}>
-                    {item.label}
-                  </label>
-                </div>
-              )}
-            </For>
-          </fieldset>
-          <Show when={type() === "expense"} >
-            <div class="grid grid-cols-[auto,1fr] surface rounded">
-              <FieldCategory categories={props.categories}
-                value={props.transaction.categoryId}
-              />
-              <Border />
-              <FieldDate value={props.transaction.date} />
-              <Border />
-              <FieldName label="Note"
-                placeholder="Optional"
-                value={props.transaction.name} />
-            </div>
-            <FieldAmount value={props.transaction.amount}
-              min={0}
-            />
-            <FieldRecurrency recurrency={props.transaction.recurrency} />
-            <div>
-              <Button label="Save Expense"
-                style="negative"
-              />
-              <DeleteButton />
-              <CancelButton />
             </div>
           </Show>
-          <Show when={type() === "income"} >
-            <div class="grid grid-cols-[auto,1fr] surface rounded">
-              <FieldName label="Name"
-                required
-                placeholder="Enter Name"
-                value={props.transaction.name} />
-              <Border />
-              <FieldDate value={props.transaction.date} />
-            </div>
-            <FieldAmount value={props.transaction.amount}
-              min={0}
+        </div>
+        <FieldAmount value={props.transaction.amount}
+          colors
+        />
+        <div>
+          <Show when={canSaveCarryOver()}
+            fallback={<CancelButton label="Back" />}
+          >
+            <Button label={props.transaction.carryOver?.type === "auto" ? "Confim and Save Carry Over" : "Save Carry Over"}
+              style="primary"
             />
-            <FieldRecurrency recurrency={props.transaction.recurrency} />
-            <div>
-              <Button label="Save Income"
-                style="positive"
-              />
-              <DeleteButton />
-              <CancelButton />
-            </div>
+            <CancelButton />
           </Show>
-        </Show>
+        </div>
       </form>
     </main >
+  )
+}
+
+function Border() {
+  return (
+    <div class="border-t border-gray-200 col-span-2" />
   )
 }
 

@@ -1,7 +1,7 @@
 import { useNavigate } from "@solidjs/router"
 import { For, Show, VoidProps } from "solid-js"
 import { Button } from "~/components/buttons"
-import { LightbulbIcon } from "~/components/icons"
+import { LightBulbIcon } from "~/components/icons"
 import { Category } from "~/lib/models"
 
 export function CategoryForm(props: VoidProps<{
@@ -112,7 +112,7 @@ export function SpendingPlanField(props: VoidProps<{ category: Category }>) {
   return (
     <section class="surface rounded">
       <header class="flex items-center gap-3 px-6 py-4 text-lg font-medium">
-        <LightbulbIcon class="text-gray-400 w-5 h-5" />
+        <LightBulbIcon class="text-gray-400 w-5 h-5" />
         Spending Plan
       </header>
       <div class="border-t border-gray-200 px-6 py-4">

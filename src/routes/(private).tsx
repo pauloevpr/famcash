@@ -75,7 +75,7 @@ function Startup(props: ParentProps) {
   return (
     <Show when={done()}
       fallback={
-        <dialog class="bg-white z-[999] fixed top-0 left-0 flex items-center justify-center h-screen w-screen"
+        <dialog class="background z-[999] fixed top-0 left-0 flex items-center justify-center h-screen w-screen"
           open>
           Loading...
         </dialog>
