@@ -16,6 +16,7 @@ export default function TransactionEditPage() {
       categories
     }
   })()
+
   async function onSubmit(transaction: Transaction) {
     let parsedId = store.parseTransactionId(transaction.id)
     if (parsedId.recurrency) {
@@ -25,6 +26,7 @@ export default function TransactionEditPage() {
     await store.transaction.save(transaction)
     navigate(-1)
   }
+
   async function onDelete(id: string) {
     let msg = "You are about to delete this transaction. Confirm?"
     let parsedId = store.parseTransactionId(id)
@@ -36,6 +38,7 @@ export default function TransactionEditPage() {
     await store.transaction.delete(id)
     navigate(-1)
   }
+
   return (
     <TransactionForm transaction={data.transaction}
       categories={data.categories}

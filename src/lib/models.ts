@@ -158,6 +158,9 @@ export interface Transaction {
 	yearMonthIndex: string,
 	categoryId: string,
 	recurrency?: TransactionRecurrency
+	carryOver?: {
+		type: "manual" | "auto"
+	}
 }
 export type TransactionType = "expense" | "income" | "carryover"
 

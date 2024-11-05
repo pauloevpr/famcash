@@ -1,10 +1,7 @@
 # TODO
 
 ## Now
-     
-- on desktop, improve the nav bar so it links to the main pages (home, categories, accounts); keep the plus and menu button still
-- add support for transfering
-- introduce carryover review - display indicators to get people to confirm the actual carryover amount; display a check on confirmed carryovers?
+      
 - auth: session expiration should auto extend as requests come in
 
 ## Issues

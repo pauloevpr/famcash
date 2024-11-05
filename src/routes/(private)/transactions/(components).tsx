@@ -2,24 +2,20 @@ import { A, useNavigate } from "@solidjs/router";
 import { createMemo, createSignal, For, Show, useContext, VoidProps } from "solid-js";
 import { Button } from "~/components/buttons";
 import { AppContext } from "~/components/context";
+import { BadgeCheckIcon } from "~/components/icons";
 import { Category, RecurrencyInterval, Transaction, TransactionRecurrency, TransactionType, TransactionWithRefs } from "~/lib/models";
 import { DateOnly } from "~/lib/utils";
 
 export function TransactionListItem(props: VoidProps<{
   transaction: TransactionWithRefs,
 }>) {
-  let isNegative = createMemo(() => {
-    if (props.transaction.type === "expense") return true
-    if (props.transaction.type === "carryover" && props.transaction.amount < 0) return true
+  let isPositive = createMemo(() => {
+    if (props.transaction.type === "income") return true
+    if (props.transaction.type === "carryover" && props.transaction.amount > 0) return true
     return false
   })
-  let normalizedAmount = createMemo(() => {
-    let a = props.transaction.amount
-    if (a < 0) {
-      a = a * -1
-    }
-    return a
-  })
+  let manualCarryOver = createMemo(() => props.transaction.carryOver?.type === "manual")
+  let autoCarryOver = createMemo(() => props.transaction.carryOver?.type === "auto")
   return (
     <A
       href={`/transactions/${props.transaction.id}`}
@@ -29,20 +25,28 @@ export function TransactionListItem(props: VoidProps<{
         {props.transaction.category.icon}
       </span>
       <div class="flex-grow">
-        <p class="text-lg">{props.transaction.name || props.transaction.category.name}</p>
+        <p class="flex items-center gap-2 text-lg">
+          {props.transaction.name || props.transaction.category.name}
+          <Show when={manualCarryOver()}>
+            <p class="badge-primary text-sm">
+              Confirmed
+            </p>
+          </Show>
+          <Show when={autoCarryOver()}>
+            <p class="badge-neutral text-sm font-medium">
+              Unconfirmed
+            </p>
+          </Show>
+        </p>
         <time class="text-light text-sm" datetime="2024-10-28T00:00:00Z" >
           {new DateOnly(props.transaction.date).date.toLocaleDateString()}
         </time>
       </div>
       <p class="text-left"
         classList={{
-          "text-positive": !isNegative(),
-          "text-negative": isNegative(),
+          "text-positive-700 bg-positive-600/10 font-medium px-3 py-0.5 rounded-md before:content-['+']": isPositive(),
         }}>
-        <Show when={isNegative()}>
-          <span>-</span>
-        </Show>
-        {normalizedAmount()}
+        {props.transaction.amount}
       </p>
     </A>
   )
@@ -72,6 +76,18 @@ export function TransactionForm(props: VoidProps<{
   let title = createMemo(() => {
     if (isCarryOver()) return "Carry Over"
     return "Transaction"
+  })
+  let carryOverDate = createMemo(() => {
+    return new DateOnly(props.transaction.date).date.toLocaleDateString(
+      undefined, { year: "numeric", month: "long" }
+    )
+  })
+  let canSaveCarryOver = createMemo(() => {
+    let endOfThisMonth = new Date()
+    endOfThisMonth.setMonth(endOfThisMonth.getMonth() + 1)
+    endOfThisMonth.setDate(-1)
+    let transaction = new DateOnly(props.transaction.date)
+    return transaction.time < endOfThisMonth.getTime()
   })
 
   function onSubmit(e: SubmitEvent & { currentTarget: HTMLFormElement }) {
@@ -104,9 +120,9 @@ export function TransactionForm(props: VoidProps<{
     props.onSubmit(transaction)
   }
 
-  let CancelButton = () => (
+  let CancelButton = (props: VoidProps<{ label?: string }>) => (
     <div class="pt-8">
-      <Button label="Cancel"
+      <Button label={props.label || "Cancel"}
         type="button"
         style="neutral"
         onclick={() => navigate(-1)}
@@ -139,18 +155,41 @@ export function TransactionForm(props: VoidProps<{
       >
         <Show when={type() === "carryover"}>
           <div class="grid grid-cols-[auto,1fr] surface rounded">
-            <FieldDate value={props.transaction.date}
-              disabled
-            />
+            <p class="flex items-center px-6 py-3">
+              Month
+            </p>
+            <p class="flex items-center px-6 text-light py-3">
+              {carryOverDate()}
+            </p>
+            <Border />
+            <p class="flex items-center px-6 py-3">
+              Status
+            </p>
+            <Show when={props.transaction.carryOver?.type === "auto"}>
+              <p class="flex items-center px-6 text-light py-3">
+                Unconfirmed - this carryover is auto-calculated
+              </p>
+            </Show>
+            <Show when={props.transaction.carryOver?.type === "manual"}>
+              <div class="flex items-center px-6 text-light py-3">
+                <p class=" badge-primary">
+                  Confirmed
+                </p>
+              </div>
+            </Show>
           </div>
           <FieldAmount value={props.transaction.amount}
             colors
           />
           <div>
-            <Button label="Save Carry Over"
-              style="primary"
-            />
-            <CancelButton />
+            <Show when={canSaveCarryOver()}
+              fallback={<CancelButton label="Back" />}
+            >
+              <Button label={props.transaction.carryOver?.type === "auto" ? "Confim and Save Carry Over" : "Save Carry Over"}
+                style="primary"
+              />
+              <CancelButton />
+            </Show>
           </div>
         </Show>
         <Show when={type() !== "carryover"}>
@@ -315,7 +354,7 @@ function FieldAmount(props: VoidProps<{ value: number, colors?: boolean, min?: n
   )
 }
 
-function FieldDate(props: VoidProps<{ value: string, disabled?: boolean }>) {
+function FieldDate(props: VoidProps<{ value: string }>) {
   return (
     <>
       <label
@@ -325,7 +364,6 @@ function FieldDate(props: VoidProps<{ value: string, disabled?: boolean }>) {
         Date
       </label>
       <input
-        disabled={props.disabled}
         id="date"
         type="date"
         name="date"

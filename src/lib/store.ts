@@ -229,7 +229,8 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 		let recurrent = getRecurrentTransactionsByMonth(year, month)
 		transactions.push(...recurrent)
 
-		transactions.push(calculateCarryOverRecursively(year, month, cutoff))
+		let carryOver = calculateCarryOverRecursively(year, month, cutoff)
+		transactions.push(carryOver)
 
 		let items = transactions.map<TransactionWithRefs>(transaction => {
 			return {
@@ -352,6 +353,9 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 			yearMonthIndex: thisMonth.toYearMonthString(),
 			categoryId: carryOverCategory.id,
 			amount: 0,
+			carryOver: {
+				type: "auto"
+			}
 		}
 		if (thisMonth.date.getTime() < cutoff.date.getTime()) {
 			return carryover
@@ -360,6 +364,7 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 		let manual = getCarryOver(thisMonth.year, thisMonth.month)
 		if (manual) {
 			carryover.amount = manual.amount
+			carryover.carryOver = { type: "manual" }
 		} else {
 			let previousMonth = thisMonth.addMonths(-1)
 			let previousTransactions = (
