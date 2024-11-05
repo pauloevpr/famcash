@@ -1,8 +1,7 @@
 # TODO
 
 ## Now
-  
-- display "Planned" indicator in the summary for the current and future months 
+   
 - display planned amount in the category list
 - display plan editing in the category editing form
 - on desktop, improve the nav bar so it links to the main pages (home, categories, accounts); keep the plus and menu button still
@@ -84,3 +83,4 @@
         - [x] total planned
         - [x] remaining amount to spend
     - [x] View all expenses for a given category and month
+- [ ] Payment plans

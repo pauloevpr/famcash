@@ -34,9 +34,10 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 	function calculateSummary(year: number, month: number, transactions: Transaction[]): Summary {
 		let summary: Summary = {
 			total: 0,
-			totalExpense: 0,
+			totalExpenses: 0,
 			totalIncome: 0,
 			carryOver: 0,
+			plannedExpenses: 0,
 		}
 		for (let t of transactions) {
 			if (t.type === "income") {
@@ -44,7 +45,7 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 				summary.total += t.amount
 			}
 			if (t.type === "expense") {
-				summary.totalExpense += t.amount
+				summary.totalExpenses += t.amount
 				summary.total -= t.amount
 			}
 			if (t.type === "carryover") {
@@ -58,9 +59,10 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 		if (isUpcomingMonth) {
 			let categories = idb.getAll<Category>("categories")
 			let plannedExpenses = categories.reduce((sum, current) => ((current.plan?.limit || 0) + sum), 0)
-			if (plannedExpenses > summary.totalExpense) {
-				summary.total = summary.total + summary.totalExpense
+			if (plannedExpenses > summary.totalExpenses) {
+				summary.total = summary.total + summary.totalExpenses
 				summary.total -= plannedExpenses
+				summary.plannedExpenses = plannedExpenses
 			}
 		}
 		return summary

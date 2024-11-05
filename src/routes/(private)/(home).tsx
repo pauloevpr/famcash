@@ -21,7 +21,10 @@ export default function Home() {
       year = parseInt(params.year)
       month = parseInt(params.month)
     }
-    return { year, month }
+    let LastMonthEnd = new Date()
+    LastMonthEnd.setDate(-1)
+    let isPast = DateOnly.fromYearMonth(year, month).time < LastMonthEnd.getTime()
+    return { year, month, isPast }
   })
   let transactions = createMemo(() => {
     return store.transaction.getByMonth(currentMonth().year, currentMonth().month)
@@ -72,7 +75,7 @@ export default function Home() {
             </a>
             <header class="pb-6">
               <span class="sr-only">Summary for </span>
-              <span >{currentMonth().year}</span>
+              <span class="text-light">{currentMonth().year}</span>
               <span class="block font-medium text-xl">{title()}</span>
             </header>
             <a href={nextMonthLink()}
@@ -82,12 +85,19 @@ export default function Home() {
               <ChevronRightIcon />
             </a>
           </div>
-          <p class="block pb-8 font-medium text-3xl"
-            classList={{
-              "text-negative": summary().total < 0,
-              "text-positive": summary().total >= 0,
-            }}
-          >{summary().total}</p>
+          <div class="pb-10 pt-2">
+            <p class="block font-medium text-3xl"
+              classList={{
+                "text-negative": summary().total < 0,
+                "text-positive": summary().total >= 0,
+              }}
+            >
+              {summary().total}
+            </p>
+            <Show when={!currentMonth().isPast}>
+              <span class="inline-block text-sm text-light border rounded-full px-2 mt-1" >Planned</span>
+            </Show>
+          </div>
           <div class="inline-flex items-center text-center surface-elevated rounded-xl text-light px-4 py-2">
             <p class="px-4 text-negative"
               classList={{
@@ -107,10 +117,17 @@ export default function Home() {
             </p>
             <p class="px-4"
               classList={{
-                "text-negative": summary().totalExpense > 0
+                "text-negative": summary().totalExpenses > 0
               }}>
-              {summary().totalExpense}
-              <span class="block text-light text-xs">Expense</span>
+              {`${summary().totalExpenses}`}
+              <span class="block text-light text-xs">Expenses</span>
+            </p>
+            <p class="px-4"
+              classList={{
+                "text-negative": summary().totalExpenses > 0
+              }}>
+              {`${summary().plannedExpenses}`}
+              <span class="block text-light text-xs">Planned</span>
             </p>
           </div>
         </section>

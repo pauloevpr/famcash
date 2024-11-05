@@ -117,9 +117,10 @@ export interface CategoryWithSpending extends Category {
 
 export interface Summary {
 	total: number
-	totalExpense: number
+	totalExpenses: number
 	totalIncome: number
 	carryOver: number
+	plannedExpenses: number
 }
 
 
