@@ -1,8 +1,22 @@
 # TODO
 
+## Now
+
+- disallow selecting category for income; hide it and use hard coded category in the background 
+- force income to have a name
+- make expense to have an optional name; move the field down and call it notes  
+- summary calculation for current and future months: some up the planned spending from the categories; use it as total spending if it is larger than actual spending
+- display "Planned" indicator in the summary for the current and future months 
+- display planned amount in the category list
+- display plan editing in the category editing form
+- on desktop, improve the nav bar so it links to the main pages (home, categories, accounts); keep the plus and menu button still
+- add support for transfering
+- introduce carryover review - display indicators to get people to confirm the actual carryover amount; display a check on confirmed carryovers?
+- auth: session expiration should auto extend as requests come in
 
 ## Issues
 
+- Fix: many <input> have min instead of minlenght for text validation
 - Fix: turning a normal expense into recurrent produces two records
 - Fix: The "Spending" tab does not show categories that don't have expenses in the selected month
 - The buttons that make API calls are missing:
@@ -18,7 +32,7 @@
 
 ## Features
 - [ ] Auth
-    - [?] Google
+    - [ ] Google
     - [ ] Login with email 
         - [x] Basic login workflow
         - [x] Basic signup workflow

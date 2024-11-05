@@ -187,8 +187,8 @@ function Welcome() {
                   class="block pb-2 text-light">Your family's Nickname</label>
                 <input name="family"
                   id="family"
-                  min="2"
-                  max="64"
+                  minlength="2"
+                  maxlength="64"
                   class="block border h-12 px-4 w-full rounded-lg"
                   required />
               </div>
@@ -240,6 +240,7 @@ function Welcome() {
             <Show when={!!params.type}>
               <Button style="neutral"
                 label="Cancel"
+                type="button"
                 onClick={() => navigate(-1)}
               />
             </Show>

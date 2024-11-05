@@ -44,6 +44,7 @@ export default function TransactionEditPage() {
       accounts={data.accounts}
       onSubmit={onSubmit}
       onDelete={onDelete}
+      type={data.transaction.type}
     />
   )
 }

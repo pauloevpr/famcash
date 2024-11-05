@@ -52,14 +52,19 @@ export function TransactionForm(props: VoidProps<{
   categories: Category[],
   accounts: Account[],
   onSubmit: (transaction: Transaction) => Promise<void>,
-  onDelete?: (id: string) => Promise<void>
+  onDelete?: (id: string) => Promise<void>,
+  type?: TransactionType
 }>) {
   let navigate = useNavigate()
   let [type, setType] = createSignal(props.transaction.type)
-  let typeSelection = [
-    { value: "expense", label: "Expense", style: "peer-checked:bg-negative peer-checked:text-white" },
-    { value: "income", label: "Income", style: "peer-checked:bg-positive peer-checked:text-white" },
-  ] satisfies { value: TransactionType, label: string, style?: string }[]
+  let typeSelection = createMemo(() => {
+    type TransactionTypeSelection = { value: TransactionType, label: string, style?: string }
+    let expense: TransactionTypeSelection = { value: "expense", label: "Expense", style: "peer-checked:bg-negative peer-checked:text-white" }
+    let income: TransactionTypeSelection = { value: "income", label: "Income", style: "peer-checked:bg-positive peer-checked:text-white" }
+    if (props.type === "expense") return [expense]
+    if (props.type === "income") return [income]
+    return [expense, income]
+  })
   let isCarryOver = createMemo(() => {
     return props.transaction.type === "carryover"
   })
@@ -111,7 +116,7 @@ export function TransactionForm(props: VoidProps<{
         <Show when={!isCarryOver()}>
           <fieldset class="flex surface rounded-full p-1 focus-within:outline focus-within:outline-2">
             <legend class="sr-only">Transaction Type</legend>
-            <For each={typeSelection}>
+            <For each={typeSelection()}>
               {(item) => (
                 <div>
                   <input type="radio"
