@@ -238,6 +238,7 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 		let accounts = idb.getAll<Account>("accounts")
 		let categories = idb.getAll<Category>("categories")
 		categories.push({ ...carryOverCategory })
+		categories.push({ ...incomeCategory })
 
 		let transactions = (
 			idb.getAll<Transaction>("transactions")

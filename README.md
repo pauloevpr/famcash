@@ -1,9 +1,8 @@
 # TODO
 
 ## Now
- 
+  
 - force income to have a name
-- make expense to have an optional name; move the field down and call it notes  
 - summary calculation for current and future months: some up the planned spending from the categories; use it as total spending if it is larger than actual spending
 - display "Planned" indicator in the summary for the current and future months 
 - display planned amount in the category list

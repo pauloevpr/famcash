@@ -1,5 +1,5 @@
 import { A, useNavigate } from "@solidjs/router";
-import { createMemo, createSignal, For, onMount, Show, useContext, VoidProps } from "solid-js";
+import { createEffect, createMemo, createSignal, For, onMount, Show, useContext, VoidProps } from "solid-js";
 import { Button } from "~/components/buttons";
 import { AppContext } from "~/components/context";
 import { Account, Category, RecurrencyInterval, Transaction, TransactionRecurrency, TransactionType, TransactionWithRefs } from "~/lib/models";
@@ -129,6 +129,9 @@ export function TransactionForm(props: VoidProps<{
       )}
     </Show>
   )
+  let Border = () => (
+    <div class="border-t border-gray-200 col-span-2" />
+  )
 
   return (
     <main class="max-w-3xl mx-auto">
@@ -138,7 +141,10 @@ export function TransactionForm(props: VoidProps<{
       >
         <Show when={type() === "carryover"}>
           <div class="grid grid-cols-[auto,1fr] surface rounded">
-            <FieldName value={props.transaction.name} />
+            <FieldDate value={props.transaction.date}
+              disabled
+            />
+            <Border />
             <FieldAccount disabled={isCarryOver()}
               accounts={props.accounts}
               value={props.transaction.accountId}
@@ -179,14 +185,19 @@ export function TransactionForm(props: VoidProps<{
           </fieldset>
           <Show when={type() === "expense"} >
             <div class="grid grid-cols-[auto,1fr] surface rounded">
-              <FieldName value={props.transaction.name} />
               <FieldCategory categories={props.categories}
                 value={props.transaction.categoryId}
               />
+              <Border />
               <FieldDate value={props.transaction.date} />
+              <Border />
               <FieldAccount accounts={props.accounts}
                 value={props.transaction.accountId}
               />
+              <Border />
+              <FieldName label="Note"
+                placeholder="Optional"
+                value={props.transaction.name} />
             </div>
             <FieldAmount value={props.transaction.amount}
               min={0}
@@ -202,8 +213,13 @@ export function TransactionForm(props: VoidProps<{
           </Show>
           <Show when={type() === "income"} >
             <div class="grid grid-cols-[auto,1fr] surface rounded">
-              <FieldName value={props.transaction.name} />
+              <FieldName label="Name"
+                required
+                placeholder="Enter Name"
+                value={props.transaction.name} />
+              <Border />
               <FieldDate value={props.transaction.date} />
+              <Border />
               <FieldAccount disabled={isCarryOver()}
                 accounts={props.accounts}
                 value={props.transaction.accountId}
@@ -320,13 +336,13 @@ function FieldAccount(props: VoidProps<{ accounts: Account[], value: string, dis
     <>
       <label
         for="account"
-        class="flex items-center h-full px-6 border-t border-gray-200"
+        class="flex items-center h-full px-6"
       >Account</label>
       <select
         disabled={props.disabled}
         id="account"
         name="account"
-        class="h-12 px-4 border-t border-gray-200 rounded-br-xl bg-transparent w-full"
+        class="h-12 px-4 bg-transparent w-full"
       >
         <For each={props.accounts}>
           {account => (
@@ -341,22 +357,23 @@ function FieldAccount(props: VoidProps<{ accounts: Account[], value: string, dis
   )
 }
 
-function FieldDate(props: VoidProps<{ value: string }>) {
+function FieldDate(props: VoidProps<{ value: string, disabled?: boolean }>) {
   return (
     <>
       <label
         for="date"
-        class="flex items-center h-full px-6 border-t border-gray-200"
+        class="flex items-center h-full px-6 "
       >
         Date
       </label>
       <input
+        disabled={props.disabled}
         id="date"
         type="date"
         name="date"
         required
         placeholder="Pick Date"
-        class="h-12 px-4 border-t border-gray-200 bg-transparent w-full"
+        class="h-12 px-4 bg-transparent w-full"
         value={props.value}
       />
     </>
@@ -368,12 +385,12 @@ function FieldCategory(props: VoidProps<{ categories: Category[], value: string 
     <>
       <label
         for="category"
-        class="flex items-center h-full px-6 border-t border-gray-200"
+        class="flex items-center h-full px-6 "
       >Category</label>
       <select
         id="category"
         name="category"
-        class="h-12 px-4 border-t border-gray-200 rounded-br-xl bg-transparent w-full"
+        class="h-12 px-4 bg-transparent w-full"
       >
         <For each={props.categories}>
           {category => (
@@ -389,18 +406,18 @@ function FieldCategory(props: VoidProps<{ categories: Category[], value: string 
   )
 }
 
-function FieldName(props: VoidProps<{ value: string }>) {
+function FieldName(props: VoidProps<{ value: string, label: string, placeholder?: string, required?: boolean }>) {
   return (
     <>
       <label for="name"
         class="flex items-center h-full px-6"
-      >Name</label>
+      >{props.label}</label>
       <input
         id="name"
         name="name"
-        required
-        placeholder="Enter name"
-        class="h-12 px-4 rounded-tr-xl w-full"
+        required={props.required}
+        placeholder={props.placeholder}
+        class="h-12 px-4 bg-transparent rounded-tr-xl w-full"
         value={props.value}
       />
     </>
