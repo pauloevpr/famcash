@@ -1,7 +1,8 @@
 import { A, useNavigate } from "@solidjs/router";
-import { createMemo, createSignal, For, onMount, Show, VoidProps } from "solid-js";
+import { createMemo, createSignal, For, onMount, Show, useContext, VoidProps } from "solid-js";
 import { Button } from "~/components/buttons";
-import { Account, Category, RecurrencyInterval, Transaction, TransactionType, TransactionWithRefs } from "~/lib/models";
+import { AppContext } from "~/components/context";
+import { Account, Category, RecurrencyInterval, Transaction, TransactionRecurrency, TransactionType, TransactionWithRefs } from "~/lib/models";
 import { DateOnly } from "~/lib/utils";
 
 export function TransactionListItem(props: VoidProps<{
@@ -55,8 +56,9 @@ export function TransactionForm(props: VoidProps<{
   onDelete?: (id: string) => Promise<void>,
   type?: TransactionType
 }>) {
+  let { store } = useContext(AppContext)
   let navigate = useNavigate()
-  let [type, setType] = createSignal(props.transaction.type)
+  let [type, setType] = createSignal(props.type || props.transaction.type)
   let typeSelection = createMemo(() => {
     type TransactionTypeSelection = { value: TransactionType, label: string, style?: string }
     let expense: TransactionTypeSelection = { value: "expense", label: "Expense", style: "peer-checked:bg-negative peer-checked:text-white" }
@@ -72,12 +74,6 @@ export function TransactionForm(props: VoidProps<{
     if (isCarryOver()) return "Carry Over"
     return "Transaction"
   })
-  let [amount, setAmount] = createSignal(props.transaction.amount)
-  let intervals = [
-    { value: "week", label: "Week" },
-    { value: "month", label: "Month" },
-    { value: "year", label: "Year" },
-  ] satisfies { value: RecurrencyInterval, label: string }[]
 
   function onSubmit(e: SubmitEvent & { currentTarget: HTMLFormElement }) {
     e.preventDefault()
@@ -93,6 +89,9 @@ export function TransactionForm(props: VoidProps<{
       yearMonthIndex: date.toYearMonthString(),
       type: data.get("type") as TransactionType,
     }
+    if (transaction.type === "income") {
+      transaction.categoryId = store.category.income().id
+    }
     if (data.get("recurrency") === "on") {
       let endDate = data.get("recurrencyEndDate") as string
       transaction.recurrency = {
@@ -107,13 +106,55 @@ export function TransactionForm(props: VoidProps<{
     props.onSubmit(transaction)
   }
 
+  let CancelButton = () => (
+    <div class="pt-8">
+      <Button label="Cancel"
+        type="button"
+        style="neutral"
+        onclick={() => navigate(-1)}
+      />
+    </div>
+  )
+
+  let DeleteButton = () => (
+    <Show when={props.onDelete}>
+      {(_) => (
+        <div class="pt-4">
+          <Button label="Delete"
+            type="button"
+            style="neutral"
+            onclick={() => props.onDelete?.(props.transaction.id)}
+          />
+        </div>
+      )}
+    </Show>
+  )
+
   return (
     <main class="max-w-3xl mx-auto">
       <h1 class="class=block px-6 py-8 font-medium text-2xl text-center">{title()}</h1>
-      <form class="block px-1 text-lg space-y-10"
+      <form class="flex flex-col gap-10 px-1 text-lg"
         onSubmit={onSubmit}
       >
-        <Show when={!isCarryOver()}>
+        <Show when={type() === "carryover"}>
+          <div class="grid grid-cols-[auto,1fr] surface rounded">
+            <FieldName value={props.transaction.name} />
+            <FieldAccount disabled={isCarryOver()}
+              accounts={props.accounts}
+              value={props.transaction.accountId}
+            />
+          </div>
+          <FieldAmount value={props.transaction.amount}
+            colors
+          />
+          <div>
+            <Button label="Save Carry Over"
+              style="primary"
+            />
+            <CancelButton />
+          </div>
+        </Show>
+        <Show when={type() !== "carryover"}>
           <fieldset class="flex surface rounded-full p-1 focus-within:outline focus-within:outline-2">
             <legend class="sr-only">Transaction Type</legend>
             <For each={typeSelection()}>
@@ -136,179 +177,232 @@ export function TransactionForm(props: VoidProps<{
               )}
             </For>
           </fieldset>
-        </Show>
-        <div class="grid grid-cols-[auto,1fr] surface rounded">
-          <label for="name"
-            class="flex items-center h-full px-6"
-          >Name</label>
-          <input
-            id="name"
-            name="name"
-            required
-            placeholder="Enter name"
-            class="h-12 px-4 rounded-tr-xl w-full"
-            value={props.transaction.name}
-          />
-          <Show when={!isCarryOver()}>
-            <label
-              for="category"
-              class="flex items-center h-full px-6 border-t border-gray-200"
-            >Category</label>
-            <select
-              id="category"
-              name="category"
-              class="h-12 px-4 border-t border-gray-200 rounded-br-xl bg-transparent w-full"
-            >
-              <For each={props.categories}>
-                {category => (
-                  <option value={category.id}
-                    selected={category.id == props.transaction.categoryId}
-                  >
-                    {`${category.icon} ${category.name}`}
-                  </option>
-                )}
-              </For>
-            </select>
-            <label
-              for="date"
-              class="flex items-center h-full px-6 border-t border-gray-200"
-            >
-              Date
-            </label>
-            <input
-              id="date"
-              type="date"
-              name="date"
-              required
-              placeholder="Pick Date"
-              class="h-12 px-4 border-t border-gray-200 bg-transparent w-full"
-              value={props.transaction.date}
-            />
-          </Show>
-          <label
-            for="account"
-            class="flex items-center h-full px-6 border-t border-gray-200"
-          >Account</label>
-          <select
-            disabled={isCarryOver()}
-            id="account"
-            name="account"
-            class="h-12 px-4 border-t border-gray-200 rounded-br-xl bg-transparent w-full"
-          >
-            <For each={props.accounts}>
-              {account => (
-                <option value={account.id}
-                  selected={account.id === props.transaction.accountId}>
-                  {`${account.icon} ${account.name}`}
-                </option>
-              )}
-            </For>
-          </select>
-        </div>
-        <div class="surface rounded">
-          <label class="sr-only"
-            for="amount"
-          >Amount</label>
-          <input
-            id="amount"
-            name="amount"
-            type="number"
-            class="w-full h-16 text-xl text-center rounded-xl"
-            classList={{
-              "text-negative": isCarryOver() && amount() < 0,
-              "text-positive": isCarryOver() && amount() >= 0,
-            }}
-            step="0.01"
-            onChange={e => setAmount(parseFloat(e.currentTarget.value))}
-            value={amount()}
-            min={isCarryOver() ? undefined : 0}
-            max={Number.MAX_VALUE}
-          />
-        </div>
-        <Show when={!isCarryOver()}>
-          <div class="group grid grid-cols-[auto,1fr] surface rounded">
-            <label class="group/repeat focus-within:outline-2 focus-within:outline flex items-center justify-between px-6 gap-6 col-span-2 h-12 rounded-xl group-has-[input:checked]:rounded-b-none">
-              Repeat
-              <input
-                name="recurrency"
-                type="checkbox"
-                class="sr-only peer"
-                checked={!!props.transaction.recurrency}
+          <Show when={type() === "expense"} >
+            <div class="grid grid-cols-[auto,1fr] surface rounded">
+              <FieldName value={props.transaction.name} />
+              <FieldCategory categories={props.categories}
+                value={props.transaction.categoryId}
               />
-              <span class="block h-6 rounded-full w-10 bg-gray-200">
-                <span class="block group-has-[:checked]/repeat:bg-primary group-has-[:checked]/repeat:translate-x-4 transition-transform duration-300 bg-white shadow rounded-full h-6 w-6"></span>
-              </span>
-            </label>
-            <label for="repeatInterval" class="hidden group-has-[input:checked]:flex items-center h-full px-6 border-t border-gray-200 ">Every
-            </label>
-            <div class="hidden group-has-[input:checked]:flex items-center flex-grow gap-4 border-t border-gray-200">
-              <input id="recurrencyMultiplier"
-                name="recurrencyMultiplier"
-                class="h-12 px-4 bg-transparent w-full"
-                type="number"
-                required
-                min={1}
-                max={365}
-                value={props.transaction.recurrency?.multiplier || 1} />
-              <select id="recurrencyInterval"
-                name="recurrencyInterval"
-                class="h-12 px-4 bg-transparent w-full"
-              >
-                <For each={intervals}>{
-                  interval => (
-                    <option value={interval.value}
-                      selected={interval.value === props.transaction.recurrency?.interval}
-                    >{interval.label}</option>
-                  )
-                }</For>
-              </select>
+              <FieldDate value={props.transaction.date} />
+              <FieldAccount accounts={props.accounts}
+                value={props.transaction.accountId}
+              />
             </div>
-            <label for="repeatEndDate"
-              class="hidden group-has-[input:checked]:flex items-center h-full px-6 border-t border-gray-200">
-              End Date
-            </label>
-            <input type="date"
-              name="recurrencyEndDate"
-              placeholder="Pick End Date"
-              class="hidden group-has-[input:checked]:block h-12 px-4 border-t border-gray-200 rounded-br-xl bg-transparent w-full"
-              value={props.transaction.recurrency?.endDate}
-              id="recurrencyEndDate" />
-          </div>
+            <FieldAmount value={props.transaction.amount}
+              min={0}
+            />
+            <FieldRecurrency recurrency={props.transaction.recurrency} />
+            <div>
+              <Button label="Save Expense"
+                style="negative"
+              />
+              <DeleteButton />
+              <CancelButton />
+            </div>
+          </Show>
+          <Show when={type() === "income"} >
+            <div class="grid grid-cols-[auto,1fr] surface rounded">
+              <FieldName value={props.transaction.name} />
+              <FieldDate value={props.transaction.date} />
+              <FieldAccount disabled={isCarryOver()}
+                accounts={props.accounts}
+                value={props.transaction.accountId}
+              />
+            </div>
+            <FieldAmount value={props.transaction.amount}
+              min={0}
+            />
+            <FieldRecurrency recurrency={props.transaction.recurrency} />
+            <div>
+              <Button label="Save Income"
+                style="positive"
+              />
+              <DeleteButton />
+              <CancelButton />
+            </div>
+          </Show>
         </Show>
-        <div class="space-y-2">
-          <Show when={type() === "expense"}>
-            <Button label="Save Expense"
-              style="negative"
-            />
-          </Show>
-          <Show when={type() === "income"}>
-            <Button label="Save Income"
-              style="positive"
-            />
-          </Show>
-          <Show when={type() === "carryover"}>
-            <Button label="Save Carry Over"
-              style="primary"
-            />
-          </Show>
-          <Show when={!isCarryOver() && props.onDelete}>
-            {(_) => (
-              <div class="pb-4">
-                <Button label="Delete"
-                  type="button"
-                  style="neutral"
-                  onclick={() => props.onDelete?.(props.transaction.id)}
-                />
-              </div>
-            )}
-          </Show>
-          <Button label="Cancel"
-            type="button"
-            style="neutral"
-            onclick={() => navigate(-1)}
-          />
-        </div>
       </form>
     </main >
+  )
+}
+
+function FieldRecurrency(props: VoidProps<{ recurrency?: TransactionRecurrency }>) {
+  let intervals = [
+    { value: "week", label: "Week" },
+    { value: "month", label: "Month" },
+    { value: "year", label: "Year" },
+  ] satisfies { value: RecurrencyInterval, label: string }[]
+
+  return (
+    <div class="group grid grid-cols-[auto,1fr] surface rounded">
+      <label class="group/repeat focus-within:outline-2 focus-within:outline flex items-center justify-between px-6 gap-6 col-span-2 h-12 rounded-xl group-has-[input:checked]:rounded-b-none">
+        Repeat
+        <input
+          name="recurrency"
+          type="checkbox"
+          class="sr-only peer"
+          checked={!!props.recurrency}
+        />
+        <span class="block h-6 rounded-full w-10 bg-gray-200">
+          <span class="block group-has-[:checked]/repeat:bg-primary group-has-[:checked]/repeat:translate-x-4 transition-transform duration-300 bg-white shadow rounded-full h-6 w-6"></span>
+        </span>
+      </label>
+      <label for="repeatInterval" class="hidden group-has-[input:checked]:flex items-center h-full px-6 border-t border-gray-200 ">Every
+      </label>
+      <div class="hidden group-has-[input:checked]:flex items-center flex-grow gap-4 border-t border-gray-200">
+        <input id="recurrencyMultiplier"
+          name="recurrencyMultiplier"
+          class="h-12 px-4 bg-transparent w-full"
+          type="number"
+          required
+          min={1}
+          max={365}
+          value={props.recurrency?.multiplier || 1} />
+        <select id="recurrencyInterval"
+          name="recurrencyInterval"
+          class="h-12 px-4 bg-transparent w-full"
+        >
+          <For each={intervals}>{
+            interval => (
+              <option value={interval.value}
+                selected={interval.value === props.recurrency?.interval}
+              >{interval.label}</option>
+            )
+          }</For>
+        </select>
+      </div>
+      <label for="repeatEndDate"
+        class="hidden group-has-[input:checked]:flex items-center h-full px-6 border-t border-gray-200">
+        End Date
+      </label>
+      <input type="date"
+        name="recurrencyEndDate"
+        placeholder="Pick End Date"
+        class="hidden group-has-[input:checked]:block h-12 px-4 border-t border-gray-200 rounded-br-xl bg-transparent w-full"
+        value={props.recurrency?.endDate}
+        id="recurrencyEndDate" />
+    </div>
+
+  )
+}
+
+function FieldAmount(props: VoidProps<{ value: number, colors?: boolean, min?: number }>) {
+  let [amount, setAmount] = createSignal(props.value)
+  return (
+    <>
+      <div class="surface rounded">
+        <label class="sr-only"
+          for="amount"
+        >Amount</label>
+        <input
+          id="amount"
+          name="amount"
+          type="number"
+          class="w-full h-16 text-xl text-center rounded-xl"
+          classList={{
+            "text-negative": props.colors && amount() < 0,
+            "text-positive": props.colors && amount() >= 0,
+          }}
+          step="0.01"
+          onChange={e => setAmount(parseFloat(e.currentTarget.value))}
+          value={amount()}
+          min={props.min}
+          max={Number.MAX_VALUE}
+        />
+      </div>
+    </>
+  )
+}
+
+function FieldAccount(props: VoidProps<{ accounts: Account[], value: string, disabled?: boolean }>) {
+  return (
+    <>
+      <label
+        for="account"
+        class="flex items-center h-full px-6 border-t border-gray-200"
+      >Account</label>
+      <select
+        disabled={props.disabled}
+        id="account"
+        name="account"
+        class="h-12 px-4 border-t border-gray-200 rounded-br-xl bg-transparent w-full"
+      >
+        <For each={props.accounts}>
+          {account => (
+            <option value={account.id}
+              selected={account.id === props.value}>
+              {`${account.icon} ${account.name}`}
+            </option>
+          )}
+        </For>
+      </select>
+    </>
+  )
+}
+
+function FieldDate(props: VoidProps<{ value: string }>) {
+  return (
+    <>
+      <label
+        for="date"
+        class="flex items-center h-full px-6 border-t border-gray-200"
+      >
+        Date
+      </label>
+      <input
+        id="date"
+        type="date"
+        name="date"
+        required
+        placeholder="Pick Date"
+        class="h-12 px-4 border-t border-gray-200 bg-transparent w-full"
+        value={props.value}
+      />
+    </>
+  )
+}
+
+function FieldCategory(props: VoidProps<{ categories: Category[], value: string }>) {
+  return (
+    <>
+      <label
+        for="category"
+        class="flex items-center h-full px-6 border-t border-gray-200"
+      >Category</label>
+      <select
+        id="category"
+        name="category"
+        class="h-12 px-4 border-t border-gray-200 rounded-br-xl bg-transparent w-full"
+      >
+        <For each={props.categories}>
+          {category => (
+            <option value={category.id}
+              selected={category.id == props.value}
+            >
+              {`${category.icon} ${category.name}`}
+            </option>
+          )}
+        </For>
+      </select>
+    </>
+  )
+}
+
+function FieldName(props: VoidProps<{ value: string }>) {
+  return (
+    <>
+      <label for="name"
+        class="flex items-center h-full px-6"
+      >Name</label>
+      <input
+        id="name"
+        name="name"
+        required
+        placeholder="Enter name"
+        class="h-12 px-4 rounded-tr-xl w-full"
+        value={props.value}
+      />
+    </>
   )
 }

@@ -144,6 +144,12 @@ export interface CarryOver {
 	amount: number
 }
 
+export interface TransactionRecurrency {
+	multiplier: number
+	interval: RecurrencyInterval
+	endDate?: string
+}
+
 export interface Transaction {
 	id: TransactionId,
 	type: TransactionType
@@ -153,11 +159,7 @@ export interface Transaction {
 	yearMonthIndex: string,
 	accountId: string,
 	categoryId: string,
-	recurrency?: {
-		multiplier: number
-		interval: RecurrencyInterval
-		endDate?: string
-	}
+	recurrency?: TransactionRecurrency
 }
 export type TransactionType = "expense" | "income" | "carryover"
 

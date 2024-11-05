@@ -1,3 +1,4 @@
+import { Accessor } from "solid-js";
 import { useReactiveIdb } from "./idb";
 import { CategoryWithSpending, CurrentFamily, CurrentUser, DbRecordType, Summary } from "./models";
 import { Account, Transaction, Category, TransactionWithRefs, CarryOver, ParsedTransactionId as ParsedTransactionId } from "./models"
@@ -7,6 +8,7 @@ import { DateOnly, generateDbRecordId } from "./utils"
 export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 	let idb = useReactiveIdb(`${user.id}:${family.id}`)
 	let carryOverCategory: Category = { id: "carryover", name: "Carry Over", icon: "" }
+	let incomeCategory: Category = { id: "income", name: "Income", icon: "" }
 
 	function calculateSpendingByCategory(transactions: TransactionWithRefs[]): CategoryWithSpending[] {
 		let category: { [id: string]: CategoryWithSpending } = {}
@@ -448,6 +450,8 @@ export function createGlobalStore(user: CurrentUser, family: CurrentFamily) {
 			get: getCategory,
 			delete: deleteCategory,
 			save: saveCategory,
+			income: (() => incomeCategory) as Accessor<Category>,
+			carryover: (() => carryOverCategory) as Accessor<Category>,
 		},
 		account: {
 			delete: deleteAccount,
