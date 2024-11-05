@@ -20,7 +20,7 @@
 
 ## Features
 - [ ] Auth
-    - [ ] Google
+    - [x] Google
     - [ ] Login with email 
         - [x] Basic login workflow
         - [x] Basic signup workflow

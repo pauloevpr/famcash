@@ -1,5 +1,6 @@
 import { A, AnchorProps } from "@solidjs/router"
 import { Accessor, createMemo, JSX, ParentProps, splitProps } from "solid-js"
+import { Dynamic } from "solid-js/web"
 
 type ButtonStyle = "primary" | "neutral" | "negative" | "positive"
 
@@ -18,7 +19,6 @@ function useButtonStyle(style: Accessor<ButtonStyle>) {
   }
 }
 
-
 export function LinkButton(props: ParentProps<{
   label: string
   style: ButtonStyle
@@ -28,7 +28,8 @@ export function LinkButton(props: ParentProps<{
   let [_, otherProps] = splitProps(props, ["style", "label", "icon", "class", "classList"])
   let { base, classList } = useButtonStyle(() => props.style)
   return (
-    <A class={base()}
+    <A
+      class={base()}
       classList={classList()}
       {...otherProps}
     >

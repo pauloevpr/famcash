@@ -177,5 +177,6 @@ export interface Category {
 	}
 }
 
-
-
+export interface UserSession {
+	id?: number
+}

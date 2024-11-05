@@ -5,17 +5,14 @@ import { mailer } from "./mailer";
 import { db } from "./db";
 import { useSession } from "vinxi/http";
 import { redirect } from "@solidjs/router";
-import { CurrentSession as CurrentAccount, DbFamily, DbRecord, DbUser, UncheckedFamily, UncheckedRecord, UncheckedUser } from "./models";
+import { CurrentSession as CurrentAccount, DbRecord, UncheckedFamily, UncheckedRecord, UncheckedUser, UserSession } from "./models";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:3000"
-const SESSION_SECRET = process.env.SESSION_SECRET || "dev-devdevdevdevdevdevdevdevdevdevdevdevdevdev"
+const SESSION_SECRET = process.env.SESSION_SECRET
 
 // TODO: refactor writes so multiple calls happen within the same transaction
 // use API like db.transaction(db => { })
 
-interface UserSession {
-	id?: number
-}
 
 export async function getCurrentAccount(): Promise<CurrentAccount> {
 	let session = await getSession()
@@ -89,7 +86,6 @@ export async function loginWithToken(token: string) {
 	await db.token.login.delete(tokenData.token)
 	return true
 }
-
 
 export async function loginWithEmail(email: string) {
 	validate.email({ email }, "email")
@@ -211,7 +207,7 @@ async function assureUserHasPermissions(userId: number, familyId: number, admin?
 	}
 }
 
-export function getSession() {
+function getSession() {
 	return useSession<UserSession>({
 		password: SESSION_SECRET,
 		maxAge: 30 * 86400, // 86400 = 1 day

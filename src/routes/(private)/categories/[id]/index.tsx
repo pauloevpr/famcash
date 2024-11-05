@@ -1,6 +1,6 @@
 import { Category } from "~/lib/models";
 import { useNavigate, useParams } from "@solidjs/router";
-import { createMemo, Show, useContext } from "solid-js";
+import { useContext } from "solid-js";
 import { CategoryForm } from "../(components)";
 import { AppContext } from "~/components/context";
 

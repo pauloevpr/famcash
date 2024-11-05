@@ -16,6 +16,7 @@
   "dependencies": {
     "@solidjs/router": "^0.15.0",
     "@solidjs/start": "^1.0.8",
+    "google-auth-library": "^9.14.2",
     "pg": "^8.13.0",
     "qr-scanner": "^1.4.2",
     "qrcode": "^1.5.4",
