@@ -152,7 +152,7 @@ function TodoList() {
 
   ### Writing data
 
-#### Adding todos
+#### Adding and updating
 
   Now let's deal with updating the data in our the store. Let's start by creating a form that we can use to add new todos:
 
@@ -228,7 +228,7 @@ function TodoList() {
 
 Since our Solid Wire stores are reactive, the new todo should appear in the list automatically.
 
-#### Removing todos
+#### Deleting
 
 Now let's handle deleting a todo. Let's add a delete button next to each todo. When the button is clicked, we are going to use `local.todo.delete` to remove the todo:
 
@@ -275,7 +275,7 @@ function TodoList() {
 
 Since Solid Wire stores are reactive, the todo should be removed from the list automatically.
 
-### Syncing with the Server/Database
+### Basic Syncing
 
 Up to this point, our data only exists locally in the browser. Let's go back to our store and start syncing the data with our actual database. We start by adding a `sync` function to our store:
 
