@@ -1,28 +1,28 @@
 import { Category } from "~/lib/models";
-import { useNavigate, useParams } from "@solidjs/router";
-import { useContext } from "solid-js";
+import { createAsync, useNavigate, useParams } from "@solidjs/router";
+import { Show, } from "solid-js";
 import { CategoryForm } from "../(components)";
-import { AppContext } from "~/components/context";
+import { store } from "~/lib/wstore";
 
 export default function CategoryEditPage() {
-  let { store } = useContext(AppContext)
+  let local = store.use()
   let params = useParams()
   let navigate = useNavigate()
-  let category = (() => {
-    let category = store.category.get(params.id)
+  let category = createAsync(async () => {
+    let category = await local.categories.get(params.id)
     if (!category) throw Error(`Category ${params.id} not found`)
     return category
-  })()
+  })
 
   async function onSubmit(category: Category) {
-    await store.category.save(category)
+    await local.categories.set(category.id, category)
     navigate(-1)
   }
 
   async function onDelete(id: string) {
     let used = 0
-    let transactions = store.transaction.getAll()
-    let recurrencies = store.recurrency.getAll()
+    let transactions = await local.transactions.all()
+    let recurrencies = await local.recurrencies.all()
     for (let transaction of transactions) {
       if (transaction.categoryId === id) {
         used++
@@ -40,14 +40,18 @@ export default function CategoryEditPage() {
 
     let confirmed = confirm("You are about to delete this category. Confirm?")
     if (!confirmed) return
-    await store.category.delete(id)
+    await local.categories.delete(id)
     navigate(-1)
   }
 
   return (
-    <CategoryForm category={category}
-      onSubmit={onSubmit}
-      onDelete={onDelete}
-    />
+    <Show when={category()}>
+      {category => (
+        <CategoryForm category={category()}
+          onSubmit={onSubmit}
+          onDelete={onDelete}
+        />
+      )}
+    </Show>
   )
 }

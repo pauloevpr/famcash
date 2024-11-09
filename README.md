@@ -40,6 +40,7 @@
     - [x] Basic syncing 
     - [ ] Periodic syncing
     - [ ] Real-time syncing
+- [ ] E2E encryption
 - [ ] Transactions
     - [x] View transactions summary for a given month:
         - [x] total expenses

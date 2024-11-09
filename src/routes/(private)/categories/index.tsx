@@ -1,14 +1,15 @@
-import { For, Show, VoidProps, createMemo, useContext } from "solid-js";
-import { AppContext } from "~/components/context";
+import { createAsync } from "@solidjs/router";
+import { For, Show, VoidProps, } from "solid-js";
+import { LinkButton } from "~/components/buttons";
 import { TagIcon } from "~/components/icons";
 import { PageLayout } from "~/components/layouts";
 import { Category } from "~/lib/models";
-
+import { store } from "~/lib/wstore";
 
 
 export default function CategoryListPage() {
-  let { store } = useContext(AppContext)
-  let categories = createMemo(() => store.category.getAll())
+  let local = store.use()
+  let categories = createAsync(() => local.categories.all(), { initialValue: [] })
   return (
     <PageLayout>
       <main class="px-4 pb-32">
@@ -29,11 +30,15 @@ export default function CategoryListPage() {
           </For>
         </ul>
         <div class="pt-8">
-          <a href="/categories/new" class="flex items-center justify-center w-full h-12 text-base font-semibold px-6 rounded-full uppercase tracking-wider bg-primary text-white">
-            Add Category</a>
+          <LinkButton
+            label="Add Category"
+            style="primary"
+            href="/categories/new" class="flex items-center justify-center w-full h-12 text-base font-semibold px-6 rounded-full uppercase tracking-wider bg-primary text-white">
+            Add Category
+          </LinkButton>
         </div>
       </main>
-    </PageLayout>
+    </PageLayout >
   )
 }
 

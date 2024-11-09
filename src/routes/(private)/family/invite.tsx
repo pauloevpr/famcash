@@ -1,5 +1,5 @@
 import { action, useNavigate, useSubmission } from "@solidjs/router";
-import { createEffect, createMemo, createResource, createSignal, onCleanup, onMount, Show, useContext, VoidProps } from "solid-js";
+import { createMemo, createSignal, onCleanup, Show, useContext, VoidProps } from "solid-js";
 import { Button } from "~/components/buttons";
 import { AppContext } from "~/components/context";
 import { HandHeartIcon, HoursGlassIcon, QRCodeIcon } from "~/components/icons";

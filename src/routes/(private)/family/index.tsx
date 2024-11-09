@@ -1,7 +1,7 @@
 
-import { createMemo, For, Show, useContext } from "solid-js";
+import { For, Show, useContext } from "solid-js";
 import { InitialsAvatar } from "~/components/avatar";
-import { Button, LinkButton } from "~/components/buttons";
+import { LinkButton } from "~/components/buttons";
 import { AppContext } from "~/components/context";
 import { HandHeartIcon, UsersIcon } from "~/components/icons";
 import { PageLayout } from "~/components/layouts";

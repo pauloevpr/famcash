@@ -1,24 +1,24 @@
 
-import { useNavigate, useSearchParams } from "@solidjs/router";
-import { useContext } from "solid-js";
+import { createAsync, useNavigate, useSearchParams } from "@solidjs/router";
 import { DateOnly, generateDbRecordId } from "~/lib/utils";
 import { Transaction, TransactionWithRefs } from "~/lib/models";
 import { TransactionForm } from "./(components)";
-import { AppContext } from "~/components/context";
+import { Show } from "solid-js";
+import { store } from "~/lib/wstore";
 
 
 export default function TransactionCreatePage() {
-  let { store } = useContext(AppContext)
+  let local = store.use()
   let navigate = useNavigate()
   let [searchParams] = useSearchParams()
-  let data = (() => {
+  let data = createAsync(async () => {
     let dateRaw = new Date()
     if (searchParams.month && searchParams.year) {
       dateRaw.setFullYear(parseInt(searchParams.year as string))
       dateRaw.setMonth(parseInt(searchParams.month as string) - 1, 1)
     }
     let date = new DateOnly(dateRaw)
-    let categories = store.category.getAll()
+    let categories = await local.categories.all()
     let transaction: TransactionWithRefs = {
       name: "",
       type: "expense",
@@ -33,15 +33,19 @@ export default function TransactionCreatePage() {
       transaction,
       categories,
     }
-  })()
+  })
   async function onSubmit(transaction: Transaction) {
-    await store.transaction.save(transaction)
+    await local.transactions.set(transaction)
     navigate(-1)
   }
   return (
-    <TransactionForm transaction={data.transaction}
-      categories={data.categories}
-      onSubmit={onSubmit}
-    />
+    <Show when={data()}>
+      {data => (
+        <TransactionForm transaction={data().transaction}
+          categories={data().categories}
+          onSubmit={onSubmit}
+        />
+      )}
+    </Show>
   )
 }

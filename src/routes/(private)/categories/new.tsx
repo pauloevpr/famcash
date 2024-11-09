@@ -2,11 +2,10 @@ import { Category } from "~/lib/models"
 import { CategoryForm } from "./(components)"
 import { useNavigate } from "@solidjs/router"
 import { generateDbRecordId } from "~/lib/utils"
-import { AppContext } from "~/components/context"
-import { useContext } from "solid-js"
+import { store } from "~/lib/wstore"
 
 export default function CategoryCreatePage() {
-  let { store } = useContext(AppContext)
+  let local = store.use()
   let navigate = useNavigate()
   let newCategory: Category = {
     id: generateDbRecordId(),
@@ -14,8 +13,8 @@ export default function CategoryCreatePage() {
     icon: ""
   }
 
-  function onSubmit(category: Category) {
-    store.category.save(category)
+  async function onSubmit(category: Category) {
+    await local.categories.set(category.id, category)
     navigate(-1)
   }
 

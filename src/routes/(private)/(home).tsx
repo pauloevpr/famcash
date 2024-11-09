@@ -1,5 +1,5 @@
-import { A, useSearchParams } from "@solidjs/router";
-import { createEffect, createMemo, For, Show, useContext, VoidProps } from "solid-js";
+import { A, createAsync, useSearchParams } from "@solidjs/router";
+import { createMemo, For, Show, VoidProps } from "solid-js";
 import { ChevronLeftIcon, ChevronRightIcon } from "~/components/icons";
 import { PageLayout } from "~/components/layouts";
 import { DateOnly } from "~/lib/utils";
@@ -7,30 +7,32 @@ import { TransactionListItem } from "./transactions/(components)";
 import { useTabs } from "~/components/tabs";
 import { CategoryWithSpending } from "~/lib/models";
 import { Button } from "~/components/buttons";
-import { AppContext } from "~/components/context";
-
+import { store } from "~/lib/wstore";
 
 export default function Home() {
-  let { store } = useContext(AppContext)
+  let local = store.use()
   let [params] = useSearchParams()
   let currentMonth = createMemo(() => {
     let now = new Date()
     let year = now.getFullYear()
     let month = now.getMonth() + 1
     if (params.month && params.year) {
-      year = parseInt(params.year)
-      month = parseInt(params.month)
+      year = parseInt(params.year as string)
+      month = parseInt(params.month as string)
     }
     let LastMonthEnd = new Date()
     LastMonthEnd.setDate(-1)
     let isPast = DateOnly.fromYearMonth(year, month).time < LastMonthEnd.getTime()
     return { year, month, isPast }
   })
-  let transactions = createMemo(() => {
-    return store.transaction.getByMonth(currentMonth().year, currentMonth().month)
-  })
+  let categories = createAsync(() => {
+    return local.categories.all()
+  }, { initialValue: [] })
+  let transactions = createAsync(() => {
+    return local.transactions.byMonth(currentMonth().year, currentMonth().month)
+  }, { initialValue: [] })
   let spending = createMemo(() => {
-    return store.calculateSpendingByCategory(transactions())
+    return local.calculateSpendingByCategory(transactions())
   })
   let nextMonthLink = createMemo(() => {
     let current = currentMonth()
@@ -55,12 +57,13 @@ export default function Home() {
     return DateOnly.fromYearMonth(current.year, current.month).date.toLocaleDateString(undefined, { month: "long" })
   })
   let summary = createMemo(() => {
-    return store.calculateSummary(currentMonth().year, currentMonth().month, transactions())
+    return local.calculateSummary(currentMonth().year, currentMonth().month, transactions(), categories())
   })
   let { Tab, TabPanel } = useTabs("Transactions Views", () => [
     { label: "Transactions", key: "transactions" },
     { label: "Spending", key: "spending" },
   ], { initialSelection: "transactions" })
+
 
   return (
     <PageLayout>

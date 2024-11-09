@@ -36,7 +36,7 @@ export const db = {
 				"UPDATE users set name = $1 WHERE id = $2",
 				[name.trim(), id]
 			)
-		}
+		},
 	},
 	token: {
 		signup: {
@@ -152,6 +152,15 @@ export const db = {
 				[userId, familyId, invitedBy ?? userId, role === "admin"]
 			)
 		},
+		async assureExists(userId: number, familyId: number, admin?: boolean) {
+			let memberships = await this.forUser(userId)
+			let hasPermission = memberships.some(
+				member => member.family_id === familyId && (admin === undefined || member.admin === admin)
+			)
+			if (!hasPermission) {
+				throw Error("user does not have permissions")
+			}
+		}
 	},
 	record: {
 		async upatedSince(familyId: number, since: Date) {

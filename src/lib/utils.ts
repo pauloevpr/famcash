@@ -1,4 +1,5 @@
 import { DbRecordTypes, DbUser, IdbRecord, UncheckedFamily, UncheckedRecord, UncheckedUser } from "./models"
+import { UnsyncedRecord } from "./wire-store"
 
 export class DateOnly {
 	date: Date
@@ -55,7 +56,7 @@ export class DateOnly {
 
 export function generateDbRecordId() {
 	const timestamp = new Date().getTime().toString(); // current timestamp
-	const randomPart = Math.random().toString(36).substring(2, 10); // 4-char random part
+	const randomPart = Math.random().toString(36).substring(2, 10); // random part
 	return (timestamp + randomPart).substring(0, 20); // ensure total length is 20
 }
 
@@ -90,12 +91,8 @@ export const validate = {
 		this.dictionary(record, "data")
 	},
 
-	record(record: UncheckedRecord) {
-		this.plainObject(record)
+	record<TData extends Record<string, any>>(record: UnsyncedRecord<TData>) {
 		this.string(record, "id", 20, 20)
-		this.string(record, "type", 1, 32)
-		this.enum(record, "type", DbRecordTypes())
-		this.boolean(record, "deleted")
 		this.dictionary(record, "data")
 		this.serializable(record, "data", 2048)
 	},

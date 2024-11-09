@@ -1,6 +1,5 @@
 import { action, createAsync, RouteDefinition, RouteSectionProps, query, useSearchParams, useNavigate, } from "@solidjs/router";
-import { clientOnly } from "@solidjs/start"
-import { createMemo, createSignal, For, onCleanup, ParentProps, Show, useContext } from "solid-js";
+import { ErrorBoundary, For, Show, } from "solid-js";
 import { createStore } from "solid-js/store";
 import Alert from "~/components/alert";
 import { Button } from "~/components/buttons";
@@ -8,9 +7,8 @@ import { AppContext } from "~/components/context";
 import { ChevronRightIcon, HandHeartIcon, PlusIcon, QRCodeIcon } from "~/components/icons";
 import QRCodeScanner from "~/components/qrcode";
 import { completeSignUpWithNewFamily, getCurrentAccount, loginWithToken, signupWithToken, getInvite, completeSignUpWithInvite } from "~/lib/server";
-import { createGlobalStore } from "~/lib/store";
+import { store } from "~/lib/wstore";
 
-const ClientSyncService = clientOnly(() => import("~/lib/sync"));
 
 const loadAccount = query(async () => {
   let [params, setParams] = useSearchParams()
@@ -40,12 +38,10 @@ export default function PrivateSection(props: RouteSectionProps) {
               <AppContext.Provider value={{
                 user: account().user,
                 family: family(),
-                store: createGlobalStore(account().user, family())
               }}>
-                <Startup>
+                <store.Provider namespace={family().id.toString()}>
                   {props.children}
-                  <ClientSyncService />
-                </Startup>
+                </store.Provider>
               </AppContext.Provider>
             )}
           </Show>
@@ -60,30 +56,6 @@ export default function PrivateSection(props: RouteSectionProps) {
 }
 
 
-function Startup(props: ParentProps) {
-  // TODO: this needs a better design
-  let { store } = useContext(AppContext)
-  let [minimumDisplayTimeReached, setMinimumDisplayTimeReached] = createSignal(false)
-  let done = createMemo(() => minimumDisplayTimeReached() && store.idb.ready)
-
-  let timeout = setTimeout(() => {
-    setMinimumDisplayTimeReached(true)
-  }, 300)
-
-  onCleanup(() => clearTimeout(timeout))
-
-  return (
-    <Show when={done()}
-      fallback={
-        <dialog class="background z-[999] fixed top-0 left-0 flex items-center justify-center h-screen w-screen"
-          open>
-          Loading...
-        </dialog>
-      }>
-      {props.children}
-    </Show>
-  )
-}
 
 function Welcome() {
   // TODO: this is missing a logoug button
@@ -250,4 +222,16 @@ function Welcome() {
     </main>
   )
 }
+
+
+
+
+
+
+
+
+
+
+
+
 

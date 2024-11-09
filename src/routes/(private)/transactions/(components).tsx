@@ -1,8 +1,8 @@
 import { A, useNavigate } from "@solidjs/router";
-import { createMemo, createSignal, For, Show, useContext, VoidProps } from "solid-js";
+import { createMemo, createSignal, For, Show, VoidProps } from "solid-js";
 import { Button } from "~/components/buttons";
-import { AppContext } from "~/components/context";
 import { Category, RecurrencyInterval, Transaction, TransactionRecurrency, TransactionType, TransactionWithRefs } from "~/lib/models";
+import { store } from "~/lib/wstore";
 import { DateOnly } from "~/lib/utils";
 
 export function TransactionListItem(props: VoidProps<{
@@ -65,7 +65,7 @@ export function TransactionForm(props: VoidProps<{
   onDelete?: (id: string) => Promise<void>,
   type?: TransactionType
 }>) {
-  let { store } = useContext(AppContext)
+  let local = store.use()
   let navigate = useNavigate()
   let [type, setType] = createSignal(props.type || props.transaction.type)
   let typeSelection = createMemo(() => {
@@ -91,7 +91,7 @@ export function TransactionForm(props: VoidProps<{
       type: data.get("type") as TransactionType,
     }
     if (transaction.type === "income") {
-      transaction.categoryId = store.category.income().id
+      transaction.categoryId = local.categories.static.income().id
     }
     if (data.get("recurrency") === "on") {
       let endDate = data.get("recurrencyEndDate") as string
