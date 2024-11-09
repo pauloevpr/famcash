@@ -277,9 +277,9 @@ Since Solid Wire stores are reactive, the todo should be removed from the list a
 
 ### Syncing with the Server/Database
 
-Up to this point, our data only exists locally in the browser. Let's go back to our store and implement syncing the data with our actual database. We start by adding a `sync` function to our store:
+Up to this point, our data only exists locally in the browser. Let's go back to our store and start syncing the data with our actual database. We start by adding a `sync` function to our store:
 
-```ts
+```jsx
 /* imports ommited */
 
 const store = createWireStore({
@@ -302,7 +302,7 @@ The sync function is a server function that is called by Solid Wire under the ho
 
 For this example, let's ignore `syncCursor` and `namespace` for now and go with a very simple implementation - we will persist the changes from the client and then return the entire todo list back to the client.
 
-```ts
+```jsx
 /* imports ommited */
 import { db } from "./db"
 
@@ -313,15 +313,16 @@ const store = createWireStore({
   },
   sync: async (records) => {
     "use server"
+    let updated = records.filter(record => record.state === "updated")
     await db.saveTodos(
-      records.map(record => ({ ...record.data, id: record.id }))
+      updated.map(record => ({ ...record.data, id: record.id }))
     )
     let allTodos = await db.getAllTodos()
     let updates = allTodos.map(item => ({
       id: item.id,
-      state: "updated",
+      state: item.deleted ? "deleted" : "updated",
       type: "todo",
-      data: item
+      data: item.data
     }))
     return { records: updates, syncCursor: "" }
   },
@@ -330,7 +331,45 @@ const store = createWireStore({
 /* UI components ommited */
 ```
 
-> The implementation of `db` in this example is entirely up to you. Solid Wire is databse agnostic and has no opinions on how and where you should store your data.
+Now let's update the code and account for deleted records. Solid Wire uses the concept of soft delete internally - the records are initially not removed from the local database and are marked as deleted instead. 
+
+In this example, we will use soft delete to "remove" items from our database. Deleted todos will have a `deleted` field added to them so we can identify them.
+
+
+```jsx
+/* imports ommited */
+import { db } from "./db"
+
+const store = createWireStore({
+  name: "todo-app",
+  definition: {
+    todo: {} as Todo
+  },
+  sync: async (records) => {
+    "use server"
+    let updated = records.filter(record => record.state === "updated")
+    let deleted = records.filter(record => record.state === "deleted")
+    await db.saveTodos(
+      updated.map(record => ({ ...record.data, id: record.id }))
+    )
+    await db.softDeleteTodos(
+      deleted.map(record => record.id)
+    )
+    let allTodos = await db.getAllTodos()
+    let updates = allTodos.map(item => ({
+      id: item.id,
+      state: item.deleted ? "deleted" : "updated",
+      type: "todo",
+      data: item.data
+    }))
+    return { records: updates, syncCursor: "" }
+  },
+})
+
+/* UI components ommited */
+```
+
+> The implementation of `db` in the examples is entirely up to you. Solid Wire is databse agnostic and has no opinions on how and where you should store your data.
 
 ## Syncing 
 ## Extensions
