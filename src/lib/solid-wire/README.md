@@ -34,7 +34,7 @@ Add Solid Wire to your project:
 npm install solid-wire
 ```
 
-### Create your first Wire Store
+### Creating a Wire Store
 
 Solid Wire uses the concept of Wire Store for working with your data. A Wire Store is a data store that "wires" the data that is locally stored in the browser with the data that is stored on your server/database.
 
@@ -48,7 +48,7 @@ export const store = createWireStore({
 })
 ```
 
-### Define the data structure
+### Defining the data structure
 
 Now we need to define which type of data we are going to store. Solid Wire allows us to add one or more data types in the `definition` field. For now let's add a single type: `Todo`:
 
@@ -69,7 +69,7 @@ export const store = createWireStore({
 > The typecast `as Todo` in the definition allows Solid Wire to know which typescript type to use when providing code completion for todos.
 
 
-### Add the store to your app
+### Registering the store
 
 Solid Wire uses the popular [Provider/Use](https://docs.solidjs.com/concepts/context) pattern to make the store available in your components tree. We start by "providing" the store somewhere up in the tree. For this example, let't provide the store only on this particular todo page (`src/routes/todo.tsx`):
 
@@ -125,7 +125,7 @@ function TodoList() {
 }
 ```
 
-### Reading data from the store
+### Reading data
 
 With the store in place, we can retrieve all todos using `store.todo.all()`. Because this is an asnyc function, we are going to wrap it using Solid's `createAsync` helper so we can wait until the data is loaded before we can render the list of todos:
 
@@ -150,7 +150,7 @@ function TodoList() {
   > Notice how we use an empty array as `initialValue` to avoid the `todos` variable from being potentially `undefined`. Without that setting, you might need to wrap the list in either a `<Suspense>` or `<Show>` component in order to allow waiting for the data to be available.
 
 
-  ### Writing to the store
+  ### Writing data
 
 #### Adding todos
 
@@ -333,7 +333,7 @@ const store = createWireStore({
 
 Now let's update the code and account for deleted records. Solid Wire uses the concept of soft delete internally - the records are initially not removed from the local database and are marked as deleted instead. 
 
-In this example, we will use soft delete to "remove" items from our database. Deleted todos will have a `deleted` field added to them so we can identify them.
+In this example, we will use soft delete to "remove" items from our database as well. This is a very common approach when building local-first apps. Deleted todos will have a `deleted` field added to them so we can identify them.
 
 
 ```jsx
