@@ -1,5 +1,5 @@
 import { isServer } from "solid-js/web"
-import { ExtendableWireStore, WireStoreConfig, WireStoreContext, WireStoreDefinition, WireStoreProvider } from "./types"
+import { ExtendableWireStore, SyncedRecord, UnsyncedRecord, WireStoreConfig, WireStoreContext, WireStoreDefinition, WireStoreProvider } from "./types"
 import { ParentProps, useContext } from "solid-js"
 import { WireStoreService } from "./service"
 
@@ -60,4 +60,10 @@ export function createWireStore<Definition extends WireStoreDefinition, Extensio
   }
 
   return { Provider, use, types: () => recordTypes }
+}
+
+export function localOnly() {
+  return (): any => {
+    return { records: [] }
+  }
 }

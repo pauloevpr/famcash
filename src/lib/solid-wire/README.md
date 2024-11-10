@@ -73,7 +73,7 @@ export const store = createWireStore({
 Solid Wire uses the popular [Provider/Use](https://docs.solidjs.com/concepts/context) pattern to make the store available in your components tree. We start by "providing" the store somewhere up in the tree. For this example, let't provide the store only on this particular todo page (`src/routes/todo.tsx`):
 
 ```jsx
-import { createWireStore } from "~/lib/solid-wire"
+import { createWireStore } from "solid-wire"
 
 type Todo = { title: string, done: boolean }
 
@@ -96,7 +96,7 @@ export default function TodoPage() {
 With the store available in the components tree, we can access it from any components using `store.use()`. Let's add a new component to list our todos:
 
 ```jsx
-import { createWireStore } from "~/lib/solid-wire"
+import { createWireStore } from "solid-wire"
 
 type Todo = { title: string, done: boolean }
 
@@ -581,6 +581,126 @@ function ProjectList() {
 One thing to note is that wire stores are reactive. This means that when deleting a record using `delete`, the `all` call wrapped in `createAsync` will be triggered again, causing the UI to automatically reflect the changes and remove the deleted item. To learn more about `createSync`, check out the [official docs](https://docs.solidjs.com/solid-router/reference/data-apis/create-async).
 
 ## Custom APIs
+
+As powerful and convenient as the built-in data APIs are (`get`, `all`, `set`, `delete`), in real-world scenarios you will likely need to extend the wire store and add additional data API functions for interacting with your local database.
+
+Solid Wire stores can be extended with new data APIs. You can add either global APIs or type-specific APIs. You achieve that by using the `extend` parameter when setting up your store.
+
+Here is an example of adding a `completed` function to our store that can be used to retrieve completed todos in a simple todo app:
+
+```ts
+  /* other imports ommited */
+import { createWireStore } from "solid-wire"
+
+const store = createWireStore({
+  name: "todo-app",
+  definition: {
+    todo: {} as Todo
+  },
+  extend: (store) => {
+      let getCompleted = async() => {
+        return (await store.todo.all()).filter(todo => todo.done)
+      }
+      return {
+        todo: { // we are adding a todo-specific API
+          completed: getCompleted
+        }
+      }
+  }
+  /* sync ommited */
+})
+```
+
+You can now use this new data API in any of your components by calling `store.todo.completed()`. Here is an example:
+
+
+```jsx
+/* store setup ommited */
+
+function CompletedTodoList() {
+  let local = store.use()
+  let todos = createAsync(() => local.todo.completed(), { initialValue: [] })
+  return (
+    <ul>
+      <For each={todos()}>
+        {todo => (
+          <li>{todo.title}</li>
+        )}
+      </For>
+    </ul>
+  )
+}
+```
+
+When extending your store with new data APIs, you are not limited to functions used for custom queries. You can add new functions for reading, writing or even both, and your functions can issue numerous other read/write operations internally. There is no restriction.
+
+Here is an example of adding a new data API that marks all todos as completed:
+
+```ts
+  /* other imports ommited */
+import { createWireStore } from "solid-wire"
+
+const store = createWireStore({
+  name: "todo-app",
+  definition: {
+    todo: {} as Todo
+  },
+  extend: (store) => {
+      let completeAll = async () => {
+        let all = await store.todo.all()
+        await Promise.all(
+          all.map(todo => store.todo.delete(todo.id))
+        )
+      }
+      return {
+        todo: {
+          completeAll
+        }
+      }
+  }
+  /* sync ommited */
+})
+```
+
+You can then use the new `completeAll` API in your components by calling `store.todo.completeAll()`.
+
+**Global APIs**
+
+The new data APIs we added so far are type-specific, meaning they sit under `store.todo.xxx`. It is also possible to add global data APIs that can sit under `store.xxx` instead. This is an elegant way to add cross concerning data APIs to your app:
+
+Here is an example:
+
+
+```ts
+  /* other imports ommited */
+import { createWireStore } from "solid-wire"
+
+const store = createWireStore({
+  name: "todo-app",
+  definition: {
+    todo: {} as Todo
+  },
+  extend: (store) => {
+      let someTodoQuery = async () => {
+        /* implementatino ommited */
+      }
+      let someGlobalQuery = async () => {
+        /* implementatino ommited */
+      }
+      return {
+        someGlobalQuery,
+        todo: {
+          someTodoQuery
+        }
+      }
+  }
+  /* sync ommited */
+})
+```
+
+You can now access the new data APIs with `store.someGlobalQuery()` and `store.todo.someTodoQuery()`.
+
+
 # Syncing 
 
 Solid Wire stores the data locally in the browser using indexed-db. The data then needs to be synced with the server/database. To achieve that, Solid Wire uses a simple and powerful sync mechanism called `push-pull`. Unlike other sync mechanisms, `push-pull` uses a single API endpoint. When syncing, the client calls the `push-pull` API endpoint, sends all its pending local writes, and receives back any new updates.
@@ -736,14 +856,101 @@ const store = createWireStore({
 })
 ```
 
-The validation of the actual data is totally up to you. You can use the `validateRecordsMetadata` helper function to validate the basic fields of the unsynced records: `id`, `type`, `state`. Validating the `data` field is total up to you. Adding user-generated records to your database without validation is a high security risk.
+One thing to notice in the example above is that, because we save the client's updates to the database before retrieving the updated records, the updates returned to the client include the same records sent by the client. This is intentional and desirable for the following reasons:
+
+- it allows Solid Wire to purge delete records from the indexed-db instance as it processes the records with the `deleted` state which were previously only soft-deleted
+- it allows you to apply any sort of server-side logic to normalize the data
+
+As mentioned earlier, the validation of the actual data bein synced is totally up to you. You can use the `validateRecordsMetadata` helper function to validate the basic fields of the unsynced records: `id`, `type`, `state`. Validating the `data` field is total up to you. Adding user-generated records to your database without validation is a high security risk.
 
 The implementation of `db` in the examples is entirely up to you. Solid Wire is databse agnostic and has no opinions on how and where you should store your data.
 
 
 ## Using versions
+
+TODO: explain how to use `syncCursor` to implement syncing using a version-based strategy
+
 ## Periodically
-## Real-time
+
+By default, Solid Wire only triggers syncing in the following occasions:
+
+- during startup (which includes when users manually refreshes the page)
+- right after local writes are made (e.g. when calling `set`, `delete`)
+
+You can optionally enable periodic syncing to allow Solid Wire to trigger syncing periodically using a configurable interval.
+
+To enable periodic syncing, set the `periodic` props when mounting your wire store.
+
+```jsx
+
+// enables periodic syncing using the default interval: 60 seconds
+
+<store.Provider periodic>
+  { /* children goes here */ }
+</store.Provider>
+```
+
+Alternatively, you pass a number to the `periodic` props to configure the interval in miliseconds:
+
+
+```jsx
+
+// enables periodic syncing using a custom interval: 30 seconds
+
+<store.Provider periodic={30000}>
+  { /* children goes here */ }
+</store.Provider>
+```
+
+When using a custom interval, keep in mind that the shorter the interval, the bigger the load imposed on your server.
+
+## Local-only
+
+Even though Solid Wire is designed to provide local-first functionality for SolidStart apps, it can be used to build local-only applications. Local-only behave just like local-first apps when interacting the local-version of the databate. The difference is that in a local-only app that changes made to the local indexed-db database are never synced with a server-side database.
+
+Local-only is very helpful for:
+
+- prototyping
+- writing offline mobile apps powered by WebView
+
+To enable local-only mode in your wire store, use the `localOnly` helper from Solid Wire:
+
+
+```ts
+  /* other imports ommited */
+import { createWireStore, localOnly } from "solid-wire"
+
+const store = createWireStore({
+  name: "todo-app",
+  definition: {
+    todo: {} as Todo
+  },
+  sync: localOnly(),
+})
+```
+
+Alternatively, you can add a passthrough function manually:
+
+
+```ts
+  /* other imports ommited */
+import { createWireStore, localOnly } from "solid-wire"
+
+const store = createWireStore({
+  name: "todo-app",
+  definition: {
+    todo: {} as Todo
+  },
+  sync: async () => {
+    return { records: [] }
+  },
+})
+```
+
+**Important**: Make sure you **DO NOT add the `"use server"`** marker to this function to avoid making an unnecessary round trip to the server.
+
+
+
 # Namespacing 
 
 Namespacing is a key feature of Solid Wire. It allows you to store data in the browser in different indexed-db instances in order to keep data from different users/accounts separated. Without namespacing, all the data in your app would internally be store in a single indexed-db instance, meaning all the users of your site/app would interact with the same data.
@@ -829,5 +1036,17 @@ const store = createWireStore({
 > A common question that arises from the example above is - if the namespace is the same as the user ID, why do I need an extra step to get the current user? And why do I need to check it user ID really matches the namespace? The answer is simple - for security reasons. Being a server function, the `sync` function is very much a public API endpoint, which means we should never trust the inputs coming in. The `getUser` function in the example uses [SolidStart sessions](https://docs.solidjs.com/solid-start/advanced/session#sessions) to determine the current user, which is the correct way to check if the user is authenticated.
 
 # Auth
+
+TBD: explain more about using namespaces to isolate indexed-db instances?
+
 # Security 
+
 TBD: talk about erasing the data on logout? Encryption?
+
+# Backlog
+
+- [ ] add support for batching updates when syncing
+- [ ] add a `filter` Data API for retrieving data which uses indexed-db's cursor under the hood for better performance
+- [ ] add support for custom indexed-db indexes
+- [ ] add support for partial syncing to avoid having to load the entire database
+- [ ] write docs on real-time syncing to show how to poke Solid Wire by calling `store.sync`

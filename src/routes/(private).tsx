@@ -39,7 +39,7 @@ export default function PrivateSection(props: RouteSectionProps) {
                 user: account().user,
                 family: family(),
               }}>
-                <store.Provider namespace={family().id.toString()}>
+                <store.Provider namespace={family().id.toString()} >
                   {props.children}
                 </store.Provider>
               </AppContext.Provider>
