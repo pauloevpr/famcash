@@ -152,7 +152,7 @@ function TodoList() {
 
   ### Writing data
 
-#### Adding and updating
+#### Adding/upating
 
   Now let's deal with updating the data in our the store. Let's start by creating a form that we can use to add new todos:
 
@@ -371,6 +371,84 @@ const store = createWireStore({
 
 > The implementation of `db` in the examples is entirely up to you. Solid Wire is databse agnostic and has no opinions on how and where you should store your data.
 
+# Learn
+## Basics
+## Querying
+### get
+### all
+### filter
+### Custom queries
+## Updating
+## set
+## delete
+## Custom updates
 ## Syncing 
-## Extensions
+### Using Timestamp
+### Using versions
+## Namespacing 
 
+Namespacing is a key feature of Solid Wire. It allows you to store data in the browser in different "buckets" in order to keep data from different users/accounts separated. Without namespacing, all the data in your app would internally be store in a single indexed-db instance, meaning all the users of your site/app would interact with the same data.
+
+Having all the data of your app stored in a single indexed-db instance might be the desired outcome, though. This is typically the case when deploying mobile apps using web technologies where the app is hosted in an isolated browser instance using WebView, and there is no authentication. The natural isolation created in this scenario is enough to allow you to avoid namespacing.
+
+In most cases, however, you will need namespacing to assure users only interact with their data.
+
+### How it works
+
+When creating wire stores, namespaces are used to composed the name of the indexed-db databases under the hood. Solid Wire uses the follwing format for determining database names:
+
+```
+wire-store:${storeName}:${namespace}
+```
+
+You define the namespace to to use in your app when mounting the store. You can pass it to the provider using the `namespace` props: 
+
+```jsx
+<store.Provider namespace="some-value">
+  { /* children goes here */ }
+</store.Provider>
+```
+
+### Basic example 
+
+A typical approach for namespacing is to use the ID of the current user/account as the namespace. Here is an example on how to achieve that using a [protected](https://docs.solidjs.com/solid-start/building-your-application/routing#route-groups) SolidStart route group `src/routes/(protected).tsx`. Notice how the store is only mounted once we have a valid logged in user.
+
+```jsx
+/* imports ommited */
+
+export default function ProtectedSection(props: RouteSectionProps) {
+  let user = createAsync(getCurrentUser)
+  return (
+    <Show when={user()}>
+      {user => (
+        <store.Provider namespace={user().id}>
+          {props.children}
+        </store.Provider>
+      )}
+    </Show>
+  )
+}
+```
+
+```ts
+
+const store = createWireStore({
+  /* setup ommited */
+  },
+  sync: async (records, namespace, syncCursor) => {
+    "use server"
+    // getUser throws a redirect when user is not authenticated
+    let user = await getUser() 
+    // let's make sure we are getting the right namespace 
+    if (user.id !== namespace) throw Error("bad request")
+
+    /* syncing logic ommited */
+  },
+})
+```
+
+
+# Guides
+## Auth
+## Security 
+TBD: talk about erasing the data on logout? Encryption?
