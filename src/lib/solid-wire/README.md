@@ -8,9 +8,9 @@ Solid Wire stores the data locally in the browser using [indexed-db](https://dev
 
 Solid Wire handles all the syncing logic and indexed-db interfacing for you. What is left for you is to write the code that persists the data to your favorite database. 
 
-## Getting Started
+# Getting Started
 
-### Installation and Setup
+## Installation and Setup
 
 Solid Wire is designed to work with SolidStart apps. To create a new SolidStart app, checkout the official [Getting Started](https://docs.solidjs.com/solid-start/getting-started) for SolidStart.
 
@@ -34,7 +34,7 @@ Add Solid Wire to your project:
 npm install solid-wire
 ```
 
-### Creating a Wire Store
+## Creating a Wire Store
 
 Solid Wire uses the concept of Wire Store for working with your data. A Wire Store is a data store that "wires" the data that is locally stored in the browser with the data that is stored on your server/database.
 
@@ -48,7 +48,7 @@ export const store = createWireStore({
 })
 ```
 
-### Defining the data structure
+## Defining the data structure
 
 Now we need to define which type of data we are going to store. Solid Wire allows us to add one or more data types in the `definition` field. For now let's add a single type: `Todo`:
 
@@ -69,7 +69,7 @@ export const store = createWireStore({
 > The typecast `as Todo` in the definition allows Solid Wire to know which typescript type to use when providing code completion for todos.
 
 
-### Registering the store
+## Registering the store
 
 Solid Wire uses the popular [Provider/Use](https://docs.solidjs.com/concepts/context) pattern to make the store available in your components tree. We start by "providing" the store somewhere up in the tree. For this example, let't provide the store only on this particular todo page (`src/routes/todo.tsx`):
 
@@ -125,7 +125,7 @@ function TodoList() {
 }
 ```
 
-### Reading data
+## Reading data
 
 With the store in place, we can retrieve all todos using `store.todo.all()`. Because this is an asnyc function, we are going to wrap it using Solid's `createAsync` helper so we can wait until the data is loaded before we can render the list of todos:
 
@@ -134,8 +134,36 @@ With the store in place, we can retrieve all todos using `store.todo.all()`. Bec
 
 function TodoList() {
   let local = store.use()
-    let todos = createAsync(() => local.todo.all(), { initialValue: [] })
-    return (
+  let todos = createAsync(() => local.todo.all(), { initialValue: [] })
+  return (
+    <ul>
+      <For each={todos()}>
+        {todo => (
+          <li>{todo.title}</li>
+        )}
+      </For>
+    </ul>
+  )
+}
+```
+
+> Notice how we use an empty array as `initialValue` to avoid the `todos` variable from being potentially `undefined`. Without that setting, you might need to wrap the list in either a `<Suspense>` or `<Show>` component in order to allow waiting for the data to be available.
+
+
+## Writing data
+
+### Adding/upating
+
+Now let's deal with updating the data in our the store. Let's start by creating a form that we can use to add new todos:
+
+```jsx
+/* store setup ommited */
+
+function TodoList() {
+  let local = store.use()
+  let todos = createAsync(() => local.todo.all(), { initialValue: [] })
+  return (
+    <div>
       <ul>
         <For each={todos()}>
           {todo => (
@@ -143,92 +171,64 @@ function TodoList() {
           )}
         </For>
       </ul>
-    )
-  }
-  ```
+      <form>
+        <label for="title">New</label>
+        <input id="title" name="title" required placeholder="New Todo" />
+        <button>
+          Add Todo
+        </button>
+      </form>
+    </div>
+  )
+}
+```
 
-  > Notice how we use an empty array as `initialValue` to avoid the `todos` variable from being potentially `undefined`. Without that setting, you might need to wrap the list in either a `<Suspense>` or `<Show>` component in order to allow waiting for the data to be available.
+Now let's handle the form submission and use `local.todo.set` to save our new todo:
 
+```jsx
+/* store setup ommited */
 
-  ### Writing data
+function TodoList() {
+  let local = store.use()
+  let todos = createAsync(() => local.todo.all(), { initialValue: [] })
 
-#### Adding/upating
-
-  Now let's deal with updating the data in our the store. Let's start by creating a form that we can use to add new todos:
-
-  ```jsx
-  /* store setup ommited */
-
-  function TodoList() {
-    let local = store.use()
-    let todos = createAsync(() => local.todo.all(), { initialValue: [] })
-    return (
-      <div>
-        <ul>
-          <For each={todos()}>
-            {todo => (
-              <li>{todo.title}</li>
-            )}
-          </For>
-        </ul>
-        <form>
-          <label for="title">New</label>
-          <input id="title" name="title" required placeholder="New Todo" />
-          <button>
-            Add Todo
-          </button>
-        </form>
-      </div>
-    )
-  }
-  ```
-
-  Now let's handle the form submission and use `local.todo.set` to save our new todo:
-
-  ```jsx
-  /* store setup ommited */
-
-  function TodoList() {
-    let local = store.use()
-    let todos = createAsync(() => local.todo.all(), { initialValue: [] })
-
-    async function onSubmit(e: SubmitEvent) {
-      e.preventDefault()
-      let data = new FormData(e.target as HTMLFormElement)
-      let todo: Todo = {
-        id: new Date().getTime().toString(),
-        title: data.get("title") as string,
-        done: false,
-      }
-      await local.todo.set(todo.id, todo)
+  async function onSubmit(e: SubmitEvent) {
+    e.preventDefault()
+    let data = new FormData(e.target as HTMLFormElement)
+    let todo: Todo = {
+      id: new Date().getTime().toString(),
+      title: data.get("title") as string,
+      done: false,
     }
-
-    return (
-      <div>
-        <ul>
-          <For each={todos()}>
-            {todo => (
-              <li>{todo.title}</li>
-            )}
-          </For>
-        </ul>
-        <form onSubmit={onSubmit}>
-          <label for="title">New</label>
-          <input id="title" name="title" required placeholder="New Todo" />
-          <button>
-            Add Todo
-          </button>
-        </form>
-      </div>
-    )
+    await local.todo.set(todo.id, todo)
   }
-  ```
+
+  return (
+    <div>
+      <ul>
+        <For each={todos()}>
+          {todo => (
+            <li>{todo.title}</li>
+          )}
+        </For>
+      </ul>
+      <form onSubmit={onSubmit}>
+        <label for="title">New</label>
+        <input id="title" name="title" required placeholder="New Todo" />
+        <button>
+          Add Todo
+        </button>
+      </form>
+    </div>
+  )
+}
+```
 
 > Notice how we are generating the `id` for the todo item in the client. This is a requirement for implement local-first apps.
 
 Since our Solid Wire stores are reactive, the new todo should appear in the list automatically.
 
-#### Deleting
+### Deleting
 
 Now let's handle deleting a todo. Let's add a delete button next to each todo. When the button is clicked, we are going to use `local.todo.delete` to remove the todo:
 
@@ -275,7 +275,7 @@ function TodoList() {
 
 Since Solid Wire stores are reactive, the todo should be removed from the list automatically.
 
-### Basic Syncing
+## Basic Syncing
 
 Up to this point, our data only exists locally in the browser. Let's go back to our store and start syncing the data with our actual database. We start by adding a `sync` function to our store:
 
@@ -373,18 +373,187 @@ const store = createWireStore({
 
 # Learn
 ## Basics
-## Querying
+## Data APIs
+
+Solid Wire provides simple to use APIs for working with the data in your wire stores. When creating your wire store, you start by defining all the data types you want to have in your store. The resulting wire store exposes a few data APIs functions to help you interact with each data type.
+
+Let's take the store below as example for a simple project tracking app:
+
+```ts
+type Task = { id: string, title: string, done: boolean, projectId: string }
+type Project = { id: string, name: string, completed: boolean }
+
+const store = createWireStore({
+  name: "my-app",
+  definition: {
+    task: {} as Task,
+    project: {} as Project,
+  },
+  /* remaining setup ommited */
+})
+```
+
+With data structure above, the following data API become available in our store:
+
+- `store.task.all`
+- `store.task.get`
+- `store.task.set`
+- `store.task.delete`
+
+- `store.project.get`
+- `store.project.all`
+- `store.project.set`
+- `store.project.delete`
+
+We will discuss each of these APIs in the next sections.
+
 ### get
+
+The `get` API in the wire store is used to retrieve a single record of a given type by ID. If the item does not exist, the function will return `undefined`.
+
+Because this is an async function, we need to wrap the function using `createAsync` so the records can be loaded asynchronously.
+
+Here is an example showing how to query and display project details in a simple project tracking app. The example assumes the ID of the project comes from URL (e.g. `src/routes/projects/[id].tsx`).
+
+```jsx
+/* store setup ommited */
+
+function ProjectPage() {
+  let params = useParams()
+  let local = store.use()
+  let project = createAsync(() => local.project.get(params.id))
+  return (
+  <Show when={project()}>
+    {project => (
+      <h1>{project().name}</h1>
+      {/* ommited */}
+    )}
+  </Show>
+  )
+}
+```
+
+One thing to note is that wire stores are reactive. This means that when using `get` wrapped in `createAsync`, the query will automatically be executed again when `params.id` change (e.g. when the user navigates to a different project page), causing the UI to automatically and conveniently update. To learn more about `createSync`, check out the [official docs](https://docs.solidjs.com/solid-router/reference/data-apis/create-async).
+
+
+Another thing to note is that, because all the data we are accessing is local and it will be retrieved super fast, there is really no reason to show loading indicators or use any of the [cache functionalities](https://docs.solidjs.com/solid-router/reference/data-apis/query) of SolidStart.
+
 ### all
-### filter
-### Custom queries
-## Updating
-## set
-## delete
-## Custom updates
+
+The `all` API in the wire store is used to retrieve all records of a given type. If no items are found, an empty list will be returned.
+
+Because this is an async function, we need to wrap the function using `createAsync` so the records can be loaded asynchronously.
+
+Here is an example showing how to query and display a list of projects in a simple project tracking app:
+
+```jsx
+/* store setup ommited */
+
+function ProjectListPage() {
+  let local = store.use()
+  let projects = createAsync(() => local.project.all(), { initialValue: [] })
+  return (
+    <ul>
+      <For each={projects()}>
+        {project => (
+          <li>{project.name}</li>
+        )}
+      </For>
+    </ul>
+  )
+}
+```
+
+> Notice how we use an empty array as `initialValue` to avoid the `projects` variable from being potentially `undefined`. Without that setting, you might need to wrap the list in either a `<Suspense>` or `<Show>` component in order to allow waiting for the data to be available.
+
+One thing to note is that wire stores are reactive. This means that when using `all` wrapped in `createAsync`, if new projects are added to the store, the list will be updated automatically. To learn more about `createSync`, check out the [official docs](https://docs.solidjs.com/solid-router/reference/data-apis/create-async).
+
+Another thing to note is that, because all the data we are accessing is local and it will be retrieved super fast, there is really no reason to show loading indicators or use any of the [cache functionalities](https://docs.solidjs.com/solid-router/reference/data-apis/query) of SolidStart.
+
+### set
+
+The `set` API in the wire store is used to either create or update records of a given type by ID. This is a void function. If no exceptions are thrown, this means the write operation was successful. 
+
+Here is an example of using the `set` API to update project details in simple project tracking app. The example assumes the ID of the project comes from URL (e.g. `src/routes/projects/[id]/edit.tsx`).
+
+```ts
+/* store setup ommited */
+
+function ProjectEditPage() {
+  let params = useParams()
+  let local = store.use()
+  let project = createAsync(() => local.project.get(params.id))
+
+  async function onSubmit(e) {
+    e.preventDefault()
+    let data = new FormData(e.target)
+    let update = {
+      ...project(),
+      name: data.get("name")
+    }
+    await store.project.set(update.id, update)
+  }
+
+  return (
+  <Show when={project()}>
+    {project => (
+      <form>
+        <label for="name">Name</label>
+        <input id="name" name="name" value={project().name} required/>
+        <button>Save</button>
+      </form>
+    )}
+  </Show>
+  )
+}
+```
+
+One thing to note is that wire stores are reactive. This means that when using `set` to update the record, the `get` call wrapped in `createAsync` will triggered again, causing the UI to automatically reflect the changes. To learn more about `createSync`, check out the [official docs](https://docs.solidjs.com/solid-router/reference/data-apis/create-async).
+
+### delete
+
+The `delete` API is used to soft-delete a given record type by ID. This is a void function. If no exceptions are thrown, this means the delete operation was successful or that the record did not exist.
+
+Soft-delete means the record is not actually removed from the local indexed-db instance. The record is instead marked as deleted. This greatly simplifies the syncing mechanisms as there will be no need to manually track delete events separately. Solid Wire automatically filters out soft-deleted records when using `get` or `all` APIs. There is no reason for you to track that yourself.
+
+Here is an example of deleting a project in a list in a simple project management app:
+
+
+```jsx
+/* store setup ommited */
+
+function ProjectList() {
+  let local = store.use()
+  let projects = createAsync(() => local.project.all(), { initialValue: [] })
+
+  async function remove(project: Project) {
+    await local.project.delete(project.id)
+  }
+
+  return (
+      <ul>
+        <For each={projects()}>
+          {project => (
+            <li>
+              {project.name}
+              <button onClick={() => remove(project)}>
+                Delete
+              </button>
+            </li>
+          )}
+        </For>
+      </ul>
+  )
+}
+```
+
+One thing to note is that wire stores are reactive. This means that when deleting a record using `delete`, the `all` call wrapped in `createAsync` will be triggered again, causing the UI to automatically reflect the changes and remove the deleted item. To learn more about `createSync`, check out the [official docs](https://docs.solidjs.com/solid-router/reference/data-apis/create-async).
+
+### Extending Data API
 ## Syncing 
 ### Using Timestamp
 ### Using versions
+### Real-time
 ## Namespacing 
 
 Namespacing is a key feature of Solid Wire. It allows you to store data in the browser in different indexed-db instances in order to keep data from different users/accounts separated. Without namespacing, all the data in your app would internally be store in a single indexed-db instance, meaning all the users of your site/app would interact with the same data.
@@ -401,7 +570,7 @@ When creating wire stores, namespaces are used to composed the name of the index
 wire-store:${storeName}:${namespace}
 ```
 
-You define the namespace to to use in your app when mounting the store. You can pass it to the provider using the `namespace` props: 
+You define the namespace to use in your app when mounting the store. You can pass it to the provider using the `namespace` props: 
 
 ```jsx
 <store.Provider namespace="some-value">

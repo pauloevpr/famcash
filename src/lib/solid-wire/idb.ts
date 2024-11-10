@@ -192,7 +192,11 @@ export function useIdb<Definition extends WireStoreDefinition>(name: string, rec
 				const db = await open()
 				const request = db.transaction("records", "readonly").objectStore("records").get(id)
 				request.onsuccess = () => {
-					resolve(request.result?.data)
+					let data = request.result?.data
+					if (request.result?.deleted === true) {
+						data = undefined
+					}
+					resolve(data)
 				}
 				request.onerror = (e: any) => {
 					reject(`error when reading record '${id}: ${e.target.error}`)
