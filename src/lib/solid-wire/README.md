@@ -1,8 +1,7 @@
-# Solid Wire
 
 Solid Wire is a native SolidJS library for building local-first apps with SolidJS and SolidStart. Unlike many of the alternative local-first libraries out there, Solid Wire is designed and built from the ground up specifically to work with SolidJS and SolidStart, and to take full advantage of some powerful primitives such as `createAsync` and server functions (with `use server`).
 
-## How it works
+# How it works
 
 Solid Wire stores the data locally in the browser using [indexed-db](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API). The data is then synced with the server/database using a simple and powerful sync mechanism called `push-pull`. Unlike other sync mechanisms, `push-pull` uses a single API endpoint. When syncing, the client calls the `push-pull` API endpoint, sends all its pending local writes, and receives back any new updates.
 
@@ -371,8 +370,7 @@ const store = createWireStore({
 
 > The implementation of `db` in the examples is entirely up to you. Solid Wire is databse agnostic and has no opinions on how and where you should store your data.
 
-# Learn
-## Data APIs
+# Data APIs
 
 Solid Wire provides simple to use APIs for working with the data in your wire stores. When creating your wire store, you start by defining all the data types you want to have in your store. The resulting wire store exposes a few data APIs functions to help you interact with each data type.
 
@@ -406,7 +404,7 @@ With data structure above, the following data API become available in our store:
 
 We will discuss each of these APIs in the next sections.
 
-### get
+## get
 
 The `get` API in the wire store is used to retrieve a single record of a given type by ID. If the item does not exist, the function will return `undefined`.
 
@@ -437,7 +435,7 @@ One thing to note is that wire stores are reactive. This means that when using `
 
 Another thing to note is that, because all the data we are accessing is local and it will be retrieved super fast, there is really no reason to show loading indicators or use any of the [cache functionalities](https://docs.solidjs.com/solid-router/reference/data-apis/query) of SolidStart.
 
-### all
+## all
 
 The `all` API in the wire store is used to retrieve all records of a given type. If no items are found, an empty list will be returned.
 
@@ -469,7 +467,7 @@ One thing to note is that wire stores are reactive. This means that when using `
 
 Another thing to note is that, because all the data we are accessing is local and it will be retrieved super fast, there is really no reason to show loading indicators or use any of the [cache functionalities](https://docs.solidjs.com/solid-router/reference/data-apis/query) of SolidStart.
 
-### set
+## set
 
 The `set` API in the wire store is used to either create or update records of a given type by ID. This is a void function. If no exceptions are thrown, this means the write operation was successful. 
 
@@ -543,7 +541,7 @@ function ProjectCreatePage() {
 Notice how we are generating the `id` for the project locally in the browser. This is a requirement for implementing local-first apps. It allows records to be created without requiring a round trip to the server. It also simplifies write operations as creating and updating records become essentially the same type of operation. 
 
 
-### delete
+## delete
 
 The `delete` API is used to soft-delete a given record type by ID. This is a void function. If no exceptions are thrown, this means the delete operation was successful or that the record did not exist.
 
@@ -582,12 +580,12 @@ function ProjectList() {
 
 One thing to note is that wire stores are reactive. This means that when deleting a record using `delete`, the `all` call wrapped in `createAsync` will be triggered again, causing the UI to automatically reflect the changes and remove the deleted item. To learn more about `createSync`, check out the [official docs](https://docs.solidjs.com/solid-router/reference/data-apis/create-async).
 
-### Custom APIs
-## Syncing 
-### Using Timestamp
-### Using versions
-### Real-time
-## Namespacing 
+## Custom APIs
+# Syncing 
+## Using Timestamp
+## Using versions
+## Real-time
+# Namespacing 
 
 Namespacing is a key feature of Solid Wire. It allows you to store data in the browser in different indexed-db instances in order to keep data from different users/accounts separated. Without namespacing, all the data in your app would internally be store in a single indexed-db instance, meaning all the users of your site/app would interact with the same data.
 
@@ -595,7 +593,7 @@ Having all the data of your app stored in a single indexed-db instance might be 
 
 In most cases, however, you will need namespacing to assure users only interact with their data.
 
-### How it works
+## How it works
 
 When creating wire stores, namespaces are used to composed the name of the indexed-db databases under the hood. Solid Wire uses the follwing format for determining database names:
 
@@ -624,7 +622,7 @@ const store = createWireStore({
 })
 ```
 
-### Basic example 
+## Basic example 
 
 A typical approach for namespacing is to use the ID of the current user/account as the namespace. Here is an example on how to achieve that using a [protected](https://docs.solidjs.com/solid-start/building-your-application/routing#route-groups) SolidStart route group `src/routes/(protected).tsx`. Notice how the store is only mounted once we have a valid logged in user.
 
@@ -671,7 +669,6 @@ const store = createWireStore({
 
 > A common question that arises from the example above is - if the namespace is the same as the user ID, why do I need an extra step to get the current user? And why do I need to check it user ID really matches the namespace? The answer is simple - for security reasons. Being a server function, the `sync` function is very much a public API endpoint, which means we should never trust the inputs coming in. The `getUser` function in the example uses [SolidStart sessions](https://docs.solidjs.com/solid-start/advanced/session#sessions) to determine the current user, which is the correct way to check if the user is authenticated.
 
-# Guides
-## Auth
-## Security 
+# Auth
+# Security 
 TBD: talk about erasing the data on logout? Encryption?
