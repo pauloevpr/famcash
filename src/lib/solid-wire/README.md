@@ -4,7 +4,7 @@ Solid Wire is a native SolidJS library for building local-first apps with SolidJ
 
 ## How it works
 
-Solid Wire stores the data locally in the browser using `indexed-db`. The data is then synced with the server/database using a simple and powerful sync mechanism called `push-pull`. Unlike other sync mechanisms, `push-pull` uses a single API endpoint. When syncing, the client calls the `push-pull` API endpoint, sends all its pending local writes, and receives back any new updates.
+Solid Wire stores the data locally in the browser using [indexed-db](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API). The data is then synced with the server/database using a simple and powerful sync mechanism called `push-pull`. Unlike other sync mechanisms, `push-pull` uses a single API endpoint. When syncing, the client calls the `push-pull` API endpoint, sends all its pending local writes, and receives back any new updates.
 
 Solid Wire handles all the syncing logic and indexed-db interfacing for you. What is left for you is to write the code that persists the data to your favorite database. 
 
@@ -185,7 +185,7 @@ function TodoList() {
 
   Now let's handle the form submission and use `local.todo.set` to save our new todo:
 
-  ```ts
+  ```jsx
   /* store setup ommited */
 
   function TodoList() {
@@ -409,6 +409,19 @@ You define the namespace to to use in your app when mounting the store. You can 
 </store.Provider>
 ```
 
+You can then use that namespace in your `sync` function:
+
+```ts
+
+const store = createWireStore({
+  /* setup ommited */
+  sync: async (records, namespace, syncCursor) => {
+    "use server"
+    /* syncing logic goes here */
+  },
+})
+```
+
 ### Basic example 
 
 A typical approach for namespacing is to use the ID of the current user/account as the namespace. Here is an example on how to achieve that using a [protected](https://docs.solidjs.com/solid-start/building-your-application/routing#route-groups) SolidStart route group `src/routes/(protected).tsx`. Notice how the store is only mounted once we have a valid logged in user.
@@ -436,13 +449,12 @@ With that setting, the internal indexed-db instance will be named using the form
 wire-store:${storeName}:${userId}
 ```
 
-Solid Wire will send the provided namespace everytime it calls the `sync` endpoint.This allows you to use that infomation if needed in your syncing logic as shown in the example below:
+When it comes to syncing, Solid Wire will send the provided namespace everytime it calls the `sync` endpoint. This allows you to use that namespace in however way you needed in your syncing logic:
 
 ```ts
 
 const store = createWireStore({
   /* setup ommited */
-  },
   sync: async (records, namespace, syncCursor) => {
     "use server"
     // getUser throws a redirect when user is not authenticated
