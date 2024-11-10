@@ -387,7 +387,7 @@ const store = createWireStore({
 ### Using versions
 ## Namespacing 
 
-Namespacing is a key feature of Solid Wire. It allows you to store data in the browser in different "buckets" in order to keep data from different users/accounts separated. Without namespacing, all the data in your app would internally be store in a single indexed-db instance, meaning all the users of your site/app would interact with the same data.
+Namespacing is a key feature of Solid Wire. It allows you to store data in the browser in different indexed-db instances in order to keep data from different users/accounts separated. Without namespacing, all the data in your app would internally be store in a single indexed-db instance, meaning all the users of your site/app would interact with the same data.
 
 Having all the data of your app stored in a single indexed-db instance might be the desired outcome, though. This is typically the case when deploying mobile apps using web technologies where the app is hosted in an isolated browser instance using WebView, and there is no authentication. The natural isolation created in this scenario is enough to allow you to avoid namespacing.
 
@@ -430,6 +430,14 @@ export default function ProtectedSection(props: RouteSectionProps) {
 }
 ```
 
+With that setting, the internal indexed-db instance will be named using the format below, resulting in a different indexed-db instance for each user.
+
+```
+wire-store:${storeName}:${userId}
+```
+
+Solid Wire will send the provided namespace everytime it calls the `sync` endpoint.This allows you to use that infomation if needed in your syncing logic as shown in the example below:
+
 ```ts
 
 const store = createWireStore({
@@ -447,6 +455,7 @@ const store = createWireStore({
 })
 ```
 
+> A common question that arises from the example above is - if the namespace is the same as the user ID, why do I need an extra step to get the current user? And why do I need to check it user ID really matches the namespace? The answer is simple - for security reasons. Being a server function, the `sync` function is very much a public API endpoint, which means we should never trust the inputs coming in. The `getUser` function in the example uses [SolidStart sessions](https://docs.solidjs.com/solid-start/advanced/session#sessions) to determine the current user, which is the correct way to check if the user is authenticated.
 
 # Guides
 ## Auth
