@@ -372,7 +372,6 @@ const store = createWireStore({
 > The implementation of `db` in the examples is entirely up to you. Solid Wire is databse agnostic and has no opinions on how and where you should store your data.
 
 # Learn
-## Basics
 ## Data APIs
 
 Solid Wire provides simple to use APIs for working with the data in your wire stores. When creating your wire store, you start by defining all the data types you want to have in your store. The resulting wire store exposes a few data APIs functions to help you interact with each data type.
@@ -476,7 +475,7 @@ The `set` API in the wire store is used to either create or update records of a 
 
 Here is an example of using the `set` API to update project details in simple project tracking app. The example assumes the ID of the project comes from URL (e.g. `src/routes/projects/[id]/edit.tsx`).
 
-```ts
+```jsx
 /* store setup ommited */
 
 function ProjectEditPage() {
@@ -497,7 +496,7 @@ function ProjectEditPage() {
   return (
   <Show when={project()}>
     {project => (
-      <form>
+      <form onSubmit={onSubmit}>
         <label for="name">Name</label>
         <input id="name" name="name" value={project().name} required/>
         <button>Save</button>
@@ -509,6 +508,40 @@ function ProjectEditPage() {
 ```
 
 One thing to note is that wire stores are reactive. This means that when using `set` to update the record, the `get` call wrapped in `createAsync` will triggered again, causing the UI to automatically reflect the changes. To learn more about `createSync`, check out the [official docs](https://docs.solidjs.com/solid-router/reference/data-apis/create-async).
+
+Here is another example of using the `set` API to create a new project:
+
+```jsx
+/* store setup ommited */
+
+function ProjectCreatePage() {
+  let local = store.use()
+
+  async function onSubmit(e) {
+    e.preventDefault()
+    let data = new FormData(e.target)
+    let project = {
+      id: new Date().getTime().toString(),
+      name: data.get("name"),
+    }
+    await store.project.set(project.id, project)
+  }
+
+  return (
+  <div>
+      <h1>Create Project</h1>
+      <form onSubmit={onSubmit}>
+        <label for="name">Name</label>
+        <input id="name" name="name" required/>
+        <button>Save</button>
+      </form>
+  </div>
+  )
+}
+```
+
+Notice how we are generating the `id` for the project locally in the browser. This is a requirement for implementing local-first apps. It allows records to be created without requiring a round trip to the server. It also simplifies write operations as creating and updating records become essentially the same type of operation. 
+
 
 ### delete
 
@@ -549,7 +582,7 @@ function ProjectList() {
 
 One thing to note is that wire stores are reactive. This means that when deleting a record using `delete`, the `all` call wrapped in `createAsync` will be triggered again, causing the UI to automatically reflect the changes and remove the deleted item. To learn more about `createSync`, check out the [official docs](https://docs.solidjs.com/solid-router/reference/data-apis/create-async).
 
-### Extending Data API
+### Custom APIs
 ## Syncing 
 ### Using Timestamp
 ### Using versions
