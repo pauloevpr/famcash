@@ -81,7 +81,7 @@ export function WireStoreService<Definition extends WireStoreDefinition, Extenti
 				return record
 			})
 
-			let syncCursor = localStorage.getItem(cursorKey)
+			let syncCursor = localStorage.getItem(cursorKey) || undefined
 			let { records, syncCursor: updatedSyncCursor } = await props.config.sync(unsynced, namespace, syncCursor)
 
 			let updated = records
@@ -96,7 +96,11 @@ export function WireStoreService<Definition extends WireStoreDefinition, Extenti
 			let deleted = records.filter(record => record.state === "deleted").map(record => record.id)
 			await idb.purge(deleted)
 
-			localStorage.setItem(cursorKey, updatedSyncCursor)
+			if (updatedSyncCursor !== undefined && updatedSyncCursor !== null) {
+				localStorage.setItem(cursorKey, updatedSyncCursor)
+			} else {
+				localStorage.removeItem(cursorKey)
+			}
 
 		} finally {
 			syncing = false

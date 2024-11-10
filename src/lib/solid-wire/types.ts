@@ -51,7 +51,7 @@ export type WireStoreConfig<Definition extends WireStoreDefinition, Extension> =
 	name: string,
 	definition: Definition,
 	extend?: (store: WireStore<Definition>) => Extension
-	sync: (records: UnsyncedRecord<Definition>[], namespace: string, syncCursor: string | null) => Promise<{ records: SyncedRecord[], syncCursor: string }>,
+	sync: (records: UnsyncedRecord<Definition>[], namespace: string, syncCursor?: string) => Promise<{ records: SyncedRecord[], syncCursor?: string }>,
 }
 
 export type WireStore<Definition extends WireStoreDefinition> = {

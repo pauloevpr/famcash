@@ -323,7 +323,7 @@ const store = createWireStore({
       type: "todo",
       data: item.data
     }))
-    return { records: updates, syncCursor: "" }
+    return { records: updates }
   },
 })
 
@@ -361,7 +361,7 @@ const store = createWireStore({
       type: "todo",
       data: item.data
     }))
-    return { records: updates, syncCursor: "" }
+    return { records: updates }
   },
 })
 
@@ -582,8 +582,167 @@ One thing to note is that wire stores are reactive. This means that when deletin
 
 ## Custom APIs
 # Syncing 
+
+Solid Wire stores the data locally in the browser using indexed-db. The data then needs to be synced with the server/database. To achieve that, Solid Wire uses a simple and powerful sync mechanism called `push-pull`. Unlike other sync mechanisms, `push-pull` uses a single API endpoint. When syncing, the client calls the `push-pull` API endpoint, sends all its pending local writes, and receives back any new updates.
+
+Solid Wire handles most of the syncing logic and indexed-db interfacing for you. What is left for you is to write the code that persists the data to your favorite database.
+
+You can start adding syncing logic to your store by implementing the `sync` function in the store setup:
+
+```ts
+
+const store = createWireStore({
+  /* setup ommited */
+  sync: async (records, namspace, syncCursor) => {
+    "use server"
+    return { records: [], syncCursor: "" }
+  },
+})
+
+```
+
+The first thing to notice is that you need to add the `"use server"` marker to your sync function. This allows SolidStart to turn the function into a server function that only runs on the server and can be called from the client, very much like an API endpoint.
+
+The basic workflow for the `sync` function is:
+
+- validate and persist all the changes made by the client to your server-side database
+- determine which updates the client is missing
+- return the updates back to the client
+
+To allow this workflow, the `sync` function receives three arguments:
+
+**records**: a list of unsynced records that have been udated in the client. Each unsynced record contains the following fields
+  - `id`: the client-side generated record ID
+  - `state`: the change made to the record - either `updated` or `deleted`
+  - `type`: the type of the record as defined in the `definition` setting in your store
+  - `data`: an object that contains the actual data your application stores for this record type
+
+**namespace**`: an generic tag that can be used to identify which user/tenant the data being synced refers to. Learn more in [Namespacing](#namespacing).
+
+**syncCursor**: a generic server-defined string that can be used to track how outdated the client is and therefore which updates should be returned. This can be used to implement various syncing strategies such as [using timestamps](#using-timestamp) or [using versions](#using-versions).
+
+In the next sections, we will discuss some of the common strategies we can use to implement our syncing logic using Solid Wire. 
+
+## Basic syncing
+
+A basic implementation of the `sync` function involves not using any sort of strategy to track how outdated the client is, ignoring `syncCursor` altogether. This means we will return all the records back to client at every sync. 
+
+Despite sounding inefficient, this approach can be very valid in small apps where the volume of data is low.
+
+Here is an example of a basic syncing logic for a simple todo app. The basic worflow is:
+
+- validate and persist the changes made to the client
+- use soft delete to "remove" items from our database. This is a very common approach when building local-first apps. Deleted todos will have a `deleted` field added to them so we can track deleted items
+- return all records back to the client
+
+```jsx
+/* other imports ommited */
+import { db } from "./db"
+import { validate } from "./validation"
+import { createWireStore, validateRecordsMetadata } from "solid-wire";
+
+const store = createWireStore({
+  name: "todo-app",
+  definition: {
+    todo: {} as Todo
+  },
+  sync: async (records) => {
+    "use server"
+    records = validateRecordsMetadata(records, store.types())
+    let updated = records.filter(record => record.state === "updated" && validate.todo(record.data))
+    let deleted = records.filter(record => record.state === "deleted")
+    await db.saveTodos(
+      updated.map(record => ({ ...record.data, id: record.id }))
+    )
+    await db.softDeleteTodos(
+      deleted.map(record => record.id)
+    )
+    let allTodos = await db.getAllTodos()
+    let updates = allTodos.map(item => ({
+      id: item.id,
+      state: item.deleted ? "deleted" : "updated",
+      type: "todo",
+      data: item.data
+    }))
+    return { records: updates }
+  },
+})
+```
+
+The validation of the actual data is totally up to you. You can use the `validateRecordsMetadata` helper function to validate the basic fields of the unsynced records: `id`, `type`, `state`. Validating the `data` field is total up to you. Adding user-generated records to your database without validation is a high security risk.
+
+The implementation of `db` in the examples is entirely up to you. Solid Wire is databse agnostic and has no opinions on how and where you should store your data.
+
 ## Using Timestamp
+
+A common and effective strategy to sync local changes to your server-side database is to use timestamps. The basic idea of this strategy is that each record in your database will have a `updated_at` field/column. This field will be updated by the server everytime records are saved. The `syncCursor` in the `sync` function will carry the `updated_at` ot the last updated record across all the database tables.
+
+When syncing for the first time:
+
+- the client calls `sync` with an empty `syncCursor`
+- the server retrieves and return all records from the database
+- the server determines and uses `updated_at` of the last changed record as the `syncCursor` returned to the client
+- the client saves `syncCursor` for the next sync calls
+
+On the next sync calls:
+
+- the client calls `sync` and sends the last recorded `syncCursor`
+- server validates and persists the local changes made by the client
+- the server retrieves and return only the records that have been updated since the last timestamp in the `syncCursor`
+- the server determines and uses `updated_at` of the last changed record as the `syncCursor` returned to the client
+- the client records the new `syncCursor` for the next sync calls
+
+Here is an example of implementing the timestamp-based sync strategy in a simple todo app:
+
+```ts
+/* other imports ommited */
+import { db } from "./db"
+import { validate } from "./validation"
+import { createWireStore, validateRecordsMetadata } from "solid-wire";
+
+const store = createWireStore({
+  name: "todo-app",
+  definition: {
+    todo: {} as Todo
+  },
+  sync: async (records, _, syncCursor) => {
+    "use server"
+    records = validateRecordsMetadata(records, store.types())
+    let syncTimestamp = new Date(syncCursor || 0)
+    if (isNaN(syncTimestamp.getTime())) {
+      throw Error(`bad request: parsing timestamp with value '${syncTimestampRaw}' failed`)
+    }
+    let updated = records.filter(record => record.state === "updated" && validate.todo(record.data))
+    let deleted = records.filter(record => record.state === "deleted")
+    await db.saveTodos(
+      updated.map(record => ({ ...record.data, id: record.id }))
+    )
+    await db.softDeleteTodos(
+      deleted.map(record => record.id)
+    )
+    let updatedSince = await db.getTodosUpdatedSince(syncTimestamp)
+    let synced = updatedSince.map(item => ({
+      id: item.id,
+      state: item.deleted ? "deleted" : "updated",
+      type: "todo",
+      data: item.data
+    }))
+    syncTimestamp = synced[0]?.updated_at || syncTimestamp
+    return { 
+      records: synced,
+      syncCursor: syncTimestamp.toISOString()
+    }
+  },
+})
+```
+
+The validation of the actual data is totally up to you. You can use the `validateRecordsMetadata` helper function to validate the basic fields of the unsynced records: `id`, `type`, `state`. Validating the `data` field is total up to you. Adding user-generated records to your database without validation is a high security risk.
+
+The implementation of `db` in the examples is entirely up to you. Solid Wire is databse agnostic and has no opinions on how and where you should store your data.
+
+
 ## Using versions
+## Periodically
 ## Real-time
 # Namespacing 
 

@@ -16,7 +16,6 @@ export const store = createWireStore({
 	},
 	sync: async (records, namespace, syncTimestampRaw) => {
 		"use server"
-		console.log("store", store)
 		records = validateRecordsMetadata(records, store.types())
 		let familyId = parseInt(namespace)
 		let { user } = await getCurrentAccount()
@@ -27,6 +26,7 @@ export const store = createWireStore({
 			console.error(e)
 			throw Error(e)
 		}
+		// TODO: fix: this is silly, we should make a single call to the database
 		for (let record of records) {
 			validate.record(record)
 			await db.record.upsert(
