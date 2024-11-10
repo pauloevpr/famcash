@@ -21,6 +21,7 @@
     "qr-scanner": "^1.4.2",
     "qrcode": "^1.5.4",
     "solid-js": "^1.9.1",
+    "solid-wire": "^0.1.1",
     "vinxi": "^0.4.3"
   },
   "engines": {

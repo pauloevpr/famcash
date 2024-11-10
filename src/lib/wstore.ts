@@ -3,7 +3,7 @@ import { DateOnly, generateDbRecordId, } from "./utils";
 import { db } from "./db";
 import { getCurrentAccount } from "./server";
 import { validate } from "./utils";
-import { createWireStore, SyncedRecord, validateRecordsMetadata } from "./solid-wire";
+import { createWireStore, SyncedRecord, validateRecordsMetadata } from "solid-wire";
 
 
 export const store = createWireStore({
@@ -14,7 +14,7 @@ export const store = createWireStore({
 		recurrencies: {} as Transaction,
 		carryovers: {} as CarryOver,
 	},
-	sync: async (records, namespace, syncTimestampRaw) => {
+	sync: async ({ records, namespace, syncCursor: syncTimestampRaw }) => {
 		"use server"
 		records = validateRecordsMetadata(records, store.types())
 		let familyId = parseInt(namespace)

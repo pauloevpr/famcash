@@ -1,5 +1,5 @@
 import { action, createAsync, RouteDefinition, RouteSectionProps, query, useSearchParams, useNavigate, } from "@solidjs/router";
-import { ErrorBoundary, For, Show, } from "solid-js";
+import { For, Show, } from "solid-js";
 import { createStore } from "solid-js/store";
 import Alert from "~/components/alert";
 import { Button } from "~/components/buttons";
