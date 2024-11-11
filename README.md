@@ -5,7 +5,6 @@
 
 - Fix: many <input> have min instead of minlenght for text validation
 - Fix: turning a normal expense into recurrent produces two records
-- Fix: The "Spending" tab does not show categories that don't have expenses in the selected month
 - The buttons that make API calls are missing:
     - loading indicators
         - only displays if it takes longer than 100ms, then shows for at least 300ms

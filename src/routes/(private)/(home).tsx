@@ -32,7 +32,19 @@ export default function Home() {
     return local.transactions.byMonth(currentMonth().year, currentMonth().month)
   }, { initialValue: [] })
   let spending = createMemo(() => {
-    return local.calculateSpendingByCategory(transactions())
+    let spending = local.calculateSpendingByCategory(transactions())
+    return categories().map(category => {
+      let item = spending.find(x => x.id === category.id)
+      if (!item) {
+        item = {
+          ...category,
+          transactions: [],
+          total: 0,
+          remaining: category.plan?.limit || 0
+        }
+      }
+      return item
+    })
   })
   let nextMonthLink = createMemo(() => {
     let current = currentMonth()
