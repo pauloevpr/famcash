@@ -6,13 +6,23 @@ export function useTabs(
   tabs: Accessor<{ label: string, key: string }[]>,
   options?: {
     key?: string
-    initialSelection?: string
+    initialSelection?: string,
   }
 ) {
   let id = createMemo(() => {
     return options?.key || new Date().getTime().toString()
   })
-  let [selected, setSelected] = createSignal(options?.initialSelection || tabs()[0]?.key || "")
+  let [selected, setSelected] = createSignal(
+    localStorage.getItem(`tab-${options?.key}-selected`) ||
+    options?.initialSelection ||
+    tabs()[0]?.key || ""
+  )
+  let changeSelection = (value: string) => {
+    setSelected(value)
+    if (options?.key) {
+      localStorage.setItem(`tab-${options.key}-selected`, value)
+    }
+  }
 
 
   function Tab(props: ParentProps<{}>) {
@@ -27,7 +37,7 @@ export function useTabs(
               aria-selected={selected() === item.key}
               id={`tab-${id()}-${item.key}`}
               aria-controls={`tabpanel-${id()}-${item.key}`}
-              onClick={() => setSelected(item.key)}
+              onClick={() => changeSelection(item.key)}
               class="flex items-center peer-focus:outline text-lg rounded-full cursor-pointer h-12"
               classList={{
                 "text-light": selected() !== item.key,

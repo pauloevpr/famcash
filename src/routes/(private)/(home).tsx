@@ -74,7 +74,10 @@ export default function Home() {
   let { Tab, TabPanel } = useTabs("Transactions Views", () => [
     { label: "Transactions", key: "transactions" },
     { label: "Spending", key: "spending" },
-  ], { initialSelection: "transactions" })
+  ], {
+    key: "home-transactions-tab",
+    initialSelection: "transactions",
+  })
 
 
   return (
