@@ -23,7 +23,7 @@
     - [ ] Login with email 
         - [x] Basic login workflow
         - [x] Basic signup workflow
-        - [ ] Send login link email
+        - [x] Send login link email
         - [ ] Require Captcha to avoid spammers
     - [x] Logoff
 - [ ] Collaboration

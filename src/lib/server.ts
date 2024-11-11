@@ -94,12 +94,12 @@ export async function loginWithEmail(email: string) {
 		let token = await db.token.login.create(user.id)
 		let link = new URL(BASE_URL)
 		link.searchParams.set("login_token", token)
-		mailer.loginLink(user, link)
+		mailer.loginMessage(user, link)
 	} else {
 		let token = await db.token.signup.create(email)
 		let link = new URL(BASE_URL)
 		link.searchParams.set("signup_token", token)
-		mailer.signupLink(email, link)
+		mailer.signUpMessage(email, link)
 	}
 }
 
