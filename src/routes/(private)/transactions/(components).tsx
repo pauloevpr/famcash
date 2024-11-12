@@ -5,6 +5,7 @@ import { Category, RecurrencyInterval, Transaction, TransactionRecurrency, Trans
 import { store } from "~/lib/wstore";
 import { DateOnly } from "~/lib/utils";
 import { AppContext } from "~/components/context";
+import { GitPullRequestArrow } from "~/components/icons";
 
 export function TransactionListItem(props: VoidProps<{
   transaction: TransactionWithRefs,
@@ -30,7 +31,10 @@ export function TransactionListItem(props: VoidProps<{
       class="flex items-center gap-4 px-6 py-4">
       <span class="bg-gray-100 w-10 h-10 p-1 rounded-full flex items-center justify-center"
         aria-hidden>
-        {props.transaction.category.icon}
+        <Show when={props.transaction.type === "carryover"}
+          fallback={props.transaction.category.icon}>
+          <GitPullRequestArrow class="text-primary w-5 h-5" />
+        </Show>
       </span>
       <div class="flex-grow">
         <p class="flex items-center gap-2 text-lg">
