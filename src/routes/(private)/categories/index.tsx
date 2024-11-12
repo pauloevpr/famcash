@@ -1,6 +1,7 @@
 import { createAsync } from "@solidjs/router";
-import { For, Show, VoidProps, } from "solid-js";
+import { For, Show, useContext, VoidProps, } from "solid-js";
 import { LinkButton } from "~/components/buttons";
+import { AppContext } from "~/components/context";
 import { TagIcon } from "~/components/icons";
 import { PageLayout } from "~/components/layouts";
 import { Category } from "~/lib/models";
@@ -43,6 +44,7 @@ export default function CategoryListPage() {
 }
 
 function CategoryListItem(props: VoidProps<{ category: Category }>) {
+  let { formatter } = useContext(AppContext)
   return (
     <li>
       <a href={`/categories/${props.category.id}`}
@@ -62,9 +64,9 @@ function CategoryListItem(props: VoidProps<{ category: Category }>) {
           }
         >
           {plan => (
-            <span class="text-light">
-              Plan:
-              <span class="font-medium text-default">{" " + plan().limit}</span>
+            <span class="inline-flex gap-2 text-light">
+              <span>Planned:</span>
+              <span class="font-medium text-default">{formatter.currency(plan().limit)}</span>
             </span>
           )}
         </Show>

@@ -1,5 +1,5 @@
 import { A, createAsync, useSearchParams } from "@solidjs/router";
-import { createMemo, For, Show, VoidProps } from "solid-js";
+import { createMemo, For, Show, useContext, VoidProps } from "solid-js";
 import { ChevronLeftIcon, ChevronRightIcon } from "~/components/icons";
 import { PageLayout } from "~/components/layouts";
 import { DateOnly } from "~/lib/utils";
@@ -8,8 +8,10 @@ import { useTabs } from "~/components/tabs";
 import { CategoryWithSpending } from "~/lib/models";
 import { Button } from "~/components/buttons";
 import { store } from "~/lib/wstore";
+import { AppContext } from "~/components/context";
 
 export default function Home() {
+  let { formatter } = useContext(AppContext)
   let local = store.use()
   let [params] = useSearchParams()
   let currentMonth = createMemo(() => {
@@ -110,10 +112,12 @@ export default function Home() {
                 "text-positive": summary().total >= 0,
               }}
             >
-              {summary().total}
+              {formatter.currency(summary().total)}
             </p>
             <Show when={!currentMonth().isPast}>
-              <span class="inline-block text-sm text-light border rounded-full px-2 mt-1" >Planned</span>
+              <span class="inline-block text-sm text-accent border rounded-full px-3 py-0.5 mt-1">
+                Forecast
+              </span>
             </Show>
           </div>
           <div class="inline-flex items-center text-center surface-elevated rounded-xl text-light px-4 py-2">
@@ -123,15 +127,15 @@ export default function Home() {
                 "text-positive": summary().carryOver > 0,
               }}
             >
-              {summary().carryOver}
+              {formatter.currency(summary().carryOver)}
               <span class="block text-light text-xs">Carry Over</span>
             </p>
             <p class="px-4">
-              {`${summary().totalExpenses} / ${summary().plannedExpenses}`}
-              <span class="block text-light text-xs">Expenses</span>
+              {`${formatter.currency(summary().totalExpenses)} / ${formatter.currency(summary().plannedExpenses)}`}
+              <span class="block text-light text-xs">Expenses / Planned</span>
             </p>
             <p class="px-4">
-              {summary().totalIncome}
+              {formatter.currency(summary().totalIncome)}
               <span class="block text-light text-xs">Income</span>
             </p>
           </div>
@@ -170,6 +174,7 @@ export default function Home() {
 }
 
 function CategorySpending(props: VoidProps<{ category: CategoryWithSpending }>) {
+  let { formatter } = useContext(AppContext)
   let isNegative = createMemo(() => props.category.remaining < 0 && !!props.category.plan)
   let barWidth = createMemo(() => {
     let totalPlanned = props.category.plan?.limit ?? 0
@@ -197,9 +202,9 @@ function CategorySpending(props: VoidProps<{ category: CategoryWithSpending }>) 
           </span>
           <span class="text-lg transition-all">
             <span class="sr-only" >Total Spent:</span>
-            <span class="font-medium">{props.category.total}</span>
+            <span class="font-medium">{formatter.currency(props.category.total)}</span>
             <span class="sr-only" >Planned Spent:</span>
-            <span class="text-light font-normal" >{` / ${props.category.plan?.limit}`}</span>
+            <span class="text-light font-normal" >{` / ${formatter.currency(props.category.plan?.limit || 0)} `}</span>
           </span>
           <ChevronRightIcon class="w-5 h-5 text-gray-400 group-open:rotate-90 transition-transform duration-200" />
         </summary>
@@ -227,18 +232,18 @@ function CategorySpending(props: VoidProps<{ category: CategoryWithSpending }>) 
                       <p class="block pb-2 text-light">
                         <span class="font-medium text-negative"
                         >
-                          {props.category.remaining * -1}
+                          {formatter.currency(props.category.remaining * -1)}
                         </span>
-                        {' '}overspent from {plan().limit} planned
+                        {' '}overspent from {formatter.currency(plan().limit)} planned
                       </p>
                     </Show>
                     <Show when={!isNegative()}>
                       <p class="block pb-2 text-light">
                         <span class="font-medium text-positive"
                         >
-                          {props.category.remaining}
+                          {formatter.currency(props.category.remaining)}
                         </span>
-                        {' '}left from {plan().limit} planned
+                        {' '}left from {formatter.currency(plan().limit)} planned
                       </p>
                     </Show>
                     <div aria-hidden class=" h-4"
@@ -269,14 +274,14 @@ function CategorySpending(props: VoidProps<{ category: CategoryWithSpending }>) 
                     href={`/transactions/${transaction.id}`}
                     class="flex items-center gap-4 px-6 py-2 border-t border-gray-200">
                     <div class="flex-grow">
-                      <p class="text-lg">{transaction.name}</p>
+                      <p class="text-lg">{transaction.name || transaction.category.name}</p>
                       <time class="block text-light text-sm" datetime="2024-10-28T00:00:00Z" >
                         {new DateOnly(transaction.date).date.toLocaleDateString()}
                       </time>
                     </div>
                     <p class="text-left"
                     >
-                      {transaction.amount}
+                      {formatter.currency(transaction.amount)}
                     </p>
                   </A>
                 </li>

@@ -98,10 +98,10 @@ export const db = {
 		},
 	},
 	family: {
-		async create(user_id: number, name: string) {
+		async create(user_id: number, name: string, currency: string) {
 			let result = await conn.query(
-				"INSERT INTO family (name, created_by) VALUES ($1, $2) RETURNING id",
-				[name.trim(), user_id]
+				"INSERT INTO family (name, created_by, currency) VALUES ($1, $2, $3) RETURNING id",
+				[name.trim(), user_id, currency]
 			)
 			let id = result.rows[0]["id"] as number
 			return (await this.get(id))!

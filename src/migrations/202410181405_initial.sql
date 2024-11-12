@@ -22,7 +22,8 @@ create table family (
 	id serial primary key,
 	name varchar(64) not null,
 	created_by integer not null references users(id) on delete cascade,
-	created_at timestamptz not null default NOW()
+	created_at timestamptz not null default NOW(),
+	currency varchar(3) not null
 );
 
 create table member (

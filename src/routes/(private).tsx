@@ -6,6 +6,7 @@ import { Button } from "~/components/buttons";
 import { AppContext } from "~/components/context";
 import { ChevronRightIcon, HandHeartIcon, PlusIcon, QRCodeIcon } from "~/components/icons";
 import QRCodeScanner from "~/components/qrcode";
+import { currencies, useFormatter } from "~/lib/intl";
 import { completeSignUpWithNewFamily, getCurrentAccount, loginWithToken, signupWithToken, getInvite, completeSignUpWithInvite } from "~/lib/server";
 import { store } from "~/lib/wstore";
 
@@ -38,6 +39,7 @@ export default function PrivateSection(props: RouteSectionProps) {
               <AppContext.Provider value={{
                 user: account().user,
                 family: family(),
+                formatter: useFormatter(family().currency),
               }}>
                 <store.Provider namespace={family().id.toString()} >
                   {props.children}
@@ -87,7 +89,8 @@ function Welcome() {
     let name = data.get("name") as string
     if (params.type === "create") {
       let familyName = data.get("family") as string
-      return await completeSignUpWithNewFamily(name, familyName)
+      let currency = data.get("currency") as string
+      return await completeSignUpWithNewFamily(name, familyName, currency)
     }
     if (params.type === "join") {
       let code = data.get("code") as string
@@ -154,15 +157,34 @@ function Welcome() {
               </div>
             </Show>
             <Show when={params.type === "create"}>
-              <div class="pt-6">
-                <label for="family"
-                  class="block pb-2 text-light">Your family's Nickname</label>
-                <input name="family"
-                  id="family"
-                  minlength="2"
-                  maxlength="64"
-                  class="block border h-12 px-4 w-full rounded-lg"
-                  required />
+              <div class="pt-6 space-y-8">
+                <div>
+                  <label for="family"
+                    class="block pb-2 text-light">Your family's Nickname</label>
+                  <input name="family"
+                    id="family"
+                    minlength="2"
+                    maxlength="64"
+                    class="block border h-12 px-4 w-full rounded-lg"
+                    required />
+                </div>
+                <div>
+                  <label for="currency"
+                    class="block pb-2 text-light">Currency</label>
+                  <select name="currency"
+                    id="currency"
+                    class="block border h-12 px-4 w-full rounded-lg"
+                    required>
+                    <For each={Object.entries(currencies)}>
+                      {([code, name]) => (
+                        <option value={code}
+                          selected={code === "USD"}>
+                          {`${code} - ${name}`}
+                        </option>
+                      )}
+                    </For>
+                  </select>
+                </div>
               </div>
             </Show>
             <Show when={params.type === "join"}>

@@ -1,13 +1,15 @@
 import { A, useNavigate } from "@solidjs/router";
-import { createMemo, createSignal, For, Show, VoidProps } from "solid-js";
+import { createMemo, createSignal, For, Show, useContext, VoidProps } from "solid-js";
 import { Button } from "~/components/buttons";
 import { Category, RecurrencyInterval, Transaction, TransactionRecurrency, TransactionType, TransactionWithRefs } from "~/lib/models";
 import { store } from "~/lib/wstore";
 import { DateOnly } from "~/lib/utils";
+import { AppContext } from "~/components/context";
 
 export function TransactionListItem(props: VoidProps<{
   transaction: TransactionWithRefs,
 }>) {
+  let { formatter } = useContext(AppContext)
   let isPositive = createMemo(() => {
     if (props.transaction.type === "income") return true
     if (props.transaction.type === "carryover" && props.transaction.amount > 0) return true
@@ -52,7 +54,7 @@ export function TransactionListItem(props: VoidProps<{
         classList={{
           "text-positive-700 bg-positive-600/10 font-medium px-3 py-0.5 rounded-md before:content-['+']": isPositive(),
         }}>
-        {normalizedAmount()}
+        {formatter.currency(normalizedAmount())}
       </p>
     </A>
   )

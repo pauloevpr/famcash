@@ -31,21 +31,19 @@
     - [x] Join family from QR code
     - [x] List members of a family
     - [ ] Remove member from family
-    - [ ] Switch between families: TDB: auto-switch after joining?
+    - [ ] Switch between families
 - [ ] Internationalization
-    - [ ] Display user-selected currency for money values
+    - [x] Format monetary values using user-selected currency
     - [ ] Use language-specific currency formatting
-- [ ] Data Sync
-    - [x] Basic syncing 
-    - [ ] Periodic syncing
-    - [ ] Real-time syncing
+- [x] Data Sync (using solid-wire)
 - [ ] E2E encryption
 - [ ] Transactions
-    - [x] View transactions summary for a given month:
+    - [ ] View transactions summary for a given month:
         - [x] total expenses
         - [x] total income
         - [x] total
         - [x] carry over
+        - [ ] Show explanation of how forecast is calculated
     - [x] List transactions for a given month
     - [x] Add transaction
     - [x] Delete Transaction

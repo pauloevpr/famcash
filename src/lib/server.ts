@@ -31,6 +31,7 @@ export async function getCurrentAccount(): Promise<CurrentAccount> {
 		account.family = {
 			id: family.id,
 			name: family.name,
+			currency: family.currency,
 			admin: users.some(member => member.id === user.id && member.admin),
 			members: users,
 		}
@@ -103,15 +104,15 @@ export async function loginWithEmail(email: string) {
 	}
 }
 
-export async function completeSignUpWithNewFamily(userName: string, familyName: string) {
+export async function completeSignUpWithNewFamily(userName: string, familyName: string, currency: string) {
 	let { user: { id: userId } } = await getCurrentAccount()
 	let existingFamily = await db.family.forUser(userId)
 	if (existingFamily) throw Error("user is already member of a family")
 	let user: UncheckedUser = { name: userName }
-	let family: UncheckedFamily = { name: familyName }
+	let family: UncheckedFamily = { name: familyName, currency }
 	validate.user(user)
 	validate.family(family)
-	let { id: familyId } = await db.family.create(userId, family.name)
+	let { id: familyId } = await db.family.create(userId, family.name, family.currency)
 	await db.member.create(userId, familyId, "admin")
 	await db.user.update(userId, user.name)
 	throw redirect("/", { revalidate: "user" })

@@ -76,6 +76,7 @@ export const validate = {
 	family(input: UncheckedFamily) {
 		this.plainObject(input)
 		this.string(input, "name", 2, 64)
+		this.string(input, "currency", 3, 3)
 	},
 
 	user(user: UncheckedUser) {

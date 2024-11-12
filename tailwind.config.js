@@ -16,6 +16,10 @@ export default {
           ...colors.sky,
           DEFAULT: colors.sky['600'],
         },
+        accent: {
+          ...colors.indigo,
+          DEFAULT: colors.indigo['600'],
+        },
         negative: {
           ...colors.pink,
           DEFAULT: colors.pink['600'],

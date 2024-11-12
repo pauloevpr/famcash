@@ -10,6 +10,7 @@ export interface DbFamily {
 	name: string
 	created_by: number
 	created_at: Date
+	currency: string
 }
 
 export interface DbMember {
@@ -86,6 +87,7 @@ export interface CurrentFamily {
 	id: number,
 	name: string,
 	admin: boolean,
+	currency: string,
 	members: MemberUser[]
 }
 
@@ -96,6 +98,7 @@ export interface CurrentSession {
 
 export interface UncheckedFamily {
 	name: string
+	currency: string
 }
 
 export interface UncheckedUser {
@@ -112,7 +115,7 @@ export interface UncheckedRecord {
 export interface CategoryWithSpending extends Category {
 	total: number
 	remaining: number
-	transactions: Transaction[]
+	transactions: TransactionWithRefs[]
 }
 
 export interface Summary {
