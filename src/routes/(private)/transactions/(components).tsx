@@ -38,7 +38,7 @@ export function TransactionListItem(props: VoidProps<{
         </Show>
       </span>
       <div class="flex-grow">
-        <p class="flex items-center gap-2 text-lg">
+        <p class="flex items-center gap-2">
           {props.transaction.name || props.transaction.category.name}
           <Show when={manualCarryOver()}>
             <p class="badge-primary text-sm">

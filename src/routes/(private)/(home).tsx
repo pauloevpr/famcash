@@ -192,19 +192,23 @@ function CategorySpending(props: VoidProps<{ category: CategoryWithSpending }>) 
       }}
     >
       <details class="group surface [&[open]]:mb-10">
-        <summary class="flex items-center gap-4 cursor-pointer py-6 px-6">
-          <span class="bg-gray-100 w-10 h-10 p-1 rounded-full flex props.spending.-center justify-center"
+        <summary class="flex items-center gap-3 sm:gap-4 cursor-pointer py-6 px-4 sm:px-6">
+          <span class="bg-gray-100 w-10 h-10 p-1 rounded-full flex items-center justify-center"
             aria-hidden>
             {props.category.icon}
           </span>
-          <span class="block flex-grow text-lg group-open:font-semibold">
+          <span class="block flex-grow group-open:font-semibold">
             {props.category.name}
           </span>
-          <span class="text-lg transition-all">
-            <span class="sr-only" >Total Spent:</span>
-            <span class="font-medium">{formatter.currency(props.category.total)}</span>
-            <span class="sr-only" >Planned Spent:</span>
-            <span class="text-light font-normal" >{` / ${formatter.currency(props.category.plan?.limit || 0)} `}</span>
+          <span class="transition-all">
+            <span >
+              <span class="sr-only" >Total Spent:</span>
+              {formatter.currency(props.category.total) + " / "}
+            </span>
+            <span class="block sm:inline text-light font-normal" >
+              <span class="sr-only" >Planned Spent:</span>
+              {`${formatter.currency(props.category.plan?.limit || 0)} `}
+            </span>
           </span>
           <ChevronRightIcon class="w-5 h-5 text-gray-400 group-open:rotate-90 transition-transform duration-200" />
         </summary>
@@ -274,7 +278,7 @@ function CategorySpending(props: VoidProps<{ category: CategoryWithSpending }>) 
                     href={`/transactions/${transaction.id}`}
                     class="flex items-center gap-4 px-6 py-2 border-t border-gray-200">
                     <div class="flex-grow">
-                      <p class="text-lg">{transaction.name || transaction.category.name}</p>
+                      <p>{transaction.name || transaction.category.name}</p>
                       <time class="block text-light text-sm" datetime="2024-10-28T00:00:00Z" >
                         {new DateOnly(transaction.date).date.toLocaleDateString()}
                       </time>

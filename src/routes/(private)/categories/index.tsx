@@ -14,7 +14,7 @@ export default function CategoryListPage() {
   return (
     <PageLayout nav>
       <main class="pt-6">
-        <section class="surface rounded py-8 px-6">
+        <section class="py-8 px-6">
           <header class="sr-only">Categories</header>
           <div class="flex items-center flex-col gap-4">
             <p class="bg-slate-200 uppercase inline-flex items-center justify-center rounded-full text-2xl text-primary w-16 h-16 p-2">
