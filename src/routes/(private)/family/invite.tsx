@@ -3,6 +3,7 @@ import { createMemo, createSignal, onCleanup, Show, useContext, VoidProps } from
 import { Button } from "~/components/buttons";
 import { AppContext } from "~/components/context";
 import { HandHeartIcon, HoursGlassIcon, QRCodeIcon } from "~/components/icons";
+import { PageLayout } from "~/components/layouts";
 import { QRCodeBar } from "~/components/qrcode";
 import { createInvite } from "~/lib/server";
 
@@ -21,76 +22,78 @@ export default function InvitePage() {
   // TODO: show "expired" msg when expiration timer is up
 
   return (
-    <main class="sm:px-6 mx-auto max-w-xl pb-32">
-      <section class="py-8">
-        <header class="sr-only">Categories
-        </header>
-        <div class="flex items-center flex-col gap-4">
-          <p class="bg-slate-200 uppercase inline-flex items-center justify-center rounded-full text-2xl text-primary w-16 h-16 p-2">
-            <HandHeartIcon class="flex-shrink-0 flex-shrink-0 w-10 h-10" />
-          </p>
-          <p class="text-2xl text-center font-medium">
-            {family.name}
-          </p>
-          <p class="block -mt-2 text-light">
-            Family
-          </p>
-        </div>
-      </section>
-      <Show when={!inviteResult.result}>
-        <section class="pt-8">
-          <div class="surface rounded px-4 sm:px-8 sm:py-6 py-4 mb-6">
-            <header class="text-2xl font-medium">
-              Invite others to your family
-            </header>
-            <p class="text-light pt-2">
-              Invite family members or trusted people to join your family and help manage your finances together. Click the button below to generate a QR code and share it with the other person.
+    <PageLayout>
+      <main class="mx-auto max-w-xl">
+        <section class="py-8">
+          <header class="sr-only">Categories
+          </header>
+          <div class="flex items-center flex-col gap-4">
+            <p class="bg-slate-200 uppercase inline-flex items-center justify-center rounded-full text-2xl text-primary w-16 h-16 p-2">
+              <HandHeartIcon class="flex-shrink-0 flex-shrink-0 w-10 h-10" />
             </p>
-            <div class="py-10">
-              <div class="flex items-center justify-center w-64 h-64 mx-auto rounded-xl border border-gray-300 text-light text-sm bg-gray-200 rounded-xl">
-                <QRCodeIcon />
-              </div>
-            </div>
-          </div>
-          <div>
-            <form class="pb-6"
-              action={invite} method="post">
-              <Button style="primary"
-                disabled={inviteResult.pending}
-                label="Generate Invite"
-                icon={<QRCodeIcon class="w-5 h-5" />}
-              />
-            </form>
-            <Button style="neutral"
-              label="Cancel"
-              onClick={() => navigate(-1)}
-            />
+            <p class="text-2xl text-center font-medium">
+              {family.name}
+            </p>
+            <p class="block -mt-2 text-light">
+              Family
+            </p>
           </div>
         </section>
-      </Show>
-      <Show when={inviteResult.result}>
-        {result => (
+        <Show when={!inviteResult.result}>
           <section class="pt-8">
-            <header class="text-2xl font-medium">
-              Invite others to your family
-            </header>
-            <p class="text-light pt-2">
-              Invite family members or trusted people to join your family and help manage your finances together. Share the QR code below with the person you are inviting. The QR code can only be used once.
-            </p>
-            <div class="py-10">
-              <div class="bg-white p-1 w-64 h-64 rounded-xl border border-gray-300 mx-auto shadow shadow-primary-200">
-                <QRCodeBar text={result().code} />
+            <div class="surface rounded px-4 sm:px-8 sm:py-6 py-4 mb-6">
+              <header class="text-2xl font-medium">
+                Invite others to your family
+              </header>
+              <p class="text-light pt-2">
+                Invite family members or trusted people to join your family and help manage your finances together. Click the button below to generate a QR code and share it with the other person.
+              </p>
+              <div class="py-10">
+                <div class="flex items-center justify-center w-64 h-64 mx-auto rounded-xl border border-gray-300 text-light text-sm bg-gray-200 rounded-xl">
+                  <QRCodeIcon />
+                </div>
               </div>
-              <ExpirationTimer date={result().expired_at} />
             </div>
-            <Button style="primary"
-              label="Done"
-              onClick={() => navigate(-1)}
-            />
+            <div>
+              <form class="pb-6"
+                action={invite} method="post">
+                <Button style="primary"
+                  disabled={inviteResult.pending}
+                  label="Generate Invite"
+                  icon={<QRCodeIcon class="w-5 h-5" />}
+                />
+              </form>
+              <Button style="neutral"
+                label="Cancel"
+                onClick={() => navigate(-1)}
+              />
+            </div>
           </section>
-        )}
-      </Show>
-    </main>
+        </Show>
+        <Show when={inviteResult.result}>
+          {result => (
+            <section class="pt-8">
+              <header class="text-2xl font-medium">
+                Invite others to your family
+              </header>
+              <p class="text-light pt-2">
+                Invite family members or trusted people to join your family and help manage your finances together. Share the QR code below with the person you are inviting. The QR code can only be used once.
+              </p>
+              <div class="py-10">
+                <div class="bg-white p-1 w-64 h-64 rounded-xl border border-gray-300 mx-auto shadow shadow-primary-200">
+                  <QRCodeBar text={result().code} />
+                </div>
+                <ExpirationTimer date={result().expired_at} />
+              </div>
+              <Button style="primary"
+                label="Done"
+                onClick={() => navigate(-1)}
+              />
+            </section>
+          )}
+        </Show>
+      </main>
+    </PageLayout>
   )
 }
 

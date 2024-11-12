@@ -10,8 +10,8 @@ import { PageLayout } from "~/components/layouts";
 export default function FamilyPage() {
   let { family } = useContext(AppContext);
   return (
-    <PageLayout>
-      <main class="relative pt-6 pb-32">
+    <PageLayout nav>
+      <main class="pt-6">
         <section class="py-8 px-6 surface rounded">
           <header class="sr-only">Family Details
           </header>

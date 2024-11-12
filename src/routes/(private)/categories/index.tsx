@@ -12,8 +12,8 @@ export default function CategoryListPage() {
   let local = store.use()
   let categories = createAsync(() => local.categories.all(), { initialValue: [] })
   return (
-    <PageLayout>
-      <main class="relative pb-32 pt-6">
+    <PageLayout nav>
+      <main class="pt-6">
         <section class="surface rounded py-8 px-6">
           <header class="sr-only">Categories</header>
           <div class="flex items-center flex-col gap-4">

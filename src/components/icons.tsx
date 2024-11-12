@@ -1,6 +1,6 @@
 import { VoidProps } from "solid-js"
 
-type IconProps = VoidProps<{ class?: string }>
+export type IconProps = VoidProps<{ class?: string }>
 
 export function GitPullRequestArrow(props: IconProps) {
   return (

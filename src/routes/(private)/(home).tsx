@@ -83,9 +83,9 @@ export default function Home() {
 
 
   return (
-    <PageLayout panel>
-      <main class="relative pb-24 -mt-48">
-        <section class="rounded text-center surface mb-4 py-8">
+    <PageLayout panel nav>
+      <main class="relative -mt-40">
+        <section class="rounded text-center surface mb-4 py-8 px-2">
           <div class="grid grid-cols-[auto,1fr,auto] px-4">
             <a href={previousMonthLink()}
               aria-label="Previous month"
@@ -112,7 +112,7 @@ export default function Home() {
                 "text-positive": summary().total >= 0,
               }}
             >
-              {formatter.currency(summary().total)}
+              {formatter.currencyShort(summary().total)}
             </p>
             <Show when={!currentMonth().isPast}>
               <span class="inline-block text-sm badge-primary mt-2">
@@ -120,27 +120,27 @@ export default function Home() {
               </span>
             </Show>
           </div>
-          <div class="inline-flex items-center text-center surface-elevated rounded-xl text-light px-4 py-2">
-            <p class="px-4 text-negative"
+          <div class="inline-flex gap-6 sm:gap-10 items-center text-center surface-elevated rounded-xl text-light px-4 py-2">
+            <p class=" text-negative"
               classList={{
                 "text-negative": summary().carryOver < 0,
                 "text-positive": summary().carryOver > 0,
               }}
             >
-              {formatter.currency(summary().carryOver)}
+              {formatter.currencyShort(summary().carryOver)}
               <span class="block text-light text-xs">Carry Over</span>
             </p>
-            <p class="px-4">
-              {`${formatter.currency(summary().totalExpenses)} / ${formatter.currency(summary().plannedExpenses)}`}
-              <span class="block text-light text-xs">Expenses / Planned</span>
+            <p>
+              {`${formatter.currencyShort(summary().totalExpenses)} / ${formatter.currencyShort(summary().plannedExpenses)}`}
+              <span class="block text-light text-xs">Expenses</span>
             </p>
-            <p class="px-4">
-              {formatter.currency(summary().totalIncome)}
+            <p>
+              {formatter.currencyShort(summary().totalIncome)}
               <span class="block text-light text-xs">Income</span>
             </p>
           </div>
         </section>
-        <section class="pt-4">
+        <section>
           <header class="sr-only">Expenses</header>
           <Tab>
             <TabPanel key="transactions">

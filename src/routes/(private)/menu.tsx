@@ -21,7 +21,7 @@ export default function MenuPage() {
   ]
 
   return (
-    <PageLayout>
+    <PageLayout nav>
       <main class="relative pb-24 pt-6">
         <section class="surface rounded py-8 px-6">
           <header class="sr-only">Profile</header>

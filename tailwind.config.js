@@ -22,7 +22,7 @@ export default {
         },
         negative: {
           ...colors.fuchsia,
-          DEFAULT: colors.fuchsia['600'],
+          DEFAULT: colors.fuchsia['700'],
         },
         positive: {
           ...colors.sky,
@@ -41,11 +41,28 @@ export default {
         vga: '4 / 3',
       },
       animation: {
+        appear: 'appear 0.3s',
+        'appear-bottom': 'appear-bottom 0.3s',
+        'appear-top': 'appear-top 0.3s',
         'shrink-in': 'shrink-in 0.3s',
         'fade-in': 'fade-in 0.3s',
         'fade-in-slow': 'fade-in 1s',
       },
       keyframes: {
+        appear: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        'appear-bottom': {
+          '0%': { transform: 'translateY(32px)', opacity: '1' },
+          '60%': { transform: 'translateY(0)' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        'appear-top': {
+          '0%': { transform: 'translateY(-128px)', opacity: '0' },
+          '60%': { transform: 'translateY(0)' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
         'shrink-in': {
           '0%': { transform: 'scale(1.10)', opacity: '0' },
           '100%': { transform: 'scale(1)', opacity: '1' },

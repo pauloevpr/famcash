@@ -6,6 +6,7 @@ import { store } from "~/lib/wstore";
 import { DateOnly } from "~/lib/utils";
 import { AppContext } from "~/components/context";
 import { GitPullRequestArrow } from "~/components/icons";
+import { PageLayout } from "~/components/layouts";
 
 export function TransactionListItem(props: VoidProps<{
   transaction: TransactionWithRefs,
@@ -28,7 +29,7 @@ export function TransactionListItem(props: VoidProps<{
   return (
     <A
       href={`/transactions/${props.transaction.id}`}
-      class="flex items-center gap-4 px-6 py-4">
+      class="flex items-center gap-4 px-4 sm:px-6 py-3 sm:py-4">
       <span class="bg-gray-100 w-10 h-10 p-1 rounded-full flex items-center justify-center"
         aria-hidden>
         <Show when={props.transaction.type === "carryover"}
@@ -138,7 +139,7 @@ export function TransactionForm(props: VoidProps<{
   )
 
   return (
-    <>
+    <PageLayout>
       <Show when={props.transaction.type === "carryover"}>
         <CarryOverForm transaction={props.transaction}
           onSubmit={props.onSubmit} />
@@ -221,7 +222,7 @@ export function TransactionForm(props: VoidProps<{
           </form>
         </main >
       </Show>
-    </>
+    </PageLayout>
   )
 }
 

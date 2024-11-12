@@ -5,12 +5,12 @@ import { Dynamic } from "solid-js/web"
 type ButtonStyle = "primary" | "neutral" | "negative" | "positive"
 
 function useButtonStyle(style: Accessor<ButtonStyle>) {
-  const base = "flex items-center justify-center gap-2 w-full h-12 text-base font-semibold px-6 rounded-full uppercase tracking-wider"
+  const base = "flex items-center justify-center gap-2 w-full h-12 transition-colors text-base font-semibold px-6 rounded-full uppercase tracking-wider"
   const classList = createMemo(() => ({
-    "bg-primary text-white": style() === "primary",
-    "bg-gray-200 text-default": style() === "neutral",
-    "bg-positive text-white": style() === "positive",
-    "bg-negative text-white": style() === "negative",
+    "bg-primary text-white active:bg-primary-800": style() === "primary",
+    "bg-gray-200 text-default active:bg-gray-300": style() === "neutral",
+    "bg-positive text-white active:bg-positive-800": style() === "positive",
+    "bg-negative text-white active:bg-negative-800": style() === "negative",
 
   }))
   return {

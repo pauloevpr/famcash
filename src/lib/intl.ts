@@ -7,13 +7,24 @@ export function useFormatter(currencyCode: string) {
 		// minimumFractionDigits: 2,
 		maximumFractionDigits: 2
 	})
+	let numberFormatterShort = Intl.NumberFormat(undefined, {
+		style: 'currency',
+		currency: currencyCode,
+		currencyDisplay: "narrowSymbol",
+		// minimumFractionDigits: 2,
+		maximumFractionDigits: 0
+	})
 
 	function currency(value: number) {
 		return numberFormatter.format(value)
 	}
+	function currencyShort(value: number) {
+		return numberFormatterShort.format(value)
+	}
 
 	return {
-		currency
+		currency,
+		currencyShort
 	}
 }
 

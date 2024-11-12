@@ -11,10 +11,10 @@
 
 @layer components {
     .badge-primary {
-        @apply border border-primary-100 rounded-full bg-primary-50 text-primary-700 px-3 py-0.5;
+        @apply inline-flex border border-primary-100 rounded-full bg-primary-50 text-primary-700 px-3 py-0.5;
     }
     .badge-neutral {
-        @apply border rounded-full text-light px-3 py-0.5;
+        @apply inline-flex border rounded-full text-light px-3 py-0.5;
     }
     .text-default {
         color: hsla(240, 1%, 26%, 1);

@@ -38,7 +38,7 @@ export default function PlanEditPage() {
         <main class="px-1 max-w-2xl mx-auto">
           <header class="py-12 space-y-2">
             <span class="flex items-center justify-center mx-auto text-2xl w-16 h-16 bg-gray-200 rounded-full">{category().icon}</span>
-            <h1 class="block px-6 font-medium text-2xl text-center">{category.name}</h1>
+            <h1 class="block px-6 font-medium text-2xl text-center">{category().name}</h1>
             <p class="text-light text-center">Spending Category</p>
           </header>
           <section>
