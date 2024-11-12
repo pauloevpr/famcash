@@ -47,7 +47,7 @@ function Nav() {
     )
   }
   return (
-    <nav class={`fixed bottom-2 sm:bottom-6 left-1/2 transform -translate-x-1/2 h-16 z-10 bg-gradient-to-br from-primary-900 to-primary-900 text-primary-100 border border-gray-200 p-1 rounded-full shadow-lg shadow-primary-200`}>
+    <nav class={`fixed bottom-2 sm:bottom-6 left-1/2 transform -translate-x-1/2 h-16 z-10 bg-gradient-to-br from-primary-900 to-primary-900 text-primary-100 border border-primary-700 p-1 rounded-full`}>
       <ul class="flex h-full max-w-5xl mx-auto gap-4">
         <CustomLink label="Home"
           href="/"

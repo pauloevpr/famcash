@@ -12,7 +12,7 @@ export default function FamilyPage() {
   return (
     <PageLayout nav>
       <main class="pt-6">
-        <section class="py-8 px-6 surface rounded">
+        <section class="py-8 px-6">
           <header class="sr-only">Family Details
           </header>
           <div class="flex items-center flex-col gap-4">

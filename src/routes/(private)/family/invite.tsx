@@ -40,13 +40,13 @@ export default function InvitePage() {
           </div>
         </section>
         <Show when={!inviteResult.result}>
-          <section class="pt-8">
-            <div class="surface rounded px-4 sm:px-8 sm:py-6 py-4 mb-6">
+          <section class="pt-2">
+            <div class="px-4 sm:px-8 sm:py-6 py-4 mb-6">
               <header class="text-2xl font-medium">
                 Invite others to your family
               </header>
               <p class="text-light pt-2">
-                Invite family members or trusted people to join your family and help manage your finances together. Click the button below to generate a QR code and share it with the other person.
+                Invite family members or trusted people to join your family and help manage your finances together. Click the button below to generate a QR code and have the other person scan the code during sign up.
               </p>
               <div class="py-10">
                 <div class="flex items-center justify-center w-64 h-64 mx-auto rounded-xl border border-gray-300 text-light text-sm bg-gray-200 rounded-xl">

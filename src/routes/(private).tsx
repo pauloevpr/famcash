@@ -31,23 +31,23 @@ export const route = {
 export default function PrivateSection(props: RouteSectionProps) {
   let account = createAsync(() => loadAccount())
   return (
-    <Show when={account()} >
+    <Show when={account()} keyed>
       {account => (
         <>
-          <Show when={account().family}>
+          <Show when={account.family} keyed>
             {family => (
               <AppContext.Provider value={{
-                user: account().user,
-                family: family(),
-                formatter: useFormatter(family().currency),
+                user: account.user,
+                family: family,
+                formatter: useFormatter(family.currency),
               }}>
-                <store.Provider namespace={family().id.toString()} >
+                <store.Provider namespace={family.id.toString()} >
                   {props.children}
                 </store.Provider>
               </AppContext.Provider>
             )}
           </Show>
-          <Show when={!account().family}>
+          <Show when={!account.family}>
             <Welcome />
           </Show>
         </>

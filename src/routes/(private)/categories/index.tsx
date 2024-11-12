@@ -1,5 +1,4 @@
-import { createAsync } from "@solidjs/router";
-import { For, Show, useContext, VoidProps, } from "solid-js";
+import { createResource, For, Show, useContext, VoidProps, } from "solid-js";
 import { LinkButton } from "~/components/buttons";
 import { AppContext } from "~/components/context";
 import { TagIcon } from "~/components/icons";
@@ -10,7 +9,8 @@ import { store } from "~/lib/wstore";
 
 export default function CategoryListPage() {
   let local = store.use()
-  let categories = createAsync(() => local.categories.all(), { initialValue: [] })
+  // TODO: investigate: we could not use createAsync here because it forces a full page refresh when an item in the list is edited
+  let [categories] = createResource(() => local.categories.all(), { initialValue: [] })
   return (
     <PageLayout nav>
       <main class="pt-6">

@@ -23,7 +23,7 @@ export default function MenuPage() {
   return (
     <PageLayout nav>
       <main class="relative pb-24 pt-6">
-        <section class="surface rounded py-8 px-6">
+        <section class="py-8 px-6">
           <header class="sr-only">Profile</header>
           <div class="flex items-center flex-col gap-4">
             <InitialsAvatar name={user.name}
