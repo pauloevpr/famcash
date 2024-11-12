@@ -11,8 +11,8 @@ export default function FamilyPage() {
   let { family } = useContext(AppContext);
   return (
     <PageLayout>
-      <main class="px-4 pb-32">
-        <section class="py-8 px-6">
+      <main class="relative pt-6 pb-32">
+        <section class="py-8 px-6 surface rounded">
           <header class="sr-only">Family Details
           </header>
           <div class="flex items-center flex-col gap-4">

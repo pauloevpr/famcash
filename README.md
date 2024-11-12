@@ -25,7 +25,7 @@
         - [x] Basic signup workflow
         - [x] Send login link email
         - [ ] Require Captcha to avoid spammers
-    - [x] Logoff
+   - [x] Logoff
 - [ ] Collaboration
     - [x] Invite others to join family
     - [x] Join family from QR code
@@ -34,7 +34,8 @@
     - [ ] Switch between families
 - [ ] Internationalization
     - [x] Format monetary values using user-selected currency
-    - [ ] Use language-specific currency formatting
+    - [ ] Support multiple display languages
+        - [ ] English
 - [x] Data Sync (using solid-wire)
 - [ ] E2E encryption
 - [ ] Transactions

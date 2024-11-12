@@ -83,8 +83,8 @@ export default function Home() {
 
 
   return (
-    <PageLayout>
-      <main class="relative px-4 pt-8 pb-24">
+    <PageLayout panel>
+      <main class="relative pb-24 -mt-48">
         <section class="rounded text-center surface mb-4 py-8">
           <div class="grid grid-cols-[auto,1fr,auto] px-4">
             <a href={previousMonthLink()}
@@ -115,7 +115,7 @@ export default function Home() {
               {formatter.currency(summary().total)}
             </p>
             <Show when={!currentMonth().isPast}>
-              <span class="inline-block text-sm text-accent border rounded-full px-3 py-0.5 mt-1">
+              <span class="inline-block text-sm badge-primary mt-2">
                 Forecast
               </span>
             </Show>
@@ -158,7 +158,7 @@ export default function Home() {
               </ul>
             </TabPanel>
             <TabPanel key="spending">
-              <ul class="space-y-2" >
+              <ul class="space-y-1" >
                 <For each={spending()}>
                   {item => (
                     <CategorySpending category={item} />

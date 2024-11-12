@@ -113,8 +113,8 @@ function Welcome() {
   }
 
   return (
-    <main class="px-6 py-24">
-      <div class="relative mx-auto surface shadow-xl rounded-2xl px-10 pb-12 pt-6 max-w-md">
+    <main class="sm:px-6 py-24">
+      <div class="relative mx-auto surface shadow-xl rounded-2xl px-6 sm:px-10 pb-12 pt-6 max-w-md">
         <div class="flex justify-center pb-10">
           <img class="h-20 w-20"
             alt="Logo"

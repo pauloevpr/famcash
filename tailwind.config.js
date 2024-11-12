@@ -14,19 +14,19 @@ export default {
         gray: colors.slate,
         primary: {
           ...colors.sky,
-          DEFAULT: colors.sky['600'],
+          DEFAULT: colors.sky['900'],
         },
         accent: {
           ...colors.indigo,
           DEFAULT: colors.indigo['600'],
         },
         negative: {
-          ...colors.pink,
-          DEFAULT: colors.pink['600'],
+          ...colors.fuchsia,
+          DEFAULT: colors.fuchsia['600'],
         },
         positive: {
-          ...colors.teal,
-          DEFAULT: colors.teal['700'],
+          ...colors.sky,
+          DEFAULT: colors.sky['700'],
         },
         success: {
           ...colors.green,

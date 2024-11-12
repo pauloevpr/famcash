@@ -22,8 +22,8 @@ export default function MenuPage() {
 
   return (
     <PageLayout>
-      <main class="pb-24">
-        <section class="py-8 px-6">
+      <main class="relative pb-24 pt-6">
+        <section class="surface rounded py-8 px-6">
           <header class="sr-only">Profile</header>
           <div class="flex items-center flex-col gap-4">
             <InitialsAvatar name={user.name}
@@ -33,7 +33,7 @@ export default function MenuPage() {
             <p class="text-light text-center -mt-3">{user.email}</p>
           </div>
         </section>
-        <section class="px-1">
+        <section class="pt-2">
           <nav>
             <ul class="surface rounded">
               <For each={links}>

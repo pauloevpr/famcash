@@ -13,8 +13,8 @@ export default function CategoryListPage() {
   let categories = createAsync(() => local.categories.all(), { initialValue: [] })
   return (
     <PageLayout>
-      <main class="px-4 pb-32">
-        <section class="py-8 px-6">
+      <main class="relative pb-32 pt-6">
+        <section class="surface rounded py-8 px-6">
           <header class="sr-only">Categories</header>
           <div class="flex items-center flex-col gap-4">
             <p class="bg-slate-200 uppercase inline-flex items-center justify-center rounded-full text-2xl text-primary w-16 h-16 p-2">
@@ -23,7 +23,7 @@ export default function CategoryListPage() {
             <p class="text-2xl text-center font-medium">Categories</p>
           </div>
         </section>
-        <ul class="space-y-1">
+        <ul class="space-y-1 pt-6 ">
           <For each={categories()}>
             {category => (
               <CategoryListItem category={category} />
