@@ -1,6 +1,6 @@
 import { Category } from "~/lib/models";
-import { createAsync, useNavigate, useParams } from "@solidjs/router";
-import { Show, } from "solid-js";
+import { useNavigate, useParams } from "@solidjs/router";
+import { createResource, Show, } from "solid-js";
 import { CategoryForm } from "../(components)";
 import { store } from "~/lib/wstore";
 
@@ -8,7 +8,7 @@ export default function CategoryEditPage() {
   let local = store.use()
   let params = useParams()
   let navigate = useNavigate()
-  let category = createAsync(async () => {
+  let [category] = createResource(async () => {
     let category = await local.categories.get(params.id)
     if (!category) throw Error(`Category ${params.id} not found`)
     return category

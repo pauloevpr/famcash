@@ -9,7 +9,6 @@ import { store } from "~/lib/wstore";
 
 export default function CategoryListPage() {
   let local = store.use()
-  // TODO: investigate: we could not use createAsync here because it forces a full page refresh when an item in the list is edited
   let [categories] = createResource(() => local.categories.all(), { initialValue: [] })
   return (
     <PageLayout nav>

@@ -1,5 +1,5 @@
-import { A, createAsync, useSearchParams } from "@solidjs/router";
-import { createMemo, For, Show, useContext, VoidProps } from "solid-js";
+import { A, useSearchParams } from "@solidjs/router";
+import { createMemo, createResource, For, Show, useContext, VoidProps } from "solid-js";
 import { ChevronLeftIcon, ChevronRightIcon } from "~/components/icons";
 import { PageLayout } from "~/components/layouts";
 import { DateOnly } from "~/lib/utils";
@@ -27,10 +27,10 @@ export default function Home() {
     let isPast = DateOnly.fromYearMonth(year, month).time < LastMonthEnd.getTime()
     return { year, month, isPast }
   })
-  let categories = createAsync(() => {
+  let [categories] = createResource(() => {
     return local.categories.all()
   }, { initialValue: [] })
-  let transactions = createAsync(() => {
+  let [transactions] = createResource(() => {
     return local.transactions.byMonth(currentMonth().year, currentMonth().month)
   }, { initialValue: [] })
   let spending = createMemo(() => {

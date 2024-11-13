@@ -1,5 +1,5 @@
-import { DbRecordTypes, DbUser, IdbRecord, UncheckedFamily, UncheckedRecord, UncheckedUser } from "./models"
-import { UnsyncedRecord } from "./wire-store"
+import { DbRecordTypes, IdbRecord, UncheckedFamily, UncheckedUser } from "./models"
+import { UnsyncedRecord } from "solid-wire"
 
 export class DateOnly {
 	date: Date
