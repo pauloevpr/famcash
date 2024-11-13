@@ -39,11 +39,11 @@ export default function Home() {
           </div>
           <div class="flex gap-6 justify-center pt-28 pb-8 mx-auto">
             <img class="object-contain"
-              src="/public/images/screenshot-1-laptop.png"
+              src="/images/screenshot-1-laptop.png"
               alt="Screenshot of the FamCash app running on a laptop"
             />
             <img class="object-contain"
-              src="/public/images/screenshot-1-phone.png"
+              src="/images/screenshot-1-phone.png"
               alt="Screenshot of the FamCash app running on a phone"
             />
           </div>
@@ -57,7 +57,7 @@ export default function Home() {
           </div>
           <div >
             <img class="object-contain -mb-24"
-              src="/public/images/screenshot-2-cropped.png"
+              src="/images/screenshot-2-cropped.png"
               alt="Screenshot of the FamCash app running on a phone"
             />
           </div>
@@ -71,7 +71,7 @@ export default function Home() {
           </div>
           <div class="self-end">
             <img class="object-contain -mb-24"
-              src="/public/images/screenshot-6-cropped.png"
+              src="/images/screenshot-6-cropped.png"
               alt="Screenshot of the FamCash app running on a phone"
             />
           </div>
@@ -85,7 +85,7 @@ export default function Home() {
           </div>
           <div >
             <img class="object-contain -mb-24"
-              src="/public/images/screenshot-3-cropped.png"
+              src="/images/screenshot-3-cropped.png"
               alt="Screenshot of the FamCash app running on a phone"
             />
           </div>
@@ -99,7 +99,7 @@ export default function Home() {
           </div>
           <div class="self-end">
             <img class="object-contain -mb-24"
-              src="/public/images/screenshot-5-cropped.png"
+              src="/images/screenshot-5-cropped.png"
               alt="Screenshot of the FamCash app running on a phone"
             />
           </div>
@@ -113,11 +113,11 @@ export default function Home() {
           </div>
           <div >
             <img class="object-contain -mb-32"
-              src="/public/images/screenshot-1-laptop.png"
+              src="/images/screenshot-1-laptop.png"
               alt="Screenshot of the FamCash app running on a laptop"
             />
             <img class="object-contain -mb-24"
-              src="/public/images/screenshot-1-phone.png"
+              src="/images/screenshot-1-phone.png"
               alt="Screenshot of the FamCash app running on a phone"
             />
           </div>
