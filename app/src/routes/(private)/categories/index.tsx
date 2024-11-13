@@ -64,8 +64,8 @@ function CategoryListItem(props: VoidProps<{ category: Category }>) {
         >
           {plan => (
             <span class="inline-flex flex-col gap-0.5 text-light">
-              <span class="text-sm">Planned:</span>
-              <span class="font-medium text-default">{formatter.currency(plan().limit)}</span>
+              <span class="block text-right text-sm">Planned:</span>
+              <span class="block text-right font-medium text-default">{formatter.currency(plan().limit)}</span>
             </span>
           )}
         </Show>

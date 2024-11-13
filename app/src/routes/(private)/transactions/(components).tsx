@@ -29,8 +29,8 @@ export function TransactionListItem(props: VoidProps<{
   return (
     <A
       href={`/transactions/${props.transaction.id}`}
-      class="flex items-center gap-4 px-4 sm:px-6 py-3 sm:py-4">
-      <span class="bg-gray-100 w-10 h-10 p-1 rounded-full flex items-center justify-center"
+      class="flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 sm:py-4">
+      <span class="bg-gray-100 text-lg w-12 h-12 p-1 rounded-full flex items-center justify-center"
         aria-hidden>
         <Show when={props.transaction.type === "carryover"}
           fallback={props.transaction.category.icon}>
@@ -38,23 +38,23 @@ export function TransactionListItem(props: VoidProps<{
         </Show>
       </span>
       <div class="flex-grow">
-        <p class="flex items-center gap-2">
+        <p>
           {props.transaction.name || props.transaction.category.name}
-          <Show when={manualCarryOver()}>
-            <p class="badge-primary text-sm">
-              Confirmed
-            </p>
-          </Show>
-          <Show when={autoCarryOver()}>
-            <p class="badge-neutral text-sm font-medium">
-              Unconfirmed
-            </p>
-          </Show>
         </p>
         <time class="text-light text-sm" datetime="2024-10-28T00:00:00Z" >
           {new DateOnly(props.transaction.date).date.toLocaleDateString()}
         </time>
       </div>
+      <Show when={manualCarryOver()}>
+        <p class="badge-primary text-sm">
+          Confirmed
+        </p>
+      </Show>
+      <Show when={autoCarryOver()}>
+        <p class="badge-neutral text-sm">
+          Unconfirmed
+        </p>
+      </Show>
       <p class="text-left"
         classList={{
           "text-positive-700 bg-positive-600/10 font-medium px-3 py-0.5 rounded-md before:content-['+']": isPositive(),

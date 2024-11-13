@@ -10,7 +10,7 @@ import { Button } from "~/components/buttons";
 import { store } from "~/lib/wstore";
 import { AppContext } from "~/components/context";
 
-export default function Home() {
+export default function HomePage() {
   let { formatter } = useContext(AppContext)
   let local = store.use()
   let [params] = useSearchParams()
@@ -140,8 +140,8 @@ export default function Home() {
             </p>
           </div>
         </section>
-        <section>
-          <header class="sr-only">Expenses</header>
+        <section class="pt-4">
+          <header class="sr-only">Transactions</header>
           <Tab>
             <TabPanel key="transactions">
               <ul class="space-y-1 rounded-xl surface" >
@@ -192,7 +192,7 @@ function CategorySpending(props: VoidProps<{ category: CategoryWithSpending }>) 
       }}
     >
       <details class="group surface [&[open]]:mb-10">
-        <summary class="flex items-center gap-3 sm:gap-4 cursor-pointer py-6 px-4 sm:px-6">
+        <summary class="flex items-center gap-3 sm:gap-4 sm:gap-4 cursor-pointer py-4 px-4 sm:px-6 sm:px-6">
           <span class="bg-gray-100 w-10 h-10 p-1 rounded-full flex items-center justify-center"
             aria-hidden>
             {props.category.icon}
@@ -201,11 +201,11 @@ function CategorySpending(props: VoidProps<{ category: CategoryWithSpending }>) 
             {props.category.name}
           </span>
           <span class="transition-all">
-            <span >
+            <span class="block sm:inline text-right whitespace-nowrap">
               <span class="sr-only" >Total Spent:</span>
               {formatter.currency(props.category.total) + " / "}
             </span>
-            <span class="block sm:inline text-light font-normal" >
+            <span class="block sm:inline text-right text-light font-normal" >
               <span class="sr-only" >Planned Spent:</span>
               {`${formatter.currency(props.category.plan?.limit || 0)} `}
             </span>

@@ -4,6 +4,7 @@
 
 - database seed on startup
 - more icons
+- PWA
 
 ## Issues
 
