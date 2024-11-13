@@ -1,5 +1,9 @@
 # TODO
 
+## Now
+
+- database seed on startup
+- more icons
 
 ## Issues
 
