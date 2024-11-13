@@ -3,8 +3,9 @@
 ## Now
 
 - database seed on startup
-- more icons
 - PWA
+- income is missing icon
+- logo on the login/signup screens
 
 ## Issues
 

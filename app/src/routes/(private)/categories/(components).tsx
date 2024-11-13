@@ -13,21 +13,43 @@ export function CategoryForm(props: VoidProps<{
 }>
 ) {
   let navigate = useNavigate()
-  let icons = [
-    "💰",
-    "🛒",
-    "🏠",
-    "💡",
-    "🚗",
-    "🎬",
-    "🍽️",
-    "💊",
-    "📚",
-    "🛍️",
-    "💰",
-    "🎮",
-    "💪",
-  ]
+  const icons = [
+    { name: "Airplane", icon: "✈️" },
+    { name: "Bank", icon: "🏦" },
+    { name: "Beach with Umbrella", icon: "🏖️" },
+    { name: "Bicycle", icon: "🚲" },
+    { name: "Books", icon: "📚" },
+    { name: "Car", icon: "🚗" },
+    { name: "Chart Increasing", icon: "📈" },
+    { name: "Chart with Yen Sign", icon: "💹" },
+    { name: "Clapper Board", icon: "🎬" },
+    { name: "Credit Card", icon: "💳" },
+    { name: "Dollar Banknote", icon: "💵" },
+    { name: "Droplet", icon: "💧" },
+    { name: "Electric Plug", icon: "🔌" },
+    { name: "Fork and Knife with Plate", icon: "🍽️" },
+    { name: "Graduation Cap", icon: "🎓" },
+    { name: "Gym", icon: "💪" },
+    { name: "Hamburger", icon: "🍔" },
+    { name: "Hospital", icon: "🏥" },
+    { name: "House", icon: "🏠" },
+    { name: "Light Bulb", icon: "💡" },
+    { name: "Lotion Bottle", icon: "🧴" },
+    { name: "Luggage", icon: "🧳" },
+    { name: "Microphone", icon: "🎤" },
+    { name: "Money Bag", icon: "💰" },
+    { name: "Nail Polish", icon: "💅" },
+    { name: "Office Building", icon: "🏢" },
+    { name: "Pen", icon: "🖊️" },
+    { name: "Pill", icon: "💊" },
+    { name: "Red Apple", icon: "🍎" },
+    { name: "Shopping Cart", icon: "🛒" },
+    { name: "Shopping Bag", icon: "🛍️" },
+    { name: "Stethoscope", icon: "🩺" },
+    { name: "Sushi", icon: "🍣" },
+    { name: "Video Game", icon: "🎮" },
+    { name: "Woman Getting Haircut", icon: "💇" },
+  ];
 
   function onSubmit(e: SubmitEvent & { currentTarget: HTMLFormElement }) {
     e.preventDefault()
@@ -72,12 +94,13 @@ export function CategoryForm(props: VoidProps<{
             <label for="icon" class="flex items-center h-full px-6 border-t border-gray-200">Icon</label>
             <select class="h-12 px-4 border-t border-gray-200 rounded-br-xl bg-transparent w-full"
               id="icon"
-              name="icon">
+              name="icon"
+            >
               <For each={icons}>
                 {icon => (
-                  <option value={icon}
-                    selected={props.category.icon === icon}
-                  >{icon}</option>
+                  <option value={icon.icon}
+                    selected={props.category.icon === icon.icon}
+                  >{`${icon.icon}`}</option>
                 )}
               </For>
             </select>
