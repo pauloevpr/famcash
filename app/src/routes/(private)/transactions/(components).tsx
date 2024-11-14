@@ -5,7 +5,7 @@ import { Category, RecurrencyInterval, Transaction, TransactionRecurrency, Trans
 import { store } from "~/lib/wstore";
 import { DateOnly } from "~/lib/utils";
 import { AppContext } from "~/components/context";
-import { GitPullRequestArrow, PiggyBankIcon, SmilePlusIcon } from "~/components/icons";
+import { GitPullRequestArrow, PiggyBankIcon, } from "~/components/icons";
 import { PageLayout } from "~/components/layouts";
 
 export function TransactionListItem(props: VoidProps<{

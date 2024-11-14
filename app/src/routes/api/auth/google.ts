@@ -5,7 +5,7 @@ import { OAuth2Client } from "google-auth-library";
 import { getQuery, HTTPEvent, sendRedirect, } from "vinxi/http";
 import { db } from "~/lib/db";
 import { getSession } from "~/lib/session";
-import { validate } from "~/lib/utils";
+import { validate } from "~/lib/validation";
 
 const env = (key: string): string => {
 	let value = process.env[key]

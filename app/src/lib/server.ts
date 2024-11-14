@@ -1,6 +1,6 @@
 "use server"
 
-import { validate } from "./utils";
+import { validate } from "./validation";
 import { mailer } from "./mailer";
 import { db } from "./db";
 import { redirect } from "@solidjs/router";

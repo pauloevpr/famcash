@@ -2,7 +2,7 @@ import { CarryOver, Category, CategoryWithSpending, ParsedTransactionId, Summary
 import { DateOnly, generateDbRecordId, } from "./utils";
 import { db } from "./db";
 import { getCurrentAccount } from "./server";
-import { validate } from "./utils";
+import { validate } from "./validation";
 import { createWireStore, SyncedRecord, validateRecordsMetadata } from "solid-wire";
 
 
