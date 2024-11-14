@@ -60,7 +60,7 @@ export default function LoginPage() {
         <Show when={state().sent}>
           <h1 class="text-2xl font-semibold pb-4">Check your email</h1>
           <p class="text-light block pb-10">
-            We have sent a login link to <b class="text-default font-semibold">{state().email}</b>. If you don't receive the email in a few seconds, it is good idea to check your spam folder.
+            We have sent a login link to <b class="text-default font-semibold">{state().email}</b>. If you don't receive the email in a few seconds, it is a good idea to check your spam folder.
           </p>
           <Button style="neutral"
             label="Close"

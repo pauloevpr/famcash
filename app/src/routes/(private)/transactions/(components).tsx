@@ -147,7 +147,7 @@ export function TransactionForm(props: VoidProps<{
       <Show when={props.transaction.type !== "carryover"}>
         <main class="max-w-3xl mx-auto">
           <h1 class="class=block px-6 py-8 font-medium text-2xl text-center">Transaction</h1>
-          <form class="flex flex-col gap-10 px-1 text-lg"
+          <form class="flex flex-col gap-10 px-1"
             onSubmit={onSubmit}
           >
             <Show when={type() !== "carryover"}>
@@ -267,7 +267,7 @@ function CarryOverForm(props: VoidProps<{
       <h1 class="class=block px-6 py-8 font-medium text-2xl text-center">
         Carry Over
       </h1>
-      <form class="flex flex-col gap-10 px-1 text-lg"
+      <form class="flex flex-col gap-10 px-1"
         onSubmit={onSubmit}
       >
         <div class="grid grid-cols-[auto,1fr] surface rounded">

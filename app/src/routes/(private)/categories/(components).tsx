@@ -76,7 +76,7 @@ export function CategoryForm(props: VoidProps<{
         <h1 class="block px-6 py-12 font-medium text-2xl text-center">Category</h1>
         <form method="post"
           action="/categories/new"
-          class="px-1 text-lg space-y-10"
+          class="px-1 space-y-10"
           onSubmit={onSubmit}
         >
           <div class="grid grid-cols-[auto,1fr] bg-white rounded-xl border border-gray-200">
@@ -136,7 +136,7 @@ export function CategoryForm(props: VoidProps<{
 export function SpendingPlanField(props: VoidProps<{ category: Category }>) {
   return (
     <section class="surface rounded">
-      <header class="flex items-center gap-3 px-6 py-4 text-lg font-medium">
+      <header class="flex items-center gap-3 px-6 py-4 font-medium">
         <LightBulbIcon class="text-gray-400 w-5 h-5" />
         Spending Plan
       </header>
