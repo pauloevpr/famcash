@@ -43,6 +43,7 @@ export function Button(props: ParentProps<{
   label: string
   style: ButtonStyle
   icon?: JSX.Element
+  appendIcon?: JSX.Element
 
 } & JSX.IntrinsicElements["button"]>) {
   let [_, otherProps] = splitProps(props, ["style", "label", "icon", "class", "classList"])
@@ -54,6 +55,7 @@ export function Button(props: ParentProps<{
     >
       {props.icon}
       {props.label}
+      {props.appendIcon}
     </button>
   )
 }

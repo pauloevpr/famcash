@@ -2,8 +2,8 @@
 
 ## Now
 
-- logo on the login/signup screens
 - Spending category item is missing progress bar
+- site images need more quality
 
 ## Issues
 

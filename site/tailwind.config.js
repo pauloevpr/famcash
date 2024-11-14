@@ -8,7 +8,6 @@ export default {
   theme: {
     fontFamily: {
       "serif": ["Mackinac", "ui-serif", "Georgia", "Cambria", "Times New Roman", "Times", "serif"],
-      "sans": ["Fricolage Grotesque", "ui-sans-serif", "system-ui", "sans-serif", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"],
     },
     extend: {
       borderRadius: {

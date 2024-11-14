@@ -5,6 +5,7 @@ import Alert from "~/components/alert";
 import { Button } from "~/components/buttons";
 import { AppContext } from "~/components/context";
 import { ChevronRightIcon, HandHeartIcon, PlusIcon, QRCodeIcon } from "~/components/icons";
+import { Logo } from "~/components/logo";
 import QRCodeScanner from "~/components/qrcode";
 import { currencies, useFormatter } from "~/lib/intl";
 import { Category } from "~/lib/models";
@@ -173,12 +174,10 @@ function Welcome() {
   }
 
   return (
-    <main class="sm:px-6 py-24">
+    <main class="sm:px-6 py-24 bg-gradient-to-b from-primary-100 via-accent-100 to-tranparent">
       <div class="relative mx-auto surface shadow-xl rounded-2xl px-6 sm:px-10 pb-12 pt-6 max-w-md">
-        <div class="flex justify-center pb-10">
-          <img class="h-20 w-20"
-            alt="Logo"
-            src="/logo.svg" />
+        <div class="flex justify-center pt-8 pb-16">
+          <Logo />
         </div>
         <h1 class="text-2xl font-semibold pb-8">Welcome</h1>
         <form action={signup}
@@ -233,7 +232,7 @@ function Welcome() {
                     class="block pb-2 text-light">Currency</label>
                   <select name="currency"
                     id="currency"
-                    class="block border h-12 px-4 w-full rounded-lg"
+                    class="block border h-12 px-4 w-full rounded-lg bg-transparent"
                     required>
                     <For each={Object.entries(currencies)}>
                       {([code, name]) => (
