@@ -3,12 +3,11 @@
 import { validate } from "./utils";
 import { mailer } from "./mailer";
 import { db } from "./db";
-import { useSession } from "vinxi/http";
 import { redirect } from "@solidjs/router";
-import { CurrentSession as CurrentAccount, DbRecord, UncheckedFamily, UncheckedRecord, UncheckedUser, UserSession } from "./models";
+import { CurrentSession as CurrentAccount, UncheckedFamily, UncheckedUser, } from "./models";
+import { getSession } from "./session";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:3000"
-const SESSION_SECRET = process.env.SESSION_SECRET as string
 
 // TODO: refactor writes so multiple calls happen within the same transaction
 // use API like db.transaction(db => { })
@@ -167,44 +166,5 @@ export async function getInvite(code: string) {
 	}
 }
 
-
-export async function sync(
-	familyId: number,
-	records: UncheckedRecord[],
-	syncTimestampRaw: string | null
-): Promise<{ records: DbRecord[], syncTimestamp: string }> {
-	let { user } = await getCurrentAccount()
-	await db.member.assureExists(user.id, familyId)
-	let syncTimestamp: Date
-	try {
-		syncTimestamp = new Date(syncTimestampRaw || '2000-01-01')
-	} catch (e) {
-		console.error(`parsing timestamp with value '${syncTimestampRaw}' failed: ${e}`)
-		syncTimestamp = new Date('2000-01-01')
-	}
-	for (let record of records) {
-		validate.record(record)
-		await db.record.upsert(
-			familyId,
-			user.id,
-			record.id,
-			record.type,
-			record.deleted,
-			record.data,
-		)
-	}
-	let updated = await db.record.upatedSince(familyId, syncTimestamp)
-	let timestamp = updated[0]?.updated_at.toISOString() || syncTimestamp.toISOString()
-	return { records: updated, syncTimestamp: timestamp }
-}
-
-
-function getSession() {
-	return useSession<UserSession>({
-		password: SESSION_SECRET,
-		maxAge: 30 * 86400, // 86400 = 1 day
-		name: "session"
-	});
-}
 
 

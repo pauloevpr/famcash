@@ -2,9 +2,9 @@
 
 import type { APIEvent } from "@solidjs/start/server";
 import { OAuth2Client } from "google-auth-library";
-import { getQuery, HTTPEvent, sendRedirect, useSession } from "vinxi/http";
+import { getQuery, HTTPEvent, sendRedirect, } from "vinxi/http";
 import { db } from "~/lib/db";
-import { UserSession } from "~/lib/models";
+import { getSession } from "~/lib/session";
 import { validate } from "~/lib/utils";
 
 const env = (key: string): string => {
@@ -62,12 +62,4 @@ async function callback(event: HTTPEvent, code: string) {
 		return data
 	})
 	return sendRedirect(event, "/")
-}
-
-function getSession() {
-	return useSession<UserSession>({
-		password: settings.sessionSecret,
-		maxAge: 30 * 86400, // 86400 = 1 day
-		name: "session"
-	});
 }
