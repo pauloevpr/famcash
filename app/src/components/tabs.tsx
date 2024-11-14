@@ -7,20 +7,21 @@ export function useTabs(
   options?: {
     key?: string
     initialSelection?: string,
+    saveKey?: string
   }
 ) {
   let id = createMemo(() => {
     return options?.key || new Date().getTime().toString()
   })
   let [selected, setSelected] = createSignal(
-    localStorage.getItem(`tab-${options?.key}-selected`) ||
+    (options?.saveKey ? localStorage.getItem(options.saveKey) : undefined) ||
     options?.initialSelection ||
     tabs()[0]?.key || ""
   )
   let changeSelection = (value: string) => {
     setSelected(value)
-    if (options?.key) {
-      localStorage.setItem(`tab-${options.key}-selected`, value)
+    if (options?.saveKey) {
+      localStorage.setItem(options.saveKey, value)
     }
   }
 

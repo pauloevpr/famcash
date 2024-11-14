@@ -3,7 +3,7 @@
 
 ## Issues
 
-- fix: local storage settings are not being separated by user id (e.g. tab selection on home page)
+- fix: email sending through sendgrid is broken
 - Fix: auth: session expiration should auto extend as requests come in
 - Fix: many <input> have min instead of minlenght for text validation
 - Spending category item is missing progress bar

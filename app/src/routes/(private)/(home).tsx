@@ -11,7 +11,7 @@ import { store } from "~/lib/wstore";
 import { AppContext } from "~/components/context";
 
 export default function HomePage() {
-  let { formatter } = useContext(AppContext)
+  let { formatter, user } = useContext(AppContext)
   let local = store.use()
   let [params] = useSearchParams()
   let currentMonth = createMemo(() => {
@@ -77,7 +77,7 @@ export default function HomePage() {
     { label: "Transactions", key: "transactions" },
     { label: "Spending", key: "spending" },
   ], {
-    key: "home-transactions-tab",
+    saveKey: `${user.id}:home-tab`,
     initialSelection: "transactions",
   })
 
