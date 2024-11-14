@@ -115,7 +115,7 @@ export async function completeSignUpWithNewFamily(userName: string, familyName: 
 	let { id: familyId } = await db.family.create(userId, family.name, family.currency)
 	await db.member.create(userId, familyId, "admin")
 	await db.user.update(userId, user.name)
-	throw redirect("/", { revalidate: "user" })
+	throw redirect("/?newFamily=true", { revalidate: "user" })
 }
 
 export async function completeSignUpWithInvite(userName: string, code: string) {

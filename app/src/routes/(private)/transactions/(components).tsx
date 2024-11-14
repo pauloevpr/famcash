@@ -101,9 +101,9 @@ export function TransactionForm(props: VoidProps<{
       transaction.categoryId = local.categories.static.income().id
     }
     if (data.get("recurrency") === "on") {
-      let endDate = data.get("recurrencyEndDate") as string
+      let endDate = data.get("repeatEndDate") as string
       transaction.recurrency = {
-        interval: data.get("recurrencyInterval") as RecurrencyInterval,
+        interval: data.get("repeatInterval") as RecurrencyInterval,
         multiplier: parseInt(data.get("recurrencyMultiplier") as string),
         endDate: endDate ? new DateOnly(endDate).toString() : undefined,
       }
@@ -350,8 +350,8 @@ function FieldRecurrency(props: VoidProps<{ recurrency?: TransactionRecurrency }
           min={1}
           max={365}
           value={props.recurrency?.multiplier || 1} />
-        <select id="recurrencyInterval"
-          name="recurrencyInterval"
+        <select id="repeatInterval"
+          name="repeatInterval"
           class="h-12 px-4 bg-transparent w-full"
         >
           <For each={intervals}>{
@@ -368,11 +368,11 @@ function FieldRecurrency(props: VoidProps<{ recurrency?: TransactionRecurrency }
         End Date
       </label>
       <input type="date"
-        name="recurrencyEndDate"
+        name="repeatEndDate"
         placeholder="Pick End Date"
         class="hidden group-has-[input:checked]:block h-12 px-4 border-t border-gray-200 rounded-br-xl bg-transparent w-full"
         value={props.recurrency?.endDate}
-        id="recurrencyEndDate" />
+        id="repeatEndDate" />
     </div>
 
   )

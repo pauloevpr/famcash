@@ -1,5 +1,5 @@
 import { action, createAsync, RouteDefinition, RouteSectionProps, query, useSearchParams, useNavigate, } from "@solidjs/router";
-import { For, Show, } from "solid-js";
+import { createSignal, For, onMount, ParentProps, Show, } from "solid-js";
 import { createStore } from "solid-js/store";
 import Alert from "~/components/alert";
 import { Button } from "~/components/buttons";
@@ -7,7 +7,9 @@ import { AppContext } from "~/components/context";
 import { ChevronRightIcon, HandHeartIcon, PlusIcon, QRCodeIcon } from "~/components/icons";
 import QRCodeScanner from "~/components/qrcode";
 import { currencies, useFormatter } from "~/lib/intl";
+import { Category } from "~/lib/models";
 import { completeSignUpWithNewFamily, getCurrentAccount, loginWithToken, signupWithToken, getInvite, completeSignUpWithInvite } from "~/lib/server";
+import { generateDbRecordId } from "~/lib/utils";
 import { store } from "~/lib/wstore";
 
 
@@ -42,7 +44,9 @@ export default function PrivateSection(props: RouteSectionProps) {
                 formatter: useFormatter(family.currency),
               }}>
                 <store.Provider namespace={family.id.toString()} >
-                  {props.children}
+                  <Startup>
+                    {props.children}
+                  </Startup>
                 </store.Provider>
               </AppContext.Provider>
             )}
@@ -57,10 +61,53 @@ export default function PrivateSection(props: RouteSectionProps) {
   )
 }
 
+function Startup(props: ParentProps) {
+  let local = store.use()
+  let [params, setParams] = useSearchParams()
+  let [seedDone, setSeedDone] = createSignal(false)
+
+  async function seed() {
+    let categories: Category[] = [
+      { name: "Travel", icon: "✈️", id: generateDbRecordId() },
+      { name: "Bills", icon: "🧾", id: generateDbRecordId() },
+      { name: "Fun", icon: "🏖️", id: generateDbRecordId() },
+      { name: "Education", icon: "📚", id: generateDbRecordId() },
+      { name: "Transport", icon: "🚗", id: generateDbRecordId() },
+      { name: "Entertainment", icon: "🎬", id: generateDbRecordId() },
+      { name: "Eating Out", icon: "🍽️", id: generateDbRecordId() },
+      { name: "Health", icon: "💪", id: generateDbRecordId() },
+      { name: "Housing", icon: "🏠", id: generateDbRecordId() },
+      { name: "Groceries", icon: "🛒", id: generateDbRecordId() },
+      { name: "Shopping", icon: "🛍️", id: generateDbRecordId() },
+    ]
+    await Promise.all(
+      categories.map(category =>
+        local.categories.set(category.id, category)
+      )
+    )
+  }
+
+  onMount(async () => {
+    if (params.newFamily) {
+      await seed()
+      setParams({
+        ...params,
+        newFamily: undefined
+      })
+    }
+    setSeedDone(true)
+  })
+
+  return (
+    <Show when={seedDone()}>
+      {props.children}
+    </Show>)
+}
+
 
 
 function Welcome() {
-  // TODO: this is missing a logoug button
+  // TODO: this is missing a logout button
   let navigate = useNavigate()
   let [params, setParams] = useSearchParams()
   let [state, setState] = createStore({

@@ -27,10 +27,10 @@ export default function HomePage() {
     let isPast = DateOnly.fromYearMonth(year, month).time < LastMonthEnd.getTime()
     return { year, month, isPast }
   })
-  let [categories] = createResource(() => {
+  let [categories] = createResource(currentMonth, () => {
     return local.categories.all()
   }, { initialValue: [] })
-  let [transactions] = createResource(() => {
+  let [transactions] = createResource(currentMonth, () => {
     return local.transactions.byMonth(currentMonth().year, currentMonth().month)
   }, { initialValue: [] })
   let spending = createMemo(() => {

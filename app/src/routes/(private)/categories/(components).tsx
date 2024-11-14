@@ -13,44 +13,6 @@ export function CategoryForm(props: VoidProps<{
 }>
 ) {
   let navigate = useNavigate()
-  const icons = [
-    { name: "Airplane", icon: "✈️" },
-    { name: "Bank", icon: "🏦" },
-    { name: "Beach with Umbrella", icon: "🏖️" },
-    { name: "Bicycle", icon: "🚲" },
-    { name: "Books", icon: "📚" },
-    { name: "Car", icon: "🚗" },
-    { name: "Chart Increasing", icon: "📈" },
-    { name: "Chart with Yen Sign", icon: "💹" },
-    { name: "Clapper Board", icon: "🎬" },
-    { name: "Credit Card", icon: "💳" },
-    { name: "Dollar Banknote", icon: "💵" },
-    { name: "Droplet", icon: "💧" },
-    { name: "Electric Plug", icon: "🔌" },
-    { name: "Fork and Knife with Plate", icon: "🍽️" },
-    { name: "Graduation Cap", icon: "🎓" },
-    { name: "Gym", icon: "💪" },
-    { name: "Hamburger", icon: "🍔" },
-    { name: "Hospital", icon: "🏥" },
-    { name: "House", icon: "🏠" },
-    { name: "Light Bulb", icon: "💡" },
-    { name: "Lotion Bottle", icon: "🧴" },
-    { name: "Luggage", icon: "🧳" },
-    { name: "Microphone", icon: "🎤" },
-    { name: "Money Bag", icon: "💰" },
-    { name: "Nail Polish", icon: "💅" },
-    { name: "Office Building", icon: "🏢" },
-    { name: "Pen", icon: "🖊️" },
-    { name: "Pill", icon: "💊" },
-    { name: "Red Apple", icon: "🍎" },
-    { name: "Shopping Cart", icon: "🛒" },
-    { name: "Shopping Bag", icon: "🛍️" },
-    { name: "Stethoscope", icon: "🩺" },
-    { name: "Sushi", icon: "🍣" },
-    { name: "Video Game", icon: "🎮" },
-    { name: "Woman Getting Haircut", icon: "💇" },
-  ];
-
   function onSubmit(e: SubmitEvent & { currentTarget: HTMLFormElement }) {
     e.preventDefault()
     let data = new FormData(e.currentTarget)
@@ -159,3 +121,44 @@ export function SpendingPlanField(props: VoidProps<{ category: Category }>) {
     </section>
   )
 }
+
+
+const icons = [
+  { name: "Airplane", icon: "✈️" },
+  { name: "Bank", icon: "🏦" },
+  { name: "Beach with Umbrella", icon: "🏖️" },
+  { name: "Bicycle", icon: "🚲" },
+  { name: "Bills", icon: "🧾" },
+  { name: "Books", icon: "📚" },
+  { name: "Car", icon: "🚗" },
+  { name: "Chart Increasing", icon: "📈" },
+  { name: "Chart with Yen Sign", icon: "💹" },
+  { name: "Clapper Board", icon: "🎬" },
+  { name: "Credit Card", icon: "💳" },
+  { name: "Dollar Banknote", icon: "💵" },
+  { name: "Droplet", icon: "💧" },
+  { name: "Electric Plug", icon: "🔌" },
+  { name: "Fork and Knife with Plate", icon: "🍽️" },
+  { name: "Graduation Cap", icon: "🎓" },
+  { name: "Gym", icon: "💪" },
+  { name: "Hamburger", icon: "🍔" },
+  { name: "Hospital", icon: "🏥" },
+  { name: "House", icon: "🏠" },
+  { name: "Light Bulb", icon: "💡" },
+  { name: "Lotion Bottle", icon: "🧴" },
+  { name: "Luggage", icon: "🧳" },
+  { name: "Microphone", icon: "🎤" },
+  { name: "Money Bag", icon: "💰" },
+  { name: "Nail Polish", icon: "💅" },
+  { name: "Office Building", icon: "🏢" },
+  { name: "Pen", icon: "🖊️" },
+  { name: "Pill", icon: "💊" },
+  { name: "Red Apple", icon: "🍎" },
+  { name: "Shopping Cart", icon: "🛒" },
+  { name: "Shopping Bag", icon: "🛍️" },
+  { name: "Stethoscope", icon: "🩺" },
+  { name: "Sushi", icon: "🍣" },
+  { name: "Video Game", icon: "🎮" },
+  { name: "Woman Getting Haircut", icon: "💇" },
+];
+
