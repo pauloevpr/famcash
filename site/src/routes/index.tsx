@@ -165,7 +165,7 @@ function Logo() {
   //   </span>
   // </div>
   return (
-    <span class="font-serif text-3xl font-bold">
+    <span class="inline-block h-10 font-serif text-3xl font-bold">
       <span class="text-primary">Fam</span>
       <span class="text-accent-700">cash</span>
     </span>

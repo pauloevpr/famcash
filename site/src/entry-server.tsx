@@ -10,6 +10,11 @@ export default createHandler(() => (
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <link rel="icon" href="/favicon2.ico" />
+          <link rel="preload" href="/fonts/mackinac-bold.woff2" as="font" type="font/woff" />
+          <link rel="preload" href="/fonts/mackinac-medium.woff2" as="font" type="font/woff" />
+          <link rel="preload" href="/fonts/Inter-Latin-400-700.woff2" as="font" type="font/woff2" />
+          <link rel="preload" href="/fonts/fricolage-grotesque.var.woff2" as="font" type="font/woff" />
+
           <style>
             {`
             @font-face {
