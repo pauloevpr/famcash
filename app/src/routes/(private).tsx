@@ -1,4 +1,4 @@
-import { action, createAsync, RouteDefinition, RouteSectionProps, query, useSearchParams, useNavigate, } from "@solidjs/router";
+import { action, createAsync, RouteDefinition, RouteSectionProps, query, useSearchParams, useNavigate, usePreloadRoute, } from "@solidjs/router";
 import { createSignal, For, onMount, ParentProps, Show, } from "solid-js";
 import { createStore } from "solid-js/store";
 import Alert from "~/components/alert";
@@ -62,6 +62,7 @@ export default function PrivateSection(props: RouteSectionProps) {
 }
 
 function Startup(props: ParentProps) {
+  let preload = usePreloadRoute()
   let local = store.use()
   let [params, setParams] = useSearchParams()
   let [seedDone, setSeedDone] = createSignal(false)
@@ -87,7 +88,19 @@ function Startup(props: ParentProps) {
     )
   }
 
+  function triggerPreload() {
+    preload("/menu")
+    preload("/categories")
+    preload("/categories/xxx")
+    preload("/categories/xxx/plan")
+    preload("/family")
+    preload("/family/invite")
+    preload("/transactions/new")
+    preload("/transactions/xxx")
+  }
+
   onMount(async () => {
+    triggerPreload()
     if (params.newFamily) {
       await seed()
       setParams({

@@ -5,6 +5,7 @@
 - PWA
 - income is missing icon
 - logo on the login/signup screens
+- Spending category item is missing progress bar
 
 ## Issues
 
