@@ -10,7 +10,7 @@ export default createHandler(() => (
           <title>Famcash</title>
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <link rel="icon" href="/favicon.ico" />
+          <link rel="icon" href="/favicon2.ico" />
           <link rel="apple-touch-icon" href="/pwa/pwa-192x192.png" />
           <link rel="manifest" href="/pwa/manifest.json" />
           <style>
