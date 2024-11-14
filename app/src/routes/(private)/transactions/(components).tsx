@@ -1,11 +1,11 @@
 import { A, useNavigate } from "@solidjs/router";
-import { createMemo, createSignal, For, Show, useContext, VoidProps } from "solid-js";
+import { createMemo, createSignal, For, Match, Show, Switch, useContext, VoidProps } from "solid-js";
 import { Button } from "~/components/buttons";
 import { Category, RecurrencyInterval, Transaction, TransactionRecurrency, TransactionType, TransactionWithRefs } from "~/lib/models";
 import { store } from "~/lib/wstore";
 import { DateOnly } from "~/lib/utils";
 import { AppContext } from "~/components/context";
-import { GitPullRequestArrow } from "~/components/icons";
+import { GitPullRequestArrow, PiggyBankIcon, SmilePlusIcon } from "~/components/icons";
 import { PageLayout } from "~/components/layouts";
 
 export function TransactionListItem(props: VoidProps<{
@@ -32,10 +32,15 @@ export function TransactionListItem(props: VoidProps<{
       class="flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 sm:py-4">
       <span class="bg-gray-100 text-lg w-12 h-12 p-1 rounded-full flex items-center justify-center"
         aria-hidden>
-        <Show when={props.transaction.type === "carryover"}
+        <Switch
           fallback={props.transaction.category.icon}>
-          <GitPullRequestArrow class="text-primary w-5 h-5" />
-        </Show>
+          <Match when={props.transaction.type === "carryover"}>
+            <GitPullRequestArrow class="text-primary w-5 h-5" />
+          </Match>
+          <Match when={props.transaction.type === "income"}>
+            <PiggyBankIcon class="text-primary w-5 h-5" />
+          </Match>
+        </Switch>
       </span>
       <div class="flex-grow">
         <p>
