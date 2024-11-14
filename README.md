@@ -4,8 +4,6 @@
 ## Issues
 
 - fix: email sending through sendgrid is broken
-- Fix: auth: session expiration should auto extend as requests come in
-- Fix: many <input> have min instead of minlenght for text validation
 - Spending category item is missing progress bar
 - site images need more quality
 - all pages dont handle empty state 

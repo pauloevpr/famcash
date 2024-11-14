@@ -186,8 +186,8 @@ function Welcome() {
             class="block pb-2 text-light">Your Nickname</label>
           <input name="name"
             id="name"
-            min="2"
-            max="32"
+            minlength="2"
+            maxlength="32"
             onChange={e => setState(current => ({ ...current, nickname: e.currentTarget.value.trim() }))}
             class="block border h-12 px-4 w-full rounded-lg"
             required />
