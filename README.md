@@ -1,23 +1,22 @@
 # TODO
 
-## Now
-
-- Spending category item is missing progress bar
-- site images need more quality
 
 ## Issues
 
-- Fix: many <input> have min instead of minlenght for text validation
 - Fix: turning a normal expense into recurrent produces two records
+- fix: local storage settings are not being separated by user id (e.g. tab selection on home page)
+- Fix: auth: session expiration should auto extend as requests come in
+- Fix: many <input> have min instead of minlenght for text validation
+- Spending category item is missing progress bar
+- site images need more quality
+- all pages dont handle empty state 
+
 - The buttons that make API calls are missing:
     - loading indicators
         - only displays if it takes longer than 100ms, then shows for at least 300ms
     - error handling
-- Fix: auth: session expiration should auto extend as requests come in
-- all pages dont handle empty state 
 - all forms dont use useSubmission for error handling, loading indicator, prevent concurrency
 - TBD: should we delete the idb database on logout?
-- Syncing data during startup should display a loading indicator (if it takes longer than 100ms in which case it should be visible for at least 300ms)
 - TDB: should we validate all the data types (transactions, accounts, etc)?
 - TDB: should we only accept alpha chars for IDs?
 

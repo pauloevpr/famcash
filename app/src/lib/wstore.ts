@@ -17,7 +17,7 @@ export const store = createWireStore({
 	sync: async ({ records, namespace, syncCursor: syncTimestampRaw }) => {
 		"use server"
 		records = validateRecordsMetadata(records, store.types())
-		let familyId = parseInt(namespace)
+		let familyId = parseInt(namespace.split(":")[0])
 		let { user } = await getCurrentAccount()
 		await db.member.assureExists(user.id, familyId)
 		let syncTimestamp = new Date(syncTimestampRaw || '2000-01-01')
@@ -197,7 +197,8 @@ export const store = createWireStore({
 		async function saveRecurrentTransaction(transaction: Transaction, parsedId: ParsedTransactionId) {
 			if (parsedId.recurrency) {
 				if (parsedId.recurrency.index === 0) {
-					await store.recurrencies.set(parsedId.recurrency.id, { ...transaction })
+					transaction.id = parsedId.recurrency.id
+					await store.recurrencies.set(transaction.id, transaction)
 				} else {
 					let base = await getRequiredRecurrency(parsedId.recurrency.id)
 					let occurrence = getOccurrenceByIndex(base, parsedId.recurrency.index)

@@ -44,7 +44,7 @@ export default function PrivateSection(props: RouteSectionProps) {
                 family: family,
                 formatter: useFormatter(family.currency),
               }}>
-                <store.Provider namespace={family.id.toString()} >
+                <store.Provider namespace={`${family.id.toString()}:${account.user.id}`} >
                   <Startup>
                     {props.children}
                   </Startup>
