@@ -198,17 +198,18 @@ export const store = createWireStore({
 			if (parsedId.recurrency) {
 				if (parsedId.recurrency.index === 0) {
 					transaction.id = parsedId.recurrency.id
-					await store.recurrencies.set(transaction.id, transaction)
 				} else {
 					let base = await getRequiredRecurrency(parsedId.recurrency.id)
 					let occurrence = getOccurrenceByIndex(base, parsedId.recurrency.index)
 					base.recurrency!.endDate = occurrence.date
 					await store.recurrencies.set(base.id, base)
 					transaction.id = generateDbRecordId()
-					await store.recurrencies.set(transaction.id, transaction)
 				}
-			} else {
+			}
+			if (transaction.recurrency) {
 				await store.recurrencies.set(transaction.id, transaction)
+			} else {
+				await store.transactions.set(transaction.id, transaction)
 			}
 		}
 

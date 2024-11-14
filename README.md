@@ -3,7 +3,6 @@
 
 ## Issues
 
-- Fix: turning a normal expense into recurrent produces two records
 - fix: local storage settings are not being separated by user id (e.g. tab selection on home page)
 - Fix: auth: session expiration should auto extend as requests come in
 - Fix: many <input> have min instead of minlenght for text validation
