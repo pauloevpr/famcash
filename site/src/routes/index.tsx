@@ -159,6 +159,11 @@ function LogoMono() {
   )
 }
 function Logo() {
+  // <div class="flex items-center font-serif justify-center text-[390px]  w-[512px] h-[512px] bg-gradient-to-br from-primary-200 to-accent-200">
+  //   <span class="block -mb-12">
+  //     F
+  //   </span>
+  // </div>
   return (
     <span class="font-serif text-3xl font-bold">
       <span class="text-primary">Fam</span>

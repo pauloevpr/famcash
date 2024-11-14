@@ -7,9 +7,12 @@ export default createHandler(() => (
     document={({ assets, children, scripts }) => (
       <html lang="en">
         <head>
+          <title>Famcash</title>
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <link rel="icon" href="/favicon.ico" />
+          <link rel="apple-touch-icon" href="/pwa/pwa-192x192.png" />
+          <link rel="manifest" href="/pwa/manifest.json" />
           <style>
             {`@font-face {
 								font-family: "Inter";
@@ -26,8 +29,22 @@ export default createHandler(() => (
         <body class="text-base background pb-16">
           <div id="app">{children}</div>
           {scripts}
+          <PWA />
         </body>
       </html>
     )}
   />
 ));
+
+function PWA() {
+  return (
+    <script>{`
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/pwa/sw.js').then(
+        () => console.log('Service Worker registered successfully.'),
+        (error) => console.log('Service Worker registration failed:', error)
+      );
+    }
+  `}</script>
+  )
+}

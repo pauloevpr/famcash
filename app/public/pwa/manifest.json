@@ -1,0 +1,21 @@
+{
+  "name": "Famcash",
+  "short_name": "Famcash",
+  "description": "Famcash is the number one money management app designed for families. Accessible from any device, from anywhere. Absolutely free and open source. No ads. No tracking. No tricks.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/pwa/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/pwa/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
