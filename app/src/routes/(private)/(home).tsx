@@ -203,14 +203,17 @@ function CategorySpending(props: VoidProps<{ category: CategoryWithSpending }>) 
           <span class="transition-all">
             <span class="block sm:inline text-right whitespace-nowrap">
               <span class="sr-only" >Total Spent:</span>
-              {formatter.currency(props.category.total) + " / "}
+              <span class="font-medium">
+                {formatter.currency(props.category.total)}
+              </span>
+              <span class="hidden sm:inline">{" / "}</span>
             </span>
-            <span class="block sm:inline text-right text-light font-normal" >
+            <span class="block sm:inline text-sm sm:text-base text-right text-light font-normal" >
               <span class="sr-only" >Planned Spent:</span>
               {`${formatter.currency(props.category.plan?.limit || 0)} `}
             </span>
           </span>
-          <ChevronRightIcon class="w-5 h-5 text-gray-400 group-open:rotate-90 transition-transform duration-200" />
+          <ChevronRightIcon class="hidden sm:inline w-5 h-5 text-gray-400 group-open:rotate-90 transition-transform duration-200" />
         </summary>
         <div>
           <div class="border-t border-gray-200">
