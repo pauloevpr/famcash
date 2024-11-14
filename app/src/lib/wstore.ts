@@ -167,8 +167,9 @@ export const store = createWireStore({
 					base.recurrency!.endDate = occurrence.date
 					await store.recurrencies.set(parsedId.recurrency.id, { ...base })
 				}
+			} else {
+				await store.transactions.delete(id)
 			}
-			await store.transactions.delete(id)
 		}
 
 		async function saveTransaction(transaction: Transaction) {
