@@ -1,5 +1,5 @@
 import { DbUser } from "./models"
-import sgMail from '@sendgrid/mail'
+import postmark from "postmark"
 
 type EmailMessage = {
 	to: string
@@ -28,21 +28,23 @@ let send = async (msg: EmailMessage) => {
 	console.log("Dev email: ", msg)
 }
 
-let apiKey = process.env.SENDGRID_API_KEY
+let apiKey = process.env.MAILER_API_KEY
 if (apiKey) {
-	let sender = process.env.SENDGRID_SENDER
-	if (!sender) throw Error("Sendgrid sender setting missing")
-	sgMail.setApiKey(apiKey)
-	send = async (incompleteMessage: EmailMessage) => {
-		let message = {
-			...incompleteMessage,
-			from: sender,
-		}
-		return sgMail
-			.send(message)
-			.then(() => {
-				console.log(`Email sent: ${incompleteMessage.subject}`)
-			})
+	let sender = process.env.MAILER_SENDER
+	if (!sender) throw Error("Sendgrid sender setting missing") // Send an email: var client = new postmark.ServerClient(process.MAILER_API_KEY);
+	let client = new postmark.ServerClient(apiKey);
+
+	send = async (message: EmailMessage) => {
+		client.sendEmail({
+			"From": sender,
+			"To": message.to,
+			"Subject": message.subject,
+			"HtmlBody": message.text,
+			"TextBody": message.html,
+			"MessageStream": "outbound"
+		}).then(() => {
+			console.log(`Email sent: ${message.subject}`)
+		})
 			.catch((error) => {
 				console.error(error)
 			})
